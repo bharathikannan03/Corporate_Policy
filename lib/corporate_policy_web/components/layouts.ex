@@ -35,40 +35,192 @@ defmodule CorporatePolicyWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </header>
-
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
+    <main>
+      {render_slot(@inner_block)}
     </main>
 
     <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  Renders the admin layout with sidebar navigation and top header.
+  Used by all authenticated admin LiveViews.
+  """
+  attr :flash, :map, required: true
+  attr :current_user, :map, default: nil
+  attr :active_path, :string, default: "/admin/dashboard"
+
+  slot :inner_block, required: true
+
+  def admin(assigns) do
+    ~H"""
+    <div class="admin-layout">
+      <%!-- Sidebar --%>
+      <aside class="admin-sidebar" id="admin-sidebar">
+        <%!-- Brand --%>
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <span class="brand-icon">🛡️</span>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">CorpPolicy</span>
+            <span class="brand-tagline">Admin Portal</span>
+          </div>
+        </div>
+
+        <%!-- User info --%>
+        <div class="sidebar-user">
+          <div class="user-avatar">
+            <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
+          </div>
+          <div class="user-info">
+            <p class="user-name">
+              {if @current_user,
+                do: "#{@current_user.first_name} #{@current_user.last_name}",
+                else: "Admin"}
+            </p>
+            <p class="user-role">Vibe Admin</p>
+          </div>
+          <div class="user-actions">
+            <a href={~p"/logout"} data-method="delete" id="logout-link" class="logout-btn">
+              <.icon name="hero-power" class="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+
+        <%!-- Navigation --%>
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <.sidebar_item
+            icon="hero-squares-2x2"
+            label="Dashboard"
+            href={~p"/admin/dashboard"}
+            active={@active_path == "/admin/dashboard"}
+          />
+          <.sidebar_item
+            icon="hero-building-office-2"
+            label="Corporate"
+            href={~p"/admin/corporate"}
+            active={@active_path == "/admin/corporate"}
+          />
+          <.sidebar_item
+            icon="hero-document-text"
+            label="Policy Details"
+            href={~p"/admin/policy-details"}
+            active={@active_path == "/admin/policy-details"}
+          />
+          <.sidebar_item
+            icon="hero-banknotes"
+            label="CD Statements"
+            href={~p"/admin/cd-statements"}
+            active={@active_path == "/admin/cd-statements"}
+          />
+          <.sidebar_item
+            icon="hero-cog-6-tooth"
+            label="Roles Configuration"
+            href={~p"/admin/roles-configuration"}
+            active={@active_path == "/admin/roles-configuration"}
+          />
+          <.sidebar_item
+            icon="hero-users"
+            label="Users"
+            href={~p"/admin/users"}
+            active={@active_path == "/admin/users"}
+          />
+          <.sidebar_item
+            icon="hero-user-group"
+            label="Corporate Employees"
+            href={~p"/admin/corporate-employees"}
+            active={@active_path == "/admin/corporate-employees"}
+          />
+          <.sidebar_item
+            icon="hero-building-office"
+            label="Cashless Hospitals"
+            href={~p"/admin/cashless-hospitals"}
+            active={@active_path == "/admin/cashless-hospitals"}
+          />
+          <.sidebar_item
+            icon="hero-chart-bar"
+            label="Escalation Matrix"
+            href={~p"/admin/escalation-matrix"}
+            active={@active_path == "/admin/escalation-matrix"}
+          />
+          <.sidebar_item
+            icon="hero-clipboard-document-list"
+            label="Total Claim Reported"
+            href={~p"/admin/total-claim-reported"}
+            active={@active_path == "/admin/total-claim-reported"}
+          />
+          <.sidebar_item
+            icon="hero-bell-alert"
+            label="Claims Intimation"
+            href={~p"/admin/claims-intimation"}
+            active={@active_path == "/admin/claims-intimation"}
+          />
+          <.sidebar_item
+            icon="hero-paper-airplane"
+            label="Claims Submission"
+            href={~p"/admin/claims-submission"}
+            active={@active_path == "/admin/claims-submission"}
+          />
+        </nav>
+      </aside>
+
+      <%!-- Main content area --%>
+      <div class="admin-main">
+        <%!-- Top header --%>
+        <header class="admin-topbar">
+          <div class="topbar-left">
+            <h2 class="topbar-title">Admin Portal</h2>
+          </div>
+          <div class="topbar-right">
+            <div class="topbar-user">
+              <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
+              <span class="topbar-username">
+                Welcome, {if @current_user,
+                  do: "#{@current_user.first_name} #{@current_user.last_name}",
+                  else: "Admin"}
+              </span>
+              <a
+                href={~p"/logout"}
+                data-method="delete"
+                id="topbar-logout"
+                class="topbar-logout"
+              >
+                <.icon name="hero-arrow-right-on-rectangle" class="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </header>
+
+        <%!-- Page content --%>
+        <main class="admin-content">
+          <.flash_group flash={@flash} />
+          {render_slot(@inner_block)}
+        </main>
+      </div>
+    </div>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :href, :string, required: true
+  attr :active, :boolean, default: false
+
+  defp sidebar_item(assigns) do
+    ~H"""
+    <.link
+      navigate={@href}
+      id={"sidebar-#{String.replace(@label, " ", "-") |> String.downcase()}"}
+      class={[
+        "sidebar-nav-item",
+        @active && "sidebar-nav-item--active"
+      ]}
+    >
+      <.icon name={@icon} class="sidebar-nav-icon" />
+      <span class="sidebar-nav-label">{@label}</span>
+    </.link>
     """
   end
 

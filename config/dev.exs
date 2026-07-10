@@ -5,7 +5,7 @@ config :corporate_policy, CorporatePolicy.Repo,
   username: System.get_env("DB_USER", "postgres"),
   password: System.get_env("DB_PASSWORD", "postgres"),
   hostname: System.get_env("DB_HOST", "localhost"),
-  database: System.get_env("DB_NAME", "corporate_policy_dev"),
+  database: System.get_env("DB_NAME", "corporate_policy"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

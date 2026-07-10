@@ -18,7 +18,10 @@ defmodule CorporatePolicyWeb.SessionControllerTest do
         password: "secret123"
       })
 
-    conn = post(conn, ~p"/login", %{"user" => %{"email_address" => user.email_address, "password" => "secret123"}})
+    conn =
+      post(conn, ~p"/login", %{
+        "user" => %{"email_address" => user.email_address, "password" => "secret123"}
+      })
 
     assert redirected_to(conn) == "/admin/dashboard"
     assert get_session(conn, :current_user_id) == user.id

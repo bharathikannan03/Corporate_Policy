@@ -83,9 +83,14 @@ defmodule CorporatePolicyWeb.Layouts do
             <p class="user-role">Vibe Admin</p>
           </div>
           <div class="user-actions">
-            <a href={~p"/logout"} data-method="delete" id="logout-link" class="logout-btn">
+            <.link
+              href={~p"/logout"}
+              method="delete"
+              id="logout-link"
+              class="logout-btn"
+            >
               <.icon name="hero-power" class="w-4 h-4" />
-            </a>
+            </.link>
           </div>
         </div>
 
@@ -181,14 +186,14 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
-              <a
+              <.link
                 href={~p"/logout"}
-                data-method="delete"
+                method="delete"
                 id="topbar-logout"
                 class="topbar-logout"
               >
                 <.icon name="hero-arrow-right-on-rectangle" class="w-5 h-5" />
-              </a>
+              </.link>
             </div>
           </div>
         </header>

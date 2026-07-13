@@ -391,13 +391,13 @@ Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
 
 ### `master_corporates`
 
-Migration sources: `database/migrations/2024_10_17_092802_master_corporates_table.php`, `database/migrations/2024_10_22_065706_add_pincode_city_state_to_master_corporates_table.php`, `database/migrations/2024_10_24_070754_add_column_helpline_to_master_corporates_table.php`, `database/migrations/2024_10_24_084649_modify_ref_master_logos_corporate_logo_nullable_in_master_corporates.php`, `database/migrations/2024_10_25_152846_modify_master_corporates_nullable.php`, `database/migrations/2024_11_08_101420_modify_master_corporates_table.php`
+Migration sources: `database/migrations/2024_10_17_092802_master_corporates_table.php`, `database/migrations/2024_10_22_065706_add_pincode_city_state_to_master_corporates_table.php`, `database/migrations/2024_10_24_070754_add_column_helpline_to_master_corporates_table.php`, `database/migrations/2024_10_24_084649_modify_ref_master_corporate_logos_id_nullable_in_master_corporates.php`, `database/migrations/2024_10_25_152846_modify_master_corporates_nullable.php`, `database/migrations/2024_11_08_101420_modify_master_corporates_table.php`
 
 | Column | Data Type | Length / Precision | Nullable | Default | PK | FK | References | Auto Increment |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | corporate_id | unsignedBigInteger |  | No |  | Yes |  |  | Yes |
 | corporate_name | varchar | 255 | No |  |  |  |  |  |
-| ref_master_logos_corporate_logo | integer |  | Yes |  |  |  |  |  |
+| ref_master_corporate_logos_id | integer |  | Yes |  |  |  |  |  |
 | coporate_contact_email | varchar | 255 | Yes |  |  |  |  |  |
 | corporate_landline | varchar | 255 | Yes |  |  |  |  |  |
 | ref_master_pincode_pincode_id | integer |  | No |  |  |  |  |  |

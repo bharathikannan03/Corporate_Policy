@@ -102,12 +102,24 @@ defmodule CorporatePolicyWeb.Layouts do
             href={~p"/admin/dashboard"}
             active={@active_path == "/admin/dashboard"}
           />
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-building-office-2"
             label="Corporate"
-            href={~p"/admin/corporate"}
-            active={@active_path == "/admin/corporate"}
-          />
+            open={String.starts_with?(@active_path, "/admin/corporate")}
+          >
+            <.sidebar_child_item
+              label="All Corporates"
+              href={~p"/admin/corporate"}
+              active={@active_path == "/admin/corporate"}
+              id="sidebar-all-corporates"
+            />
+            <.sidebar_child_item
+              label="Add Corporate"
+              href={~p"/admin/corporate/new"}
+              active={@active_path == "/admin/corporate/new"}
+              id="sidebar-add-corporate"
+            />
+          </.sidebar_group>
           <.sidebar_item
             icon="hero-document-text"
             label="Policy Details"
@@ -225,6 +237,61 @@ defmodule CorporatePolicyWeb.Layouts do
     >
       <.icon name={@icon} class="sidebar-nav-icon" />
       <span class="sidebar-nav-label">{@label}</span>
+    </.link>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :open, :boolean, default: false
+  slot :inner_block, required: true
+
+  defp sidebar_group(assigns) do
+    ~H"""
+    <div
+      class={["sidebar-group", @open && "sidebar-group--open"]}
+      id={"group-#{String.downcase(@label)}"}
+    >
+      <button
+        type="button"
+        id={"group-toggle-#{String.downcase(@label)}"}
+        class="sidebar-group-header"
+        phx-click={
+          JS.toggle(to: "#group-children-#{String.downcase(@label)}")
+          |> JS.toggle_class("sidebar-group--open", to: "#group-#{String.downcase(@label)}")
+        }
+      >
+        <span class="sidebar-group-header-left">
+          <.icon name={@icon} class="sidebar-nav-icon" />
+          <span class="sidebar-nav-label">{@label}</span>
+        </span>
+        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+      </button>
+      <div
+        id={"group-children-#{String.downcase(@label)}"}
+        class="sidebar-group-children"
+        style={if @open, do: "display:block", else: "display:none"}
+      >
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
+
+  attr :label, :string, required: true
+  attr :href, :string, required: true
+  attr :active, :boolean, default: false
+  attr :id, :string, required: true
+
+  defp sidebar_child_item(assigns) do
+    ~H"""
+    <.link
+      navigate={@href}
+      id={@id}
+      class={["sidebar-child-item", @active && "sidebar-child-item--active"]}
+    >
+      <span class="sidebar-child-dot"></span>
+      {@label}
     </.link>
     """
   end

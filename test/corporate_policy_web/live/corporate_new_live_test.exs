@@ -133,4 +133,57 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     assert mapping.corporatecontacts_id == user_in_db.id
     assert mapping.status == 1
   end
+
+  test "saves corporate with uploaded logo", %{conn: conn, user: user} do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    # Select and upload the file
+    logo_input =
+      file_input(view, "#corporate-form", :logo, [
+        %{
+          name: "logo.png",
+          content: "fake png image content",
+          type: "image/png"
+        }
+      ])
+
+    render_upload(logo_input, "logo.png")
+
+    valid_attrs = %{
+      "corporate_name" => "Logo Corp",
+      "pincode" => "560001",
+      "city" => "Bengaluru",
+      "state" => "Karnataka",
+      "corporate_address" => "123 Main Street",
+      "pan_number" => "ABCDE1234F",
+      "corporate_landline" => "080-12345678",
+      "coporate_contact_email" => "contact@logo.com",
+      "industry_type" => "Technology",
+      "branch_name" => "HQ Branch",
+      "helpline_no" => "1800123456"
+    }
+
+    # Submit the form with next action
+    view
+    |> form("#corporate-form", %{
+      "corporate" => valid_attrs
+    })
+    |> render_submit(%{"action" => "next"})
+
+    # The corporate data should be stored in the database now!
+    assert Repo.aggregate(Corporate, :count, :corporate_id) == 1
+    corporate = Repo.one(Corporate) |> Repo.preload(:logo)
+    assert corporate.corporate_name == "Logo Corp"
+    assert corporate.logo != nil
+    assert corporate.logo.logo =~ "/uploads/logos/"
+    assert corporate.logo.logo =~ ".png"
+
+    # Verify that file was saved to disk
+    file_path = Path.join(["priv", "static" | String.split(corporate.logo.logo, "/")])
+    assert File.exists?(file_path)
+
+    # Clean up the file
+    File.rm!(file_path)
+  end
 end

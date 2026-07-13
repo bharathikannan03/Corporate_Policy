@@ -418,18 +418,58 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
   def handle_event("save", %{"action" => "next", "corporate" => params}, socket) do
     corporate_params = Map.drop(params, ["contacts"])
 
-    case Corporates.create_corporate(corporate_params) do
-      {:ok, corporate} ->
-        {:noreply,
-         socket
-         |> assign(:saved_corporate_id, corporate.corporate_id)
-         |> assign(:tab, :contacts)}
+    changeset =
+      %CorporatePolicy.Corporates.Corporate{}
+      |> Corporates.change_corporate(corporate_params)
 
-      {:error, failed_changeset} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Please fix the errors below.")
-         |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
+    if changeset.valid? do
+      logo_path =
+        consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
+          ext = Path.extname(entry.client_name)
+          filename = "#{Ecto.UUID.generate()}#{ext}"
+
+          # Save locally in project root
+          dest_source = Path.join(["priv", "static", "uploads", "logos", filename])
+          File.mkdir_p!(Path.dirname(dest_source))
+          File.cp!(path, dest_source)
+
+          # Save to build output
+          dest_compiled =
+            Path.join([
+              :code.priv_dir(:corporate_policy),
+              "static",
+              "uploads",
+              "logos",
+              filename
+            ])
+
+          File.mkdir_p!(Path.dirname(dest_compiled))
+          File.cp!(path, dest_compiled)
+
+          {:ok, "/uploads/logos/" <> filename}
+        end)
+        |> List.first()
+
+      case Corporates.create_corporate(corporate_params, logo_path) do
+        {:ok, corporate} ->
+          {:noreply,
+           socket
+           |> assign(:saved_corporate_id, corporate.corporate_id)
+           |> assign(:tab, :contacts)}
+
+        {:error, failed_changeset} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Please fix the errors below.")
+           |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
+      end
+    else
+      failed_changeset = Map.put(changeset, :action, :next)
+
+      {:noreply,
+       socket
+       |> put_flash(:error, "Please fix the errors below.")
+       |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
     end
   end
 

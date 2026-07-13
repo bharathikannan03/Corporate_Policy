@@ -19,6 +19,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
       |> assign(:page_title, "All Corporates")
       |> assign(:current_user, current_user)
       |> assign(:active_path, "/admin/corporate")
+      |> stream_configure(:corporates, dom_id: fn corp -> "corporates-#{corp.corporate_id}" end)
       |> stream(:corporates, corporates)
       |> assign(:corporates_empty?, corporates == [])
 

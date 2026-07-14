@@ -234,19 +234,6 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
                   />
                 </div>
 
-                <div class="corp-field-group">
-                  <label class="corp-label" for="corporate_corporate_status">
-                    Corporate Status <span class="corp-required">*</span>
-                  </label>
-                  <.input
-                    field={@form[:corporate_status]}
-                    type="select"
-                    options={[{"Active", 1}, {"Inactive", 0}]}
-                    class="corp-input"
-                    id="corporate_corporate_status"
-                  />
-                </div>
-
                 <%!-- Logo Upload — spans full row --%>
                 <div class="corp-field-group corp-field-group--full" id="logo-upload-group">
                   <label class="corp-label">Corporate Logo</label>

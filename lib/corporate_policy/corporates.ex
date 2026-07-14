@@ -35,6 +35,173 @@ defmodule CorporatePolicy.Corporates do
   end
 
   @doc """
+  Gets a single corporate preloading its logo. Raises if not found.
+  """
+  def get_corporate_with_logo!(id) do
+    Corporate
+    |> Repo.get!(id)
+    |> Repo.preload(:logo)
+  end
+
+  @doc """
+  Lists all active contacts (users) associated with a corporate.
+  """
+  def list_contacts_for_corporate(corporate_id) do
+    query =
+      from u in CorporatePolicy.Accounts.User,
+        join: m in "trn_mapping_corporateid_corporatecontactsids",
+        on: m.corporatecontacts_id == u.id,
+        where: m.corporate_id == ^corporate_id and m.status == 1,
+        select: u
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Updates a corporate record. If a logo_path is provided, a new logo is inserted
+  and linked.
+  """
+  def update_corporate(%Corporate{} = corporate, attrs, logo_path \\ nil) do
+    logo_id =
+      if logo_path do
+        case create_logo(%{logo: logo_path, status: 1}) do
+          {:ok, logo} -> logo.logo_id
+          _ -> nil
+        end
+      else
+        corporate.ref_master_corporate_logos_id
+      end
+
+    attrs = Map.put(attrs, "ref_master_corporate_logos_id", logo_id)
+    corporate_attrs = Map.drop(attrs, ["contacts"])
+
+    corporate
+    |> Corporate.changeset(corporate_attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates the associated contacts for a corporate. Handles updating existing ones,
+  inserting new ones, and soft-deleting removed ones from the mapping.
+  """
+  def update_contacts(corporate_id, contacts_params) when is_list(contacts_params) do
+    Repo.transaction(fn repo ->
+      # 1. Fetch current mappings for this corporate
+      current_mappings =
+        repo.all(
+          from m in "trn_mapping_corporateid_corporatecontactsids",
+            where: m.corporate_id == ^corporate_id and m.status == 1,
+            select: %{id: m.corporatecontacts_id}
+        )
+
+      current_contact_ids = Enum.map(current_mappings, & &1.id)
+
+      # 2. Process each submitted contact
+      submitted_ids =
+        Enum.map(contacts_params, fn contact ->
+          contact_id = Map.get(contact, "id")
+
+          db_id =
+            case contact_id do
+              id when is_integer(id) ->
+                id
+
+              id when is_binary(id) ->
+                case Integer.parse(id) do
+                  {num, ""} -> num
+                  _ -> nil
+                end
+
+              _ ->
+                nil
+            end
+
+          full_name = Map.get(contact, "full_name", "")
+          email = Map.get(contact, "email_address", "")
+          mobile = Map.get(contact, "mobile_number", "")
+
+          if Enum.all?([full_name, email, mobile], &(&1 == "")) do
+            nil
+          else
+            parts = String.split(full_name, ~r/\s+/, parts: 2)
+
+            {first_name, last_name} =
+              case parts do
+                [f, l] when l != "" -> {f, l}
+                [f] when f != "" -> {f, "User"}
+                _ -> {"Contact", "User"}
+              end
+
+            user_attrs = %{
+              first_name: first_name,
+              last_name: last_name,
+              full_name: full_name,
+              mobile_no: mobile,
+              email_address: email,
+              status: 1,
+              corporate_username: Map.get(contact, "corporate_username", ""),
+              department_name: Map.get(contact, "department", ""),
+              location: Map.get(contact, "location", "")
+            }
+
+            if db_id && db_id in current_contact_ids do
+              # Update existing user
+              user = repo.get!(CorporatePolicy.Accounts.User, db_id)
+              user_changeset = CorporatePolicy.Accounts.User.changeset(user, user_attrs)
+
+              case repo.update(user_changeset) do
+                {:ok, updated_user} -> updated_user.id
+                {:error, cs} -> repo.rollback(cs)
+              end
+            else
+              # Insert new user
+              random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+              user_attrs = Map.put(user_attrs, :password, random_password)
+
+              user_changeset =
+                CorporatePolicy.Accounts.User.changeset(
+                  %CorporatePolicy.Accounts.User{},
+                  user_attrs
+                )
+
+              case repo.insert(user_changeset) do
+                {:ok, user} ->
+                  now = DateTime.utc_now()
+
+                  mapping = %{
+                    corporate_id: corporate_id,
+                    corporatecontacts_id: user.id,
+                    status: 1,
+                    inserted_at: now,
+                    updated_at: now
+                  }
+
+                  repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                  user.id
+
+                {:error, cs} ->
+                  repo.rollback(cs)
+              end
+            end
+          end
+        end)
+        |> Enum.reject(&is_nil/1)
+
+      # 3. Soft-delete mappings for contacts that were deleted in UI
+      removed_ids = current_contact_ids -- submitted_ids
+
+      if not Enum.empty?(removed_ids) do
+        from(m in "trn_mapping_corporateid_corporatecontactsids",
+          where: m.corporate_id == ^corporate_id and m.corporatecontacts_id in ^removed_ids
+        )
+        |> repo.update_all(set: [status: 0, updated_at: DateTime.utc_now()])
+      end
+
+      {:ok, :success}
+    end)
+  end
+
+  @doc """
   Step 1 — saves logo (if any) into `master_logos` then inserts the corporate
   row into `master_corporates` linking the logo id.
 

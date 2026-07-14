@@ -902,6 +902,29 @@ html, body {
 .corp-action-btn--edit { background: #fefce8; color: #ca8a04; }
 .corp-action-btn--edit:hover { background: #fef9c3; }
 
+.corp-action-btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.corp-action-btn-text--edit {
+  background: #fefce8;
+  color: #ca8a04;
+}
+
+.corp-action-btn-text--edit:hover {
+  background: #fef9c3;
+  color: #a16207;
+}
+
 .corp-empty-row td {
   padding: 48px 16px;
 }

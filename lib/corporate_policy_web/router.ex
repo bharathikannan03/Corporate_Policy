@@ -34,6 +34,7 @@ defmodule CorporatePolicyWeb.Router do
     live "/dashboard", DashboardLive
     live "/corporate", CorporateLive
     live "/corporate/new", CorporateNewLive
+    live "/corporate/:id/edit", CorporateEditLive
     live "/policy-details", PolicyDetailsLive
     live "/cd-statements", CdStatementsLive
     live "/roles-configuration", RolesConfigurationLive

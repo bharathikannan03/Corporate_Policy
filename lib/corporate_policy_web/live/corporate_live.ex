@@ -92,20 +92,14 @@ defmodule CorporatePolicyWeb.CorporateLive do
                   </td>
                   <td class="corp-td">
                     <div class="corp-actions">
-                      <button
-                        class="corp-action-btn corp-action-btn--view"
-                        title="View"
-                        id={"view-corp-#{corp.corporate_id}"}
-                      >
-                        <.icon name="hero-eye" class="w-4 h-4" />
-                      </button>
-                      <button
-                        class="corp-action-btn corp-action-btn--edit"
-                        title="Edit"
+                      <.link
+                        navigate={~p"/admin/corporate/#{corp.corporate_id}/edit"}
+                        class="corp-action-btn-text corp-action-btn-text--edit"
+                        title="Edit Corporate"
                         id={"edit-corp-#{corp.corporate_id}"}
                       >
-                        <.icon name="hero-pencil" class="w-4 h-4" />
-                      </button>
+                        <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit Corporate
+                      </.link>
                     </div>
                   </td>
                 </tr>

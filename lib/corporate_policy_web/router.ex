@@ -33,7 +33,8 @@ defmodule CorporatePolicyWeb.Router do
 
     live "/dashboard", DashboardLive
     live "/corporate", CorporateLive
-    live "/policy-details", PolicyDetailsLive
+    live "/policy-details", PolicyLive
+    live "/policy-details/add", AddPolicyLive
     live "/cd-statements", CdStatementsLive
     live "/roles-configuration", RolesConfigurationLive
     live "/users", UsersLive

@@ -25,7 +25,9 @@ config :corporate_policy, CorporatePolicyWeb.Endpoint,
 # Configure LiveView
 config :phoenix_live_view,
   # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
-  root_tag_attribute: "phx-r"
+  root_tag_attribute: "phx-r",
+  # disable the warning about colocated assets
+  colocated_assets: [disable_symlink_warning: true]
 
 # Configure the mailer
 #

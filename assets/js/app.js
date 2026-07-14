@@ -23,13 +23,66 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/corporate_policy"
+import Chart from "chart.js/auto"
 import topbar from "../vendor/topbar"
 
+const RenewalsChart = {
+  mounted() {
+    const labels = JSON.parse(this.el.dataset.labels)
+    const values = JSON.parse(this.el.dataset.values)
+
+    this.chart = new Chart(this.el, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Renewals",
+          data: values,
+          borderColor: "#0ea5e9",
+          backgroundColor: "rgba(14, 165, 233, 0.18)",
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    })
+  },
+
+  destroyed() {
+    if (this.chart) this.chart.destroy()
+  }
+}
+
+const SidebarDropdown = {
+  mounted() {
+    this.handleEvent("toggle-dropdown", () => {
+      this.el.classList.toggle("open")
+    })
+    this.handleEvent("close-dropdown", () => {
+      this.el.classList.remove("open")
+    })
+  }
+}
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {RenewalsChart, SidebarDropdown, ...colocatedHooks},
 })
 
 // Show progress bar on live navigation and form submits
@@ -80,4 +133,5 @@ if (process.env.NODE_ENV === "development") {
     window.liveReloader = reloader
   })
 }
+
 

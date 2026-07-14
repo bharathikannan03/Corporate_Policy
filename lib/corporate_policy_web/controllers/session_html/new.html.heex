@@ -5,9 +5,10 @@
         <p class="text-xs font-semibold uppercase tracking-widest text-primary">
           Secure access
         </p>
+        
         <h1 class="mt-2 text-xl font-bold text-base-content">Login to your account</h1>
       </div>
-
+      
       <.form for={@form} id="login-form" action={~p"/login"} method="post" class="space-y-4">
         <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
         <.input

@@ -16,6 +16,7 @@ defmodule CorporatePolicyWeb.SessionController do
     case Accounts.authenticate_user(email, password) do
       {:ok, user} ->
         conn
+        |> configure_session(renew: true)
         |> put_session(:current_user_id, user.id)
         |> put_flash(:info, "Welcome back!")
         |> redirect(to: ~p"/admin/dashboard")

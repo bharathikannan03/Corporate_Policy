@@ -26,6 +26,14 @@ defmodule CorporatePolicy.Corporates do
     |> Repo.all()
   end
 
+  @doc "Returns all corporates with a specific status."
+  def list_corporates_by_status(status) do
+    Corporate
+    |> where([c], c.corporate_status == ^status)
+    |> order_by([c], desc: c.corporate_id)
+    |> Repo.all()
+  end
+
   @doc "Gets a single corporate. Raises if not found."
   def get_corporate!(id), do: Repo.get!(Corporate, id)
 

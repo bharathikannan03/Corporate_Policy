@@ -32,10 +32,10 @@ defmodule CorporatePolicy.Corporates.Corporate do
     timestamps(type: :utc_datetime_usec)
   end
 
-  @required_fields ~w(corporate_name corporate_address pincode city state pan_number)a
+  @required_fields ~w(corporate_name corporate_address pincode city state pan_number corporate_status)a
   @optional_fields ~w(
     coporate_contact_email corporate_landline corporate_group_code
-    industry_type corporate_buffer_visibility corporate_status
+    industry_type corporate_buffer_visibility
     helpline_no branch_name
     ref_master_corporate_logos_id
     ref_master_pincode_pincode_id ref_master_city_city_id ref_master_state_state_id

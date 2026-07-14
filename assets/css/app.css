@@ -916,13 +916,77 @@ html, body {
 }
 
 .corp-action-btn-text--edit {
-  background: #fefce8;
-  color: #ca8a04;
+  background: #3b82f6;
+  color: #ffffff;
 }
 
 .corp-action-btn-text--edit:hover {
-  background: #fef9c3;
-  color: #a16207;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.status-tabs {
+  display: flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  margin: 0 auto;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #ffffff;
+  border: none;
+  border-right: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.tab-btn:last-child {
+  border-right: none;
+}
+
+.tab-btn:hover {
+  background: #f9fafb;
+}
+
+.tab-btn--active {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.tab-btn--active:hover {
+  background: #2563eb;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+
+.btn-export:hover {
+  background: #2563eb;
 }
 
 .corp-empty-row td {

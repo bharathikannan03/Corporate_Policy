@@ -274,4 +274,29 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     assert html =~ "Logo upload failed"
     assert Repo.aggregate(Corporate, :count, :corporate_id) == 0
   end
+
+  test "creates corporate as inactive when corporate_status is 0", %{conn: conn, user: user} do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    valid_attrs = %{
+      "corporate_name" => "Inactive Corp",
+      "pincode" => "560001",
+      "city" => "Bengaluru",
+      "state" => "Karnataka",
+      "corporate_address" => "123 Main Street",
+      "pan_number" => "ABCDE1234F",
+      "corporate_status" => "0"
+    }
+
+    view
+    |> form("#corporate-form", %{
+      "corporate" => valid_attrs
+    })
+    |> render_submit(%{"action" => "next"})
+
+    corporate = Repo.get_by(Corporate, corporate_name: "Inactive Corp")
+    assert corporate != nil
+    assert corporate.corporate_status == 0
+  end
 end

@@ -19,6 +19,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
       |> assign(:page_title, "All Corporates")
       |> assign(:current_user, current_user)
       |> assign(:active_path, "/admin/corporate")
+      |> assign(:active_tab, "all")
       |> stream_configure(:corporates, dom_id: fn corp -> "corporates-#{corp.corporate_id}" end)
       |> stream(:corporates, corporates)
       |> assign(:corporates_empty?, corporates == [])
@@ -37,9 +38,49 @@ defmodule CorporatePolicyWeb.CorporateLive do
             <h1 class="corp-list-title">All Corporates</h1>
             <p class="corp-list-subtitle">Manage corporate accounts and their details</p>
           </div>
-          <.link navigate={~p"/admin/corporate/new"} id="add-corporate-btn" class="btn-primary">
-            <.icon name="hero-plus" class="w-4 h-4" /> Add Corporate
-          </.link>
+
+          <%!-- Tabs to filter status --%>
+          <div class="status-tabs" id="status-tabs">
+            <button
+              phx-click="filter_status"
+              phx-value-status="all"
+              class={["tab-btn", @active_tab == "all" && "tab-btn--active"]}
+              id="tab-all"
+            >
+              ALL
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="active"
+              class={["tab-btn", @active_tab == "active" && "tab-btn--active"]}
+              id="tab-active"
+            >
+              ACTIVE
+            </button>
+            <button
+              phx-click="filter_status"
+              phx-value-status="inactive"
+              class={["tab-btn", @active_tab == "inactive" && "tab-btn--active"]}
+              id="tab-inactive"
+            >
+              IN-ACTIVE
+            </button>
+          </div>
+
+          <div class="header-actions">
+            <.link
+              href={~p"/admin/corporate/export?status=#{@active_tab}"}
+              target="_blank"
+              class="btn-export"
+              id="export-corporates-btn"
+              data-phx-no-disconnect
+            >
+              <.icon name="hero-arrow-up-tray" class="w-4 h-4 mr-1" /> Export
+            </.link>
+            <.link navigate={~p"/admin/corporate/new"} id="add-corporate-btn" class="btn-primary">
+              <.icon name="hero-plus" class="w-4 h-4" /> Add Corporate
+            </.link>
+          </div>
         </div>
 
         <%!-- Table card --%>
@@ -58,7 +99,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
               </tr>
             </thead>
             <tbody id="corporates-tbody" phx-update="stream">
-              <tr class="hidden only:table-row corp-empty-row">
+              <tr class="hidden only:table-row corp-empty-row" id="corporates-empty-row">
                 <td colspan="8" class="corp-empty-cell">
                   <div class="corp-empty-state" id="corp-empty-state">
                     <.icon name="hero-building-office-2" class="w-12 h-12 text-gray-300 mb-3" />
@@ -110,5 +151,21 @@ defmodule CorporatePolicyWeb.CorporateLive do
       </div>
     </Layouts.admin>
     """
+  end
+
+  @impl true
+  def handle_event("filter_status", %{"status" => status}, socket) do
+    corporates =
+      case status do
+        "active" -> Corporates.list_corporates_by_status(1)
+        "inactive" -> Corporates.list_corporates_by_status(0)
+        _ -> Corporates.list_corporates()
+      end
+
+    {:noreply,
+     socket
+     |> assign(:active_tab, status)
+     |> assign(:corporates_empty?, corporates == [])
+     |> stream(:corporates, corporates, reset: true)}
   end
 end

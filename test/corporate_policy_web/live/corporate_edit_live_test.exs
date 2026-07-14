@@ -281,4 +281,36 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     assert mapping != nil
     assert mapping.status == 0
   end
+
+  test "updates corporate status successfully", %{conn: conn, user: user, corporate: corporate} do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/#{corporate.corporate_id}/edit")
+
+    # Initial corporate_status in DB is 0
+    assert corporate.corporate_status == 0
+
+    view
+    |> form("#corporate-form", %{
+      "corporate" => %{
+        "corporate_name" => "Updated Status Corp",
+        "pincode" => "600001",
+        "city" => "Madras",
+        "state" => "Tamil Nadu",
+        "corporate_address" => "789 New Road",
+        "pan_number" => "FIHPB4074D",
+        "corporate_status" => "1"
+      }
+    })
+    |> render_submit(%{"action" => "next"})
+
+    # Complete step 2 to save
+    view
+    |> form("#corporate-form", %{})
+    |> render_submit(%{"action" => "submit"})
+
+    assert_redirected(view, "/admin/corporate")
+
+    updated = Repo.get!(Corporate, corporate.corporate_id)
+    assert updated.corporate_status == 1
+  end
 end

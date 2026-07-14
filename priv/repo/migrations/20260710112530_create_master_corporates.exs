@@ -15,7 +15,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterCorporates do
       add :corporate_group_code, :string, size: 255
       add :industry_type, :string, size: 255
       add :corporate_buffer_visibility, :integer, default: 0, null: false
-      add :corporate_status, :integer, default: 0, null: false
+      add :corporate_status, :integer, default: 1, null: false
       add :pincode, :string, size: 10, null: false, default: ""
       add :city, :string, size: 25, null: false, default: ""
       add :state, :string, size: 25, null: false, default: ""

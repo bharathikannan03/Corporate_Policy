@@ -16,7 +16,8 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
 
     changeset =
       Corporates.change_corporate(%CorporatePolicy.Corporates.Corporate{}, %{
-        corporate_group_code: group_code
+        corporate_group_code: group_code,
+        corporate_status: 1
       })
 
     socket =
@@ -230,6 +231,19 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
                     placeholder="Vibe Helpline Number"
                     class="corp-input"
                     id="corporate_helpline_no"
+                  />
+                </div>
+
+                <div class="corp-field-group">
+                  <label class="corp-label" for="corporate_corporate_status">
+                    Corporate Status <span class="corp-required">*</span>
+                  </label>
+                  <.input
+                    field={@form[:corporate_status]}
+                    type="select"
+                    options={[{"Active", 1}, {"Inactive", 0}]}
+                    class="corp-input"
+                    id="corporate_corporate_status"
                   />
                 </div>
 

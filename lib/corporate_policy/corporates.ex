@@ -1,0 +1,157 @@
+defmodule CorporatePolicy.Corporates do
+  @moduledoc """
+  The Corporates context — manages master_corporates and master_logos records.
+  """
+  import Ecto.Query, warn: false
+
+  alias CorporatePolicy.Repo
+  alias CorporatePolicy.Corporates.Corporate
+  alias CorporatePolicy.Corporates.Logo
+
+  # ─── Logos ────────────────────────────────────────────────────────────────────
+
+  @doc "Inserts a logo record and returns {:ok, logo} or {:error, changeset}."
+  def create_logo(attrs) do
+    %Logo{}
+    |> Logo.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  # ─── Corporates ───────────────────────────────────────────────────────────────
+
+  @doc "Returns all corporates, ordered by most recent first."
+  def list_corporates do
+    Corporate
+    |> order_by([c], desc: c.corporate_id)
+    |> Repo.all()
+  end
+
+  @doc "Gets a single corporate. Raises if not found."
+  def get_corporate!(id), do: Repo.get!(Corporate, id)
+
+  @doc "Returns a changeset for tracking changes."
+  def change_corporate(corporate \\ %Corporate{}, attrs \\ %{}) do
+    Corporate.changeset(corporate, attrs)
+  end
+
+  @doc """
+  Step 1 — saves logo (if any) into `master_logos` then inserts the corporate
+  row into `master_corporates` linking the logo id.
+
+  Returns `{:ok, corporate}` or `{:error, changeset}`.
+  """
+  def create_corporate(attrs, logo_path \\ nil) do
+    logo_id =
+      if logo_path do
+        case create_logo(%{logo: logo_path, status: 1}) do
+          {:ok, logo} -> logo.logo_id
+          _ -> nil
+        end
+      end
+
+    attrs = Map.put(attrs, "ref_master_corporate_logos_id", logo_id)
+
+    # Strip contacts key so it does not confuse the corporate changeset
+    corporate_attrs = Map.drop(attrs, ["contacts"])
+    changeset = Corporate.changeset(%Corporate{}, corporate_attrs)
+
+    Repo.insert(changeset)
+  end
+
+  @doc """
+  Step 2 — given an existing `corporate_id` and a list of contact param maps,
+  inserts each contact as a `users` row and links it via
+  `trn_mapping_corporateid_corporatecontactsids`.
+
+  Entries where all of full_name / email_address / mobile_number are blank are
+  silently skipped.
+
+  Returns `{:ok, [users | :skipped]}` or `{:error, changeset}`.
+  """
+  def save_contacts(corporate_id, contacts_params) when is_list(contacts_params) do
+    Repo.transaction(fn repo ->
+      results =
+        Enum.map(contacts_params, fn contact ->
+          full_name = Map.get(contact, "full_name", "")
+          email = Map.get(contact, "email_address", "")
+          mobile = Map.get(contact, "mobile_number", "")
+
+          if Enum.all?([full_name, email, mobile], &(&1 == "")) do
+            {:ok, :skipped}
+          else
+            random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+
+            parts = String.split(full_name, ~r/\s+/, parts: 2)
+
+            {first_name, last_name} =
+              case parts do
+                [f, l] when l != "" -> {f, l}
+                [f] when f != "" -> {f, "User"}
+                _ -> {"Contact", "User"}
+              end
+
+            user_attrs = %{
+              first_name: first_name,
+              last_name: last_name,
+              full_name: full_name,
+              mobile_no: mobile,
+              email_address: email,
+              password: random_password,
+              status: 1,
+              corporate_username: Map.get(contact, "corporate_username", ""),
+              department_name: Map.get(contact, "department", ""),
+              location: Map.get(contact, "location", "")
+            }
+
+            user_changeset =
+              CorporatePolicy.Accounts.User.changeset(
+                %CorporatePolicy.Accounts.User{},
+                user_attrs
+              )
+
+            case repo.insert(user_changeset) do
+              {:ok, user} ->
+                now = DateTime.utc_now()
+
+                mapping = %{
+                  corporate_id: corporate_id,
+                  corporatecontacts_id: user.id,
+                  status: 1,
+                  inserted_at: now,
+                  updated_at: now
+                }
+
+                repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                {:ok, user}
+
+              {:error, cs} ->
+                IO.inspect(cs.errors, label: "User changeset errors in save_contacts")
+                repo.rollback(cs)
+            end
+          end
+        end)
+
+      Enum.map(results, fn {:ok, val} -> val end)
+    end)
+  end
+
+  @doc """
+  Generates a unique 6-character alphanumeric group code.
+  Keeps retrying until a code that does not exist in the DB is found.
+  """
+  def generate_group_code do
+    code = random_code()
+
+    if Repo.exists?(from c in Corporate, where: c.corporate_group_code == ^code) do
+      generate_group_code()
+    else
+      code
+    end
+  end
+
+  defp random_code do
+    :crypto.strong_rand_bytes(4)
+    |> Base.encode16(case: :upper)
+    |> binary_part(0, 6)
+  end
+end

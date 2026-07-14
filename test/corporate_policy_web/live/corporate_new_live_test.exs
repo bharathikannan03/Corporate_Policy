@@ -186,4 +186,92 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     # Clean up the file
     File.rm!(file_path)
   end
+
+  test "displays validation error for invalid PAN card format and normalizes lowercase to uppercase",
+       %{conn: conn, user: user} do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    # 1. Validate with invalid PAN format
+    invalid_attrs = %{
+      "corporate_name" => "Acme Corp",
+      "pincode" => "560001",
+      "city" => "Bengaluru",
+      "state" => "Karnataka",
+      "corporate_address" => "123 Main Street",
+      "pan_number" => "invalidpan1"
+    }
+
+    html =
+      view
+      |> form("#corporate-form", %{
+        "corporate" => invalid_attrs
+      })
+      |> render_submit(%{"action" => "next"})
+
+    assert html =~ "must be in valid PAN format"
+
+    # 2. Check that a valid lowercase PAN is normalized and successfully saved
+    valid_lowercase_attrs = %{
+      "corporate_name" => "Acme Corp",
+      "pincode" => "560001",
+      "city" => "Bengaluru",
+      "state" => "Karnataka",
+      "corporate_address" => "123 Main Street",
+      "pan_number" => "abcde1234f"
+    }
+
+    view
+    |> form("#corporate-form", %{
+      "corporate" => valid_lowercase_attrs
+    })
+    |> render_submit(%{"action" => "next"})
+
+    # The corporate data should be stored in the database with normalized uppercase PAN
+    corporate = Repo.one(Corporate)
+    assert corporate != nil
+    assert corporate.pan_number == "ABCDE1234F"
+  end
+
+  test "fails corporate creation and shows error when logo upload has errors", %{
+    conn: conn,
+    user: user
+  } do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    # Select an invalid file type (e.g. .txt)
+    logo_input =
+      file_input(view, "#corporate-form", :logo, [
+        %{
+          name: "logo.txt",
+          content: "text content",
+          type: "text/plain"
+        }
+      ])
+
+    # This will trigger client/server validation errors
+    render_upload(logo_input, "logo.txt")
+
+    valid_attrs = %{
+      "corporate_name" => "Fail Corp",
+      "pincode" => "560001",
+      "city" => "Bengaluru",
+      "state" => "Karnataka",
+      "corporate_address" => "123 Main Street",
+      "pan_number" => "ABCDE1234F"
+    }
+
+    # Submit the form with next action
+    html =
+      view
+      |> form("#corporate-form", %{
+        "corporate" => valid_attrs
+      })
+      |> render_submit(%{"action" => "next"})
+
+    # It should display Logo upload failed and stop creation
+    assert html =~ "Logo upload failed"
+    assert Repo.aggregate(Corporate, :count, :corporate_id) == 0
+  end
 end

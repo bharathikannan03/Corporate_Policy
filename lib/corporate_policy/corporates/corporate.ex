@@ -32,16 +32,18 @@ defmodule CorporatePolicy.Corporates.Corporate do
     timestamps(type: :utc_datetime_usec)
   end
 
-  @required_fields ~w(corporate_name corporate_address pincode city state)a
+  @required_fields ~w(corporate_name corporate_address pincode city state pan_number)a
   @optional_fields ~w(
     coporate_contact_email corporate_landline corporate_group_code
     industry_type corporate_buffer_visibility corporate_status
-    helpline_no pan_number branch_name
+    helpline_no branch_name
     ref_master_corporate_logos_id
     ref_master_pincode_pincode_id ref_master_city_city_id ref_master_state_state_id
   )a
 
   def changeset(corporate, attrs) do
+    attrs = normalize_pan(attrs)
+
     corporate
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
@@ -49,6 +51,22 @@ defmodule CorporatePolicy.Corporates.Corporate do
     |> validate_length(:city, max: 25)
     |> validate_length(:state, max: 25)
     |> validate_length(:pan_number, max: 15)
+    |> validate_format(:pan_number, ~r/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+      message: "must be in valid PAN format (e.g. ABCDE1234F)"
+    )
+  end
+
+  defp normalize_pan(attrs) do
+    case attrs do
+      %{"pan_number" => pan} when is_binary(pan) ->
+        Map.put(attrs, "pan_number", String.upcase(pan))
+
+      %{pan_number: pan} when is_binary(pan) ->
+        Map.put(attrs, :pan_number, String.upcase(pan))
+
+      _ ->
+        attrs
+    end
   end
 
   defmodule ContactForm do

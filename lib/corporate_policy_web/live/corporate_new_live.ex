@@ -423,45 +423,74 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
       |> Corporates.change_corporate(corporate_params)
 
     if changeset.valid? do
-      logo_path =
-        consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
-          ext = Path.extname(entry.client_name)
-          filename = "#{Ecto.UUID.generate()}#{ext}"
+      entries = socket.assigns.uploads.logo.entries
 
-          # Save locally in project root
-          dest_source = Path.join(["priv", "static", "uploads", "logos", filename])
-          File.mkdir_p!(Path.dirname(dest_source))
-          File.cp!(path, dest_source)
+      has_upload_errors? =
+        not Enum.empty?(upload_errors(socket.assigns.uploads.logo)) or
+          Enum.any?(entries, fn entry ->
+            not Enum.empty?(upload_errors(socket.assigns.uploads.logo, entry))
+          end)
 
-          # Save to build output
-          dest_compiled =
-            Path.join([
-              :code.priv_dir(:corporate_policy),
-              "static",
-              "uploads",
-              "logos",
-              filename
-            ])
-
-          File.mkdir_p!(Path.dirname(dest_compiled))
-          File.cp!(path, dest_compiled)
-
-          {:ok, "/uploads/logos/" <> filename}
-        end)
-        |> List.first()
-
-      case Corporates.create_corporate(corporate_params, logo_path) do
-        {:ok, corporate} ->
+      cond do
+        has_upload_errors? ->
           {:noreply,
            socket
-           |> assign(:saved_corporate_id, corporate.corporate_id)
-           |> assign(:tab, :contacts)}
+           |> put_flash(:error, "Logo upload failed")
+           |> assign(form: Phoenix.Component.to_form(changeset, as: :corporate))}
 
-        {:error, failed_changeset} ->
-          {:noreply,
-           socket
-           |> put_flash(:error, "Please fix the errors below.")
-           |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
+        true ->
+          try do
+            logo_path =
+              if entries != [] do
+                consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
+                  ext = Path.extname(entry.client_name)
+                  filename = "#{Ecto.UUID.generate()}#{ext}"
+
+                  # Save locally in project root
+                  dest_source = Path.join(["priv", "static", "uploads", "logos", filename])
+                  File.mkdir_p!(Path.dirname(dest_source))
+                  File.cp!(path, dest_source)
+
+                  # Save to build output
+                  dest_compiled =
+                    Path.join([
+                      :code.priv_dir(:corporate_policy),
+                      "static",
+                      "uploads",
+                      "logos",
+                      filename
+                    ])
+
+                  File.mkdir_p!(Path.dirname(dest_compiled))
+                  File.cp!(path, dest_compiled)
+
+                  {:ok, "/uploads/logos/" <> filename}
+                end)
+                |> List.first()
+              else
+                nil
+              end
+
+            case Corporates.create_corporate(corporate_params, logo_path) do
+              {:ok, corporate} ->
+                {:noreply,
+                 socket
+                 |> assign(:saved_corporate_id, corporate.corporate_id)
+                 |> assign(:tab, :contacts)}
+
+              {:error, failed_changeset} ->
+                {:noreply,
+                 socket
+                 |> put_flash(:error, "Please fix the errors below.")
+                 |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
+            end
+          rescue
+            _exception ->
+              {:noreply,
+               socket
+               |> put_flash(:error, "Logo upload failed")
+               |> assign(form: Phoenix.Component.to_form(changeset, as: :corporate))}
+          end
       end
     else
       failed_changeset = Map.put(changeset, :action, :next)

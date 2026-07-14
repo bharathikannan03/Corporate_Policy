@@ -72,32 +72,6 @@ defmodule CorporatePolicy.Repo.Migrations.CreatePolicyTables do
 
     create unique_index(:md_financial_years, [:year_name])
 
-    # Master corporates table (extend existing or create new)
-    create table(:master_corporates, primary_key: false) do
-      add :corporate_id, :bigserial, primary_key: true
-      add :corporate_name, :string, size: 255, null: false
-      add :corporate_address, :string, size: 255
-      add :corporate_landline, :string, size: 255
-      add :coporate_contact_email, :string, size: 255
-      add :corporate_group_code, :string, size: 255
-      add :industry_type, :string, size: 255
-      add :pan_number, :string, size: 15
-      add :helpline_no, :string, size: 255
-      add :branch_name, :string, size: 255
-      add :pincode, :string, size: 10
-      add :city, :string, size: 25
-      add :state, :string, size: 25
-      add :ref_master_logos_corporate_logo, :bigint
-      add :ref_master_pincode_pincode_id, :bigint
-      add :ref_master_city_city_id, :bigint
-      add :ref_master_state_state_id, :bigint
-      add :corporate_buffer_visibility, :integer, default: 0, null: false
-      add :corporate_status, :integer, default: 0, null: false
-      add :status, :integer, default: 0, null: false
-
-      timestamps(type: :utc_datetime_usec)
-    end
-
     # Main policy table
     create table(:master_add_policies, primary_key: false) do
       add :id, :bigserial, primary_key: true
@@ -362,25 +336,25 @@ defmodule CorporatePolicy.Repo.Migrations.CreatePolicyTables do
 
     # Extend users table with additional fields
     alter table(:users) do
-      add :mobile_no, :string, size: 20
-      add :full_name, :string, size: 255
-      add :gender, :string, size: 20
-      add :dob, :date
-      add :ref_corporate_id, :bigint
-      add :ref_md_department_id, :bigint
-      add :department_name, :string, size: 50
-      add :location, :string, size: 100
-      add :onboarding_status_id, :integer, default: 0
-      add :reporting, :string, size: 100
-      add :ref_reporting_id, :bigint
-      add :designation, :string, size: 100
-      add :assign_corporate, :string, size: 100
-      add :test_user, :integer, default: 0
-      add :corporate_username, :string, size: 100
+      add_if_not_exists :mobile_no, :string, size: 20
+      add_if_not_exists :full_name, :string, size: 255
+      add_if_not_exists :gender, :string, size: 20
+      add_if_not_exists :dob, :date
+      add_if_not_exists :ref_corporate_id, :bigint
+      add_if_not_exists :ref_md_department_id, :bigint
+      add_if_not_exists :department_name, :string, size: 50
+      add_if_not_exists :location, :string, size: 100
+      add_if_not_exists :onboarding_status_id, :integer, default: 0
+      add_if_not_exists :reporting, :string, size: 100
+      add_if_not_exists :ref_reporting_id, :bigint
+      add_if_not_exists :designation, :string, size: 100
+      add_if_not_exists :assign_corporate, :string, size: 100
+      add_if_not_exists :test_user, :integer, default: 0
+      add_if_not_exists :corporate_username, :string, size: 100
     end
 
-    create index(:users, [:ref_corporate_id])
-    create index(:users, [:ref_reporting_id])
-    create unique_index(:users, [:corporate_username])
+    create_if_not_exists index(:users, [:ref_corporate_id])
+    create_if_not_exists index(:users, [:ref_reporting_id])
+    create_if_not_exists unique_index(:users, [:corporate_username])
   end
 end

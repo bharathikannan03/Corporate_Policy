@@ -157,8 +157,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
                     navigate={~p"/admin/policy-details"}
                     class="flex items-center gap-2"
                   >
-                    <.icon name="hero-list-bullet" class="w-5 h-5" />
-                    All Policies
+                    <.icon name="hero-list-bullet" class="w-5 h-5" /> All Policies
                   </.link>
                 </li>
                 <li>
@@ -166,8 +165,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
                     navigate={~p"/admin/policy-details/add"}
                     class="flex items-center gap-2"
                   >
-                    <.icon name="hero-plus" class="w-5 h-5" />
-                    Add Policy
+                    <.icon name="hero-plus" class="w-5 h-5" /> Add Policy
                   </.link>
                 </li>
               </ul>
@@ -289,8 +287,17 @@ defmodule CorporatePolicyWeb.PolicyLive do
       </div>
 
       <!-- New/Edit Policy Modal -->
-      <div :if={@show_modal} class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" phx-click="close-modal">
-        <div class="bg-base-100 rounded-box shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4" phx-click="--close-modal-stop" phx-window-keydown="close-modal" phx-key="Escape">
+      <div
+        :if={@show_modal}
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        phx-click="close-modal"
+      >
+        <div
+          class="bg-base-100 rounded-box shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4"
+          phx-click="--close-modal-stop"
+          phx-window-keydown="close-modal"
+          phx-key="Escape"
+        >
           <div class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="font-bold text-lg">
@@ -432,10 +439,13 @@ defmodule CorporatePolicyWeb.PolicyLive do
       cond do
         filter == "active" ->
           Policies.list_active_policies()
+
         filter == "inactive" ->
           Policies.list_inactive_policies()
+
         filter == "expired" ->
           Policies.list_expired_policies()
+
         true ->
           Policies.list_policies_by_fy(fy_id)
       end

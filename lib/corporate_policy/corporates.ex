@@ -60,6 +60,7 @@ defmodule CorporatePolicy.Corporates do
         join: m in "trn_mapping_corporateid_corporatecontactsids",
         on: m.corporatecontacts_id == u.id,
         where: m.corporate_id == ^corporate_id and m.status == 1,
+        order_by: [asc: u.id],
         select: u
 
     Repo.all(query)
@@ -328,5 +329,44 @@ defmodule CorporatePolicy.Corporates do
     :crypto.strong_rand_bytes(4)
     |> Base.encode16(case: :upper)
     |> binary_part(0, 6)
+  end
+
+  @doc """
+  Finds the city and state names for a given pincode.
+  Returns `%{city: city_name, state: state_name}` or `nil`.
+  """
+  def get_location_by_pincode(pincode) do
+    pincode_int =
+      case pincode do
+        p when is_integer(p) ->
+          p
+
+        p when is_binary(p) ->
+          case Integer.parse(p) do
+            {num, ""} -> num
+            _ -> nil
+          end
+
+        _ ->
+          nil
+      end
+
+    if pincode_int do
+      query =
+        from m in CorporatePolicy.Corporates.TrnMappingPincodeCityState,
+          join: p in CorporatePolicy.Corporates.Pincode,
+          on: m.pincode_id == p.pincode_id,
+          join: c in CorporatePolicy.Corporates.City,
+          on: m.city_id == c.city_id,
+          join: s in CorporatePolicy.Corporates.State,
+          on: m.state_id == s.state_id,
+          where: p.pincode == ^pincode_int,
+          select: %{city: c.city, state: s.state},
+          limit: 1
+
+      Repo.one(query)
+    else
+      nil
+    end
   end
 end

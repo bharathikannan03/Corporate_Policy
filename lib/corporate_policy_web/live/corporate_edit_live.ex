@@ -44,6 +44,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
       |> assign(:group_code, corporate.corporate_group_code)
       |> assign(:form, Phoenix.Component.to_form(changeset, as: :corporate))
       |> assign(:contacts, contacts)
+      |> assign(:last_pincode, corporate.pincode)
       |> allow_upload(:logo,
         accept: ~w(.jpg .jpeg .png .gif .webp),
         max_entries: 1,
@@ -412,13 +413,39 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
   @impl true
   def handle_event("validate", %{"corporate" => params}, socket) do
     corporate_params = Map.drop(params, ["contacts"])
+    pincode = Map.get(corporate_params, "pincode", "") |> String.trim()
+    last_pincode = socket.assigns[:last_pincode]
+
+    # Trigger autofetch if pincode changed, has 6 digits, and is not empty
+    {corporate_params, new_last_pincode} =
+      if pincode != "" && pincode != last_pincode && String.length(pincode) == 6 do
+        case Corporates.get_location_by_pincode(pincode) do
+          %{city: city, state: state} ->
+            updated =
+              corporate_params
+              |> Map.put("city", city)
+              |> Map.put("state", state)
+
+            {updated, pincode}
+
+          nil ->
+            {corporate_params, pincode}
+        end
+      else
+        {corporate_params, last_pincode}
+      end
 
     changeset =
       socket.assigns.corporate
       |> Corporates.change_corporate(corporate_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, form: Phoenix.Component.to_form(changeset, as: :corporate))}
+    socket =
+      socket
+      |> assign(:last_pincode, new_last_pincode)
+      |> assign(form: Phoenix.Component.to_form(changeset, as: :corporate))
+
+    {:noreply, socket}
   end
 
   def handle_event("add_contact", _params, socket) do

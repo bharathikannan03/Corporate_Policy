@@ -281,4 +281,38 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     assert mapping != nil
     assert mapping.status == 0
   end
+
+  test "autofetches city and state when pincode changes to a matching 6-digit value", %{
+    conn: conn,
+    user: user,
+    corporate: corporate
+  } do
+    # Insert location data
+    {:ok, state} = Repo.insert(%CorporatePolicy.Corporates.State{state: "Maharashtra", status: 1})
+    {:ok, city} = Repo.insert(%CorporatePolicy.Corporates.City{city: "Mumbai", status: 1})
+    {:ok, pincode} = Repo.insert(%CorporatePolicy.Corporates.Pincode{pincode: 400_001, status: 1})
+
+    {:ok, _mapping} =
+      Repo.insert(%CorporatePolicy.Corporates.TrnMappingPincodeCityState{
+        pincode_id: pincode.pincode_id,
+        city_id: city.city_id,
+        state_id: state.state_id,
+        status: 1
+      })
+
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/#{corporate.corporate_id}/edit")
+
+    # Change the pincode in the edit form
+    html =
+      view
+      |> form("#corporate-form", %{
+        "corporate" => %{"pincode" => "400001"}
+      })
+      |> render_change()
+
+    # The city and state inputs should update to Mumbai/Maharashtra
+    assert html =~ "value=\"Mumbai\""
+    assert html =~ "value=\"Maharashtra\""
+  end
 end

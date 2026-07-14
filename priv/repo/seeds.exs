@@ -33,3 +33,45 @@ case Repo.get_by(User, email_address: admin_attrs.email_address) do
   _existing ->
     IO.puts("→ Admin user already exists: #{admin_attrs.email_address}")
 end
+
+# ─── Location Data ────────────────────────────────────────────────────────────
+alias CorporatePolicy.Corporates.LocationImporter
+
+priv_dir = :code.priv_dir(:corporate_policy)
+
+states_csv = Path.join(priv_dir, "static/meta_documents/master_states.csv")
+cities_csv = Path.join(priv_dir, "static/meta_documents/master_cities.csv")
+pincodes_csv = Path.join(priv_dir, "static/meta_documents/master_pincodes.csv")
+mappings_csv = Path.join(priv_dir, "static/meta_documents/mapping_pincode_city_states.csv")
+
+if File.exists?(states_csv) do
+  IO.puts("Importing states...")
+  {inserted, skipped} = LocationImporter.import_states(states_csv)
+  IO.puts("✓ Imported #{inserted} states (#{skipped} skipped/existed).")
+else
+  IO.puts("⚠ States CSV not found at: #{states_csv}")
+end
+
+if File.exists?(cities_csv) do
+  IO.puts("Importing cities (this may take a few seconds)...")
+  {inserted, skipped} = LocationImporter.import_cities(cities_csv)
+  IO.puts("✓ Imported #{inserted} cities (#{skipped} skipped/existed).")
+else
+  IO.puts("⚠ Cities CSV not found at: #{cities_csv}")
+end
+
+if File.exists?(pincodes_csv) do
+  IO.puts("Importing pincodes (this may take a few seconds)...")
+  {inserted, skipped} = LocationImporter.import_pincodes(pincodes_csv)
+  IO.puts("✓ Imported #{inserted} pincodes (#{skipped} skipped/existed).")
+else
+  IO.puts("⚠ Pincodes CSV not found at: #{pincodes_csv}")
+end
+
+if File.exists?(mappings_csv) do
+  IO.puts("Importing pincode-city-state mappings (this may take a few seconds)...")
+  {inserted, skipped} = LocationImporter.import_mappings(mappings_csv)
+  IO.puts("✓ Imported #{inserted} mappings (#{skipped} skipped/existed).")
+else
+  IO.puts("⚠ Mappings CSV not found at: #{mappings_csv}")
+end

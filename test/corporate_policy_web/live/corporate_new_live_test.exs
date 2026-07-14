@@ -274,4 +274,37 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     assert html =~ "Logo upload failed"
     assert Repo.aggregate(Corporate, :count, :corporate_id) == 0
   end
+
+  test "autofetches city and state when a valid 6-digit pincode is entered", %{
+    conn: conn,
+    user: user
+  } do
+    # Insert test data for state, city, pincode, and mapping
+    {:ok, state} = Repo.insert(%CorporatePolicy.Corporates.State{state: "Karnataka", status: 1})
+    {:ok, city} = Repo.insert(%CorporatePolicy.Corporates.City{city: "Bengaluru", status: 1})
+    {:ok, pincode} = Repo.insert(%CorporatePolicy.Corporates.Pincode{pincode: 560_001, status: 1})
+
+    {:ok, _mapping} =
+      Repo.insert(%CorporatePolicy.Corporates.TrnMappingPincodeCityState{
+        pincode_id: pincode.pincode_id,
+        city_id: city.city_id,
+        state_id: state.state_id,
+        status: 1
+      })
+
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    # Trigger form change with a matching pincode
+    html =
+      view
+      |> form("#corporate-form", %{
+        "corporate" => %{"pincode" => "560001"}
+      })
+      |> render_change()
+
+    # The HTML should now be reactively updated with the fetched city and state
+    assert html =~ "value=\"Bengaluru\""
+    assert html =~ "value=\"Karnataka\""
+  end
 end

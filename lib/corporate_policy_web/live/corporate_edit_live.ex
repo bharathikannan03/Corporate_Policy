@@ -420,11 +420,14 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
     {corporate_params, new_last_pincode} =
       if pincode != "" && pincode != last_pincode && String.length(pincode) == 6 do
         case Corporates.get_location_by_pincode(pincode) do
-          %{city: city, state: state} ->
+          %{city: city, state: state} = location ->
             updated =
               corporate_params
               |> Map.put("city", city)
               |> Map.put("state", state)
+              |> Map.put("ref_master_pincode_pincode_id", location.pincode_id)
+              |> Map.put("ref_master_city_city_id", location.city_id)
+              |> Map.put("ref_master_state_state_id", location.state_id)
 
             {updated, pincode}
 

@@ -16,9 +16,9 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMdVisibilityRoleIdFeatureTmps do
     create index(:md_visibility_role_id_feature_tmps, [:is_visible])
 
     create unique_index(
-      :md_visibility_role_id_feature_tmps,
-      [:role_id, :is_visible],
-      name: :unique_roles
-    )
+             :md_visibility_role_id_feature_tmps,
+             [:role_id, :is_visible],
+             name: :unique_roles
+           )
   end
 end

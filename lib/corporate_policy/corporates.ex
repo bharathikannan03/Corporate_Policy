@@ -82,6 +82,7 @@ defmodule CorporatePolicy.Corporates do
       end
 
     attrs = Map.put(attrs, "ref_master_corporate_logos_id", logo_id)
+    attrs = add_location_ids(attrs)
     corporate_attrs = Map.drop(attrs, ["contacts"])
 
     corporate
@@ -226,6 +227,7 @@ defmodule CorporatePolicy.Corporates do
       end
 
     attrs = Map.put(attrs, "ref_master_corporate_logos_id", logo_id)
+    attrs = add_location_ids(attrs)
 
     # Strip contacts key so it does not confuse the corporate changeset
     corporate_attrs = Map.drop(attrs, ["contacts"])
@@ -333,7 +335,7 @@ defmodule CorporatePolicy.Corporates do
 
   @doc """
   Finds the city and state names for a given pincode.
-  Returns `%{city: city_name, state: state_name}` or `nil`.
+  Returns `%{city: city_name, state: state_name, pincode_id: pincode_id, city_id: city_id, state_id: state_id}` or `nil`.
   """
   def get_location_by_pincode(pincode) do
     pincode_int =
@@ -361,12 +363,46 @@ defmodule CorporatePolicy.Corporates do
           join: s in CorporatePolicy.Corporates.State,
           on: m.state_id == s.state_id,
           where: p.pincode == ^pincode_int,
-          select: %{city: c.city, state: s.state},
+          select: %{
+            city: c.city,
+            state: s.state,
+            pincode_id: p.pincode_id,
+            city_id: c.city_id,
+            state_id: s.state_id
+          },
           limit: 1
 
       Repo.one(query)
     else
       nil
+    end
+  end
+
+  defp add_location_ids(attrs) do
+    pincode = Map.get(attrs, "pincode") || Map.get(attrs, :pincode)
+
+    if pincode && pincode != "" do
+      case get_location_by_pincode(pincode) do
+        location when is_map(location) ->
+          cond do
+            Map.has_key?(attrs, "pincode") ->
+              attrs
+              |> Map.put("ref_master_pincode_pincode_id", location.pincode_id)
+              |> Map.put("ref_master_city_city_id", location.city_id)
+              |> Map.put("ref_master_state_state_id", location.state_id)
+
+            true ->
+              attrs
+              |> Map.put(:ref_master_pincode_pincode_id, location.pincode_id)
+              |> Map.put(:ref_master_city_city_id, location.city_id)
+              |> Map.put(:ref_master_state_state_id, location.state_id)
+          end
+
+        _ ->
+          attrs
+      end
+    else
+      attrs
     end
   end
 end

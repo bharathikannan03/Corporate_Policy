@@ -7,6 +7,7 @@ defmodule CorporatePolicy.Corporates do
   alias CorporatePolicy.Repo
   alias CorporatePolicy.Corporates.Corporate
   alias CorporatePolicy.Corporates.Logo
+  alias CorporatePolicy.Corporates.MdVisibilityRoleFeature
 
   # ─── Logos ────────────────────────────────────────────────────────────────────
 
@@ -142,6 +143,38 @@ defmodule CorporatePolicy.Corporates do
                 _ -> {"Contact", "User"}
               end
 
+            dep_id_val = Map.get(contact, "department")
+
+            dep_id =
+              case dep_id_val do
+                id when is_integer(id) ->
+                  id
+
+                id when is_binary(id) ->
+                  case Integer.parse(id) do
+                    {num, ""} -> num
+                    _ -> nil
+                  end
+
+                _ ->
+                  nil
+              end
+
+            dep_name =
+              if dep_id do
+                case repo.one(
+                       from r in MdVisibilityRoleFeature,
+                         where: r.role_id == ^dep_id,
+                         select: r.role,
+                         limit: 1
+                     ) do
+                  nil -> ""
+                  name -> name
+                end
+              else
+                Map.get(contact, "department", "")
+              end
+
             user_attrs = %{
               first_name: first_name,
               last_name: last_name,
@@ -150,8 +183,10 @@ defmodule CorporatePolicy.Corporates do
               email_address: email,
               status: 1,
               corporate_username: Map.get(contact, "corporate_username", ""),
-              department_name: Map.get(contact, "department", ""),
-              location: Map.get(contact, "location", "")
+              department_name: dep_name,
+              department_id: dep_id,
+              location: Map.get(contact, "location", ""),
+              ref_corporate_id: corporate_id
             }
 
             if db_id && db_id in current_contact_ids do
@@ -268,6 +303,38 @@ defmodule CorporatePolicy.Corporates do
                 _ -> {"Contact", "User"}
               end
 
+            dep_id_val = Map.get(contact, "department")
+
+            dep_id =
+              case dep_id_val do
+                id when is_integer(id) ->
+                  id
+
+                id when is_binary(id) ->
+                  case Integer.parse(id) do
+                    {num, ""} -> num
+                    _ -> nil
+                  end
+
+                _ ->
+                  nil
+              end
+
+            dep_name =
+              if dep_id do
+                case repo.one(
+                       from r in MdVisibilityRoleFeature,
+                         where: r.role_id == ^dep_id,
+                         select: r.role,
+                         limit: 1
+                     ) do
+                  nil -> ""
+                  name -> name
+                end
+              else
+                Map.get(contact, "department", "")
+              end
+
             user_attrs = %{
               first_name: first_name,
               last_name: last_name,
@@ -277,8 +344,10 @@ defmodule CorporatePolicy.Corporates do
               password: random_password,
               status: 1,
               corporate_username: Map.get(contact, "corporate_username", ""),
-              department_name: Map.get(contact, "department", ""),
-              location: Map.get(contact, "location", "")
+              department_name: dep_name,
+              department_id: dep_id,
+              location: Map.get(contact, "location", ""),
+              ref_corporate_id: corporate_id
             }
 
             user_changeset =
@@ -331,6 +400,30 @@ defmodule CorporatePolicy.Corporates do
     :crypto.strong_rand_bytes(4)
     |> Base.encode16(case: :upper)
     |> binary_part(0, 6)
+  end
+
+  @doc """
+  Returns a list of roles for department dropdown options where is_visible is 2.
+  """
+  def list_departments_for_dropdown do
+    MdVisibilityRoleFeature
+    |> where([r], r.is_visible == 2)
+    |> select([r], {r.role, r.role_id})
+    |> Repo.all()
+  end
+
+  def get_role_id_by_name(name) do
+    if name && name != "" do
+      query =
+        from r in MdVisibilityRoleFeature,
+          where: ilike(r.role, ^name),
+          select: r.role_id,
+          limit: 1
+
+      Repo.one(query)
+    else
+      nil
+    end
   end
 
   @doc """

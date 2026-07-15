@@ -32,6 +32,21 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
         nil
       )
 
+    # Seed department options
+    dept_it_admin =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "IT Admin",
+        is_visible: 2,
+        status: 1
+      })
+
+    dept_hr =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "HR",
+        is_visible: 2,
+        status: 1
+      })
+
     # Add contact users to the corporate
     {:ok, contact_user} =
       Accounts.create_user(%{
@@ -41,8 +56,10 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
         password: "password123",
         status: 1,
         corporate_username: "johndoe",
-        department_name: "IT",
-        location: "Chennai"
+        department_name: dept_it_admin.role,
+        department_id: dept_it_admin.role_id,
+        location: "Chennai",
+        corporate_id: corporate.corporate_id
       })
 
     {:ok, contact_user2} =
@@ -53,8 +70,10 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
         password: "password123",
         status: 1,
         corporate_username: "janedoe",
-        department_name: "HR",
-        location: "Chennai"
+        department_name: dept_hr.role,
+        department_id: dept_hr.role_id,
+        location: "Chennai",
+        corporate_id: corporate.corporate_id
       })
 
     now = DateTime.utc_now()
@@ -77,7 +96,12 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     ])
 
     {:ok,
-     user: user, corporate: corporate, contact_user: contact_user, contact_user2: contact_user2}
+     user: user,
+     corporate: corporate,
+     contact_user: contact_user,
+     contact_user2: contact_user2,
+     dept_it_admin: dept_it_admin,
+     dept_hr: dept_hr}
   end
 
   test "loads edit page with pre-populated data", %{conn: conn, user: user, corporate: corporate} do
@@ -139,7 +163,9 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     user: user,
     corporate: corporate,
     contact_user: contact_user,
-    contact_user2: contact_user2
+    contact_user2: contact_user2,
+    dept_it_admin: dept_it_admin,
+    dept_hr: dept_hr
   } do
     conn = conn |> init_test_session(current_user_id: user.id)
     {:ok, view, _html} = live(conn, ~p"/admin/corporate/#{corporate.corporate_id}/edit")
@@ -175,7 +201,7 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
           "mobile_number" => "9999999999",
           "email_address" => "john@edited.com",
           "corporate_username" => "john_edited",
-          "department" => "IT Admin",
+          "department" => to_string(dept_it_admin.role_id),
           "location" => "Madras"
         },
         "1" => %{
@@ -184,7 +210,7 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
           "mobile_number" => contact_user2.mobile_no,
           "email_address" => contact_user2.email_address,
           "corporate_username" => contact_user2.corporate_username,
-          "department" => contact_user2.department_name,
+          "department" => to_string(dept_hr.role_id),
           "location" => contact_user2.location
         },
         "2" => %{
@@ -192,7 +218,7 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
           "mobile_number" => "8888888888",
           "email_address" => "new@contact.com",
           "corporate_username" => "newcontact",
-          "department" => "HR",
+          "department" => to_string(dept_hr.role_id),
           "location" => "Madras"
         }
       }
@@ -218,12 +244,16 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     assert updated_contact.mobile_no == "9999999999"
     assert updated_contact.email_address == "john@edited.com"
     assert updated_contact.department_name == "IT Admin"
+    assert updated_contact.department_id == dept_it_admin.role_id
+    assert updated_contact.ref_corporate_id == corporate.corporate_id
 
     # Verify new contact created in DB
     new_contact = Repo.get_by(Accounts.User, email_address: "new@contact.com")
     assert new_contact != nil
     assert new_contact.full_name == "New Contact"
     assert new_contact.department_name == "HR"
+    assert new_contact.department_id == dept_hr.role_id
+    assert new_contact.ref_corporate_id == corporate.corporate_id
 
     # Verify mapping exists for new contact
     new_mapping =

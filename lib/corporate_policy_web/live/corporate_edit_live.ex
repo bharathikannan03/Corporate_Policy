@@ -26,13 +26,14 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
             mobile_number: c.mobile_no,
             email_address: c.email_address,
             corporate_username: c.corporate_username,
-            department: c.department_name,
+            department: c.department_id || Corporates.get_role_id_by_name(c.department_name),
             location: c.location
           }
         end)
       end
 
     changeset = Corporates.change_corporate(corporate)
+    department_options = Corporates.list_departments_for_dropdown()
 
     socket =
       socket
@@ -44,6 +45,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
       |> assign(:group_code, corporate.corporate_group_code)
       |> assign(:form, Phoenix.Component.to_form(changeset, as: :corporate))
       |> assign(:contacts, contacts)
+      |> assign(:department_options, department_options)
       |> assign(:last_pincode, corporate.pincode)
       |> allow_upload(:logo,
         accept: ~w(.jpg .jpeg .png .gif .webp),
@@ -306,7 +308,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
             <div class={@tab != :contacts && "hidden"}>
               <div id="corp-tab-contacts">
                 <%= for {contact, idx} <- Enum.with_index(@contacts) do %>
-                  <div class="contact-block" id={"contact-block-#{idx}"} phx-update="ignore">
+                  <div class="contact-block" id={"contact-block-#{idx}"}>
                     <input type="hidden" name={"corporate[contacts][#{idx}][id]"} value={contact.id} />
 
                     <div class="corp-field-group">
@@ -349,20 +351,28 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         type="text"
                         name={"corporate[contacts][#{idx}][corporate_username]"}
                         placeholder="Corporate Username"
-                        class="corp-input"
+                        class="corp-input corp-input--readonly"
                         value={Map.get(contact, :corporate_username, "")}
+                        readonly
                       />
                     </div>
 
                     <div class="corp-field-group">
                       <label class="corp-label">Department <span class="corp-required">*</span></label>
-                      <input
-                        type="text"
+                      <select
                         name={"corporate[contacts][#{idx}][department]"}
-                        placeholder="Department"
                         class="corp-input"
-                        value={Map.get(contact, :department, "")}
-                      />
+                      >
+                        <option value="">Select Department</option>
+                        <%= for {name, id} <- @department_options do %>
+                          <option
+                            value={id}
+                            selected={to_string(Map.get(contact, :department, "")) == to_string(id)}
+                          >
+                            {name}
+                          </option>
+                        <% end %>
+                      </select>
                     </div>
 
                     <div class="corp-field-group contact-location-group">
@@ -443,9 +453,39 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
       |> Corporates.change_corporate(corporate_params)
       |> Map.put(:action, :validate)
 
+    contacts_params = Map.get(params, "contacts", %{})
+
+    contacts =
+      if map_size(contacts_params) > 0 do
+        socket.assigns.contacts
+        |> Enum.with_index()
+        |> Enum.map(fn {contact, idx} ->
+          param_key = to_string(idx)
+
+          case Map.get(contacts_params, param_key) do
+            nil ->
+              contact
+
+            c_param ->
+              email = Map.get(c_param, "email_address", "")
+
+              contact
+              |> Map.put(:full_name, Map.get(c_param, "full_name", ""))
+              |> Map.put(:mobile_number, Map.get(c_param, "mobile_number", ""))
+              |> Map.put(:email_address, email)
+              |> Map.put(:corporate_username, email)
+              |> Map.put(:department, Map.get(c_param, "department", ""))
+              |> Map.put(:location, Map.get(c_param, "location", ""))
+          end
+        end)
+      else
+        socket.assigns.contacts
+      end
+
     socket =
       socket
       |> assign(:last_pincode, new_last_pincode)
+      |> assign(:contacts, contacts)
       |> assign(form: Phoenix.Component.to_form(changeset, as: :corporate))
 
     {:noreply, socket}
@@ -576,11 +616,22 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
          |> push_navigate(to: ~p"/admin/corporate")}
 
       {:error, failed_changeset} ->
+        error_msg = translate_errors(failed_changeset)
+
         {:noreply,
          socket
-         |> put_flash(:error, "Please fix the contact errors below.")
-         |> assign(form: Phoenix.Component.to_form(failed_changeset, as: :corporate))}
+         |> put_flash(:error, "Please fix the contact errors: #{error_msg}")}
     end
+  end
+
+  defp translate_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+    |> Enum.map(fn {field, msgs} -> "#{field} #{Enum.join(msgs, ", ")}" end)
+    |> Enum.join("; ")
   end
 
   defp upload_error_to_string(:too_large), do: "File is too large (max 2MB)"

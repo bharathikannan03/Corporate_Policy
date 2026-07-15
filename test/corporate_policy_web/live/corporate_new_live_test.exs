@@ -17,10 +17,29 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
         status: 1
       })
 
-    {:ok, user: user}
+    # Seed departments
+    dept_hr =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "HR",
+        is_visible: 2,
+        status: 1
+      })
+
+    dept_finance =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "Finance",
+        is_visible: 2,
+        status: 1
+      })
+
+    {:ok, user: user, dept_hr: dept_hr, dept_finance: dept_finance}
   end
 
-  test "complete corporate creation flow step-by-step", %{conn: conn, user: user} do
+  test "complete corporate creation flow step-by-step", %{
+    conn: conn,
+    user: user,
+    dept_hr: dept_hr
+  } do
     # Authenticate by adding user to session
     conn = conn |> init_test_session(current_user_id: user.id)
 
@@ -93,7 +112,7 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
           "mobile_number" => "9876543210",
           "email_address" => "john@acme.com",
           "corporate_username" => "johndoe",
-          "department" => "IT",
+          "department" => to_string(dept_hr.role_id),
           "location" => "Bengaluru"
         }
       }
@@ -115,7 +134,9 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     assert user_in_db.full_name == "John Doe"
     assert user_in_db.mobile_no == "9876543210"
     assert user_in_db.corporate_username == "johndoe"
-    assert user_in_db.department_name == "IT"
+    assert user_in_db.department_name == "HR"
+    assert user_in_db.department_id == dept_hr.role_id
+    assert user_in_db.ref_corporate_id == corporate.corporate_id
     assert user_in_db.location == "Bengaluru"
 
     # Verify trn_mapping_corporateid_corporatecontactsids table entry

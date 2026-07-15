@@ -12,17 +12,23 @@ defmodule CorporatePolicyWeb.CorporateLive do
         id -> Accounts.get_user(id)
       end
 
-    corporates = Corporates.list_corporates()
+    page = 1
+    active_tab = "all"
+
+    pagination = Corporates.list_corporates_paginated(page: page, limit: 15, status: active_tab)
 
     socket =
       socket
       |> assign(:page_title, "All Corporates")
       |> assign(:current_user, current_user)
       |> assign(:active_path, "/admin/corporate")
-      |> assign(:active_tab, "all")
+      |> assign(:active_tab, active_tab)
+      |> assign(:page, page)
+      |> assign(:total_pages, pagination.total_pages)
+      |> assign(:total_count, pagination.total_count)
       |> stream_configure(:corporates, dom_id: fn corp -> "corporates-#{corp.corporate_id}" end)
-      |> stream(:corporates, corporates)
-      |> assign(:corporates_empty?, corporates == [])
+      |> stream(:corporates, pagination.records)
+      |> assign(:corporates_empty?, pagination.records == [])
 
     {:ok, socket}
   end
@@ -116,7 +122,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
               </tr>
               <%= for {id, corp} <- @streams.corporates do %>
                 <tr id={id} class="corp-tr">
-                  <td class="corp-td">{corp.corporate_id}</td>
+                  <td class="corp-td">{Map.get(corp, :row_num)}</td>
                   <td class="corp-td corp-td--name">{corp.corporate_name}</td>
                   <td class="corp-td">
                     <span class="corp-code-badge">{corp.corporate_group_code}</span>
@@ -147,6 +153,78 @@ defmodule CorporatePolicyWeb.CorporateLive do
               <% end %>
             </tbody>
           </table>
+
+          <%!-- Pagination bar --%>
+          <%= if @total_pages > 1 do %>
+            <div
+              class="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100"
+              id="corporates-pagination"
+            >
+              <div class="flex justify-between flex-1 sm:hidden">
+                <button
+                  phx-click="prev_page"
+                  disabled={@page == 1}
+                  class={[
+                    "relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50",
+                    @page == 1 && "opacity-50 cursor-not-allowed"
+                  ]}
+                  id="btn-prev-mobile"
+                >
+                  Previous
+                </button>
+                <button
+                  phx-click="next_page"
+                  disabled={@page == @total_pages}
+                  class={[
+                    "relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50",
+                    @page == @total_pages && "opacity-50 cursor-not-allowed"
+                  ]}
+                  id="btn-next-mobile"
+                >
+                  Next
+                </button>
+              </div>
+              <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-500">
+                    Showing page <span class="font-semibold text-gray-700">{@page}</span>
+                    of <span class="font-semibold text-gray-700">{@total_pages}</span>
+                    (<span class="font-semibold text-gray-700">{@total_count}</span>
+                    total records)
+                  </p>
+                </div>
+                <div>
+                  <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+                    <button
+                      phx-click="prev_page"
+                      disabled={@page == 1}
+                      class={[
+                        "inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition-colors",
+                        @page == 1 && "opacity-50 cursor-not-allowed hover:bg-white"
+                      ]}
+                      id="btn-prev-desktop"
+                    >
+                      <span class="sr-only">Previous</span>
+                      <.icon name="hero-chevron-left" class="w-4 h-4" />
+                    </button>
+
+                    <button
+                      phx-click="next_page"
+                      disabled={@page == @total_pages}
+                      class={[
+                        "inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition-colors",
+                        @page == @total_pages && "opacity-50 cursor-not-allowed hover:bg-white"
+                      ]}
+                      id="btn-next-desktop"
+                    >
+                      <span class="sr-only">Next</span>
+                      <.icon name="hero-chevron-right" class="w-4 h-4" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
     </Layouts.admin>
@@ -155,17 +233,35 @@ defmodule CorporatePolicyWeb.CorporateLive do
 
   @impl true
   def handle_event("filter_status", %{"status" => status}, socket) do
-    corporates =
-      case status do
-        "active" -> Corporates.list_corporates_by_status(1)
-        "inactive" -> Corporates.list_corporates_by_status(0)
-        _ -> Corporates.list_corporates()
-      end
+    socket =
+      socket
+      |> assign(:active_tab, status)
+      |> fetch_page(1)
 
-    {:noreply,
-     socket
-     |> assign(:active_tab, status)
-     |> assign(:corporates_empty?, corporates == [])
-     |> stream(:corporates, corporates, reset: true)}
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("prev_page", _params, socket) do
+    page = max(1, socket.assigns.page - 1)
+    {:noreply, fetch_page(socket, page)}
+  end
+
+  @impl true
+  def handle_event("next_page", _params, socket) do
+    page = min(socket.assigns.total_pages, socket.assigns.page + 1)
+    {:noreply, fetch_page(socket, page)}
+  end
+
+  defp fetch_page(socket, page) do
+    active_tab = socket.assigns.active_tab
+    pagination = Corporates.list_corporates_paginated(page: page, limit: 15, status: active_tab)
+
+    socket
+    |> assign(:page, page)
+    |> assign(:total_pages, pagination.total_pages)
+    |> assign(:total_count, pagination.total_count)
+    |> assign(:corporates_empty?, pagination.records == [])
+    |> stream(:corporates, pagination.records, reset: true)
   end
 end

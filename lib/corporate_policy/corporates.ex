@@ -35,6 +35,49 @@ defmodule CorporatePolicy.Corporates do
     |> Repo.all()
   end
 
+  @doc "Returns paginated list of corporates and total count."
+  def list_corporates_paginated(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    limit = Keyword.get(opts, :limit, 15)
+    offset = (page - 1) * limit
+    status = Keyword.get(opts, :status)
+
+    query =
+      Corporate
+      |> order_by([c], desc: c.corporate_id)
+
+    query =
+      case status do
+        "active" -> where(query, [c], c.corporate_status == 1)
+        "inactive" -> where(query, [c], c.corporate_status == 0)
+        _ -> query
+      end
+
+    total_count = Repo.aggregate(query, :count, :corporate_id)
+
+    records =
+      query
+      |> limit(^limit)
+      |> offset(^offset)
+      |> Repo.all()
+
+    records_with_nums =
+      records
+      |> Enum.with_index()
+      |> Enum.map(fn {corp, idx} ->
+        row_num = offset + idx + 1
+        Map.put(corp, :row_num, row_num)
+      end)
+
+    %{
+      records: records_with_nums,
+      total_count: total_count,
+      page: page,
+      limit: limit,
+      total_pages: max(1, ceil(total_count / limit))
+    }
+  end
+
   @doc "Gets a single corporate. Raises if not found."
   def get_corporate!(id), do: Repo.get!(Corporate, id)
 

@@ -72,4 +72,39 @@ defmodule CorporatePolicyWeb.CorporateLiveTest do
     assert html =~ "Active Corporate Co"
     assert html =~ "Inactive Corporate Co"
   end
+
+  test "paginates corporate records showing 15 per page", %{
+    conn: conn,
+    user: user
+  } do
+    conn = conn |> init_test_session(current_user_id: user.id)
+
+    # Insert 16 additional corporates so total is 18 (2 from setup + 16 new)
+    for i <- 1..16 do
+      {:ok, _} =
+        Corporates.create_corporate(%{
+          "corporate_name" => "Corp Pagination #{i}",
+          "corporate_address" => "Address",
+          "pincode" => "560001",
+          "city" => "Bengaluru",
+          "state" => "Karnataka",
+          "pan_number" => "ABCDE1234A",
+          "corporate_status" => 1
+        })
+    end
+
+    {:ok, view, html} = live(conn, ~p"/admin/corporate")
+
+    assert html =~ "Corp Pagination 16"
+    assert html =~ "Showing page"
+    assert html =~ "1"
+    assert html =~ "2"
+    assert html =~ "18"
+
+    # Click next page
+    html = view |> element("#btn-next-desktop") |> render_click()
+    assert html =~ "Showing page"
+    assert html =~ "2"
+    assert html =~ "2"
+  end
 end

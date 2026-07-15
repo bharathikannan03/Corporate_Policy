@@ -35,6 +35,20 @@ defmodule CorporatePolicy.Corporates do
     |> Repo.all()
   end
 
+  @doc "Returns count of active corporates (status == 1)"
+  def count_active_corporates do
+    Corporate
+    |> where([c], c.corporate_status == 1)
+    |> Repo.aggregate(:count, :corporate_id)
+  end
+
+  @doc "Returns count of inactive corporates (status == 0)"
+  def count_inactive_corporates do
+    Corporate
+    |> where([c], c.corporate_status == 0)
+    |> Repo.aggregate(:count, :corporate_id)
+  end
+
   @doc "Returns paginated list of corporates and total count."
   def list_corporates_paginated(opts \\ []) do
     page = Keyword.get(opts, :page, 1)

@@ -29,7 +29,7 @@ defmodule CorporatePolicyWeb.DashboardLive do
       <%!-- Top stat cards row --%>
       <div class="dashboard-stats-grid">
         <%!-- Corporate --%>
-        <div class="stat-card" id="stat-corporate">
+        <.link navigate={~p"/admin/corporate"} class="stat-card" id="stat-corporate">
           <div class="stat-card-icon stat-card-icon--blue">
             <.icon name="hero-building-office-2" class="w-6 h-6" />
           </div>
@@ -38,15 +38,15 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Active</span>
-                <span class="stat-value">33</span>
+                <span class="stat-value">{@stats.corporate.active}</span>
               </div>
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Inactive</span>
-                <span class="stat-value">0</span>
+                <span class="stat-value">{@stats.corporate.inactive}</span>
               </div>
             </div>
           </div>
-        </div>
+        </.link>
 
         <%!-- Policies --%>
         <div class="stat-card" id="stat-policies">
@@ -295,7 +295,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
 
   defp build_stats do
     %{
-      corporate: %{active: 33, inactive: 0},
+      corporate: %{
+        active: CorporatePolicy.Corporates.count_active_corporates(),
+        inactive: CorporatePolicy.Corporates.count_inactive_corporates()
+      },
       policies: %{live: 50, draft: 5},
       expired_policies: 0,
       claims_reported: 23

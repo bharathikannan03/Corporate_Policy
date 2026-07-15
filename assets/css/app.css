@@ -395,6 +395,8 @@ html, body {
   align-items: flex-start;
   transition: box-shadow 0.2s, transform 0.2s;
   border: 1px solid #f1f5f9;
+  text-decoration: none;
+  color: inherit;
 }
 
 .stat-card:hover {

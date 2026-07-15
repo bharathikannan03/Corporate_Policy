@@ -64,21 +64,21 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
         <div class="corp-form-header">
           <h1 class="corp-form-title">Edit Corporate</h1>
         </div>
-
-        <%!-- Tab Steps --%>
+         <%!-- Tab Steps --%>
         <div class="form-tabs" id="form-tabs">
           <div class={["tab-step", @tab == :details && "tab-step--active"]} id="tab-step-details">
             <div class="tab-step-number">1</div>
-            <span class="tab-step-label">Corporate Details</span>
+             <span class="tab-step-label">Corporate Details</span>
           </div>
+          
           <div class="tab-step-divider"></div>
+          
           <div class={["tab-step", @tab == :contacts && "tab-step--active"]} id="tab-step-contacts">
             <div class="tab-step-number">2</div>
-            <span class="tab-step-label">Corporate Contacts</span>
+             <span class="tab-step-label">Corporate Contacts</span>
           </div>
         </div>
-
-        <%!-- Form card --%>
+         <%!-- Form card --%>
         <div class="corp-form-card" id="corp-form-card">
           <.form
             for={@form}
@@ -94,6 +94,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                   <label class="corp-label" for="corporate_corporate_name">
                     Corporate Name <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:corporate_name]}
                     type="text"
@@ -102,11 +103,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_corporate_name"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_pincode">
                     Pincode <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:pincode]}
                     type="text"
@@ -115,11 +117,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_pincode"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_city">
                     City <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:city]}
                     type="text"
@@ -128,12 +131,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_city"
                   />
                 </div>
-
-                <%!-- Row 2 --%>
+                 <%!-- Row 2 --%>
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_state">
                     State <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:state]}
                     type="text"
@@ -142,11 +145,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_state"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_corporate_address">
                     Corporate Address <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:corporate_address]}
                     type="text"
@@ -155,11 +159,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_corporate_address"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_pan_number">
                     PAN Number <span class="corp-required">*</span>
                   </label>
+                  
                   <.input
                     field={@form[:pan_number]}
                     type="text"
@@ -168,12 +173,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_pan_number"
                   />
                 </div>
-
-                <%!-- Row 3 --%>
+                 <%!-- Row 3 --%>
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_group_code">
                     Group Code
                   </label>
+                  
                   <input
                     type="text"
                     id="corporate_group_code"
@@ -183,11 +188,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     class="corp-input corp-input--readonly"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_corporate_landline">
                     Corporate Landline
                   </label>
+                  
                   <.input
                     field={@form[:corporate_landline]}
                     type="text"
@@ -196,11 +202,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_corporate_landline"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_coporate_contact_email">
                     Corporate Email Address
                   </label>
+                  
                   <.input
                     field={@form[:coporate_contact_email]}
                     type="email"
@@ -209,12 +216,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_coporate_contact_email"
                   />
                 </div>
-
-                <%!-- Row 4 --%>
+                 <%!-- Row 4 --%>
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_industry_type">
                     Industry Type
                   </label>
+                  
                   <.input
                     field={@form[:industry_type]}
                     type="text"
@@ -223,11 +230,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_industry_type"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_branch_name">
                     Service Branch Name
                   </label>
+                  
                   <.input
                     field={@form[:branch_name]}
                     type="text"
@@ -236,11 +244,12 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_branch_name"
                   />
                 </div>
-
+                
                 <div class="corp-field-group">
                   <label class="corp-label" for="corporate_helpline_no">
                     Vibe Helpline Number
                   </label>
+                  
                   <.input
                     field={@form[:helpline_no]}
                     type="text"
@@ -249,11 +258,9 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                     id="corporate_helpline_no"
                   />
                 </div>
-
-                <%!-- Logo Upload — spans full row --%>
+                 <%!-- Logo Upload — spans full row --%>
                 <div class="corp-field-group corp-field-group--full" id="logo-upload-group">
                   <label class="corp-label">Corporate Logo</label>
-
                   <%= if @corporate.logo do %>
                     <div class="current-logo-preview mb-4 flex items-center gap-3">
                       <span class="text-sm font-medium text-gray-500">Current Logo:</span>
@@ -263,15 +270,15 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                       />
                     </div>
                   <% end %>
-
+                  
                   <div class="upload-area" id="logo-upload-area" phx-drop-target={@uploads.logo.ref}>
                     <.live_file_input upload={@uploads.logo} class="upload-file-input" />
                     <label for={@uploads.logo.ref} class="upload-btn" id="logo-upload-btn">
                       <.icon name="hero-arrow-up-tray" class="w-4 h-4" /> Click to Upload New
                     </label>
+                    
                     <p class="upload-hint">(Max file size: 2MB)</p>
-
-                    <%!-- Preview uploaded entries --%>
+                     <%!-- Preview uploaded entries --%>
                     <%= for entry <- @uploads.logo.entries do %>
                       <div class="upload-preview" id={"upload-preview-#{entry.ref}"}>
                         <.live_img_preview entry={entry} class="upload-img-preview" />
@@ -286,6 +293,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                           <.icon name="hero-x-mark" class="w-4 h-4" />
                         </button>
                       </div>
+                      
                       <%= for err <- upload_errors(@uploads.logo, entry) do %>
                         <p class="upload-error">{upload_error_to_string(err)}</p>
                       <% end %>
@@ -293,24 +301,23 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                   </div>
                 </div>
               </div>
-
+              
               <div class="corp-form-footer" id="corp-footer-details">
                 <.link navigate={~p"/admin/corporate"} class="btn-secondary" id="btn-cancel">
                   Cancel
                 </.link>
+                
                 <button type="submit" name="action" value="next" class="btn-primary" id="btn-next">
                   Next
                 </button>
               </div>
             </div>
-
-            <%!-- Tab 2: Corporate Contacts --%>
+             <%!-- Tab 2: Corporate Contacts --%>
             <div class={@tab != :contacts && "hidden"}>
               <div id="corp-tab-contacts">
                 <%= for {contact, idx} <- Enum.with_index(@contacts) do %>
                   <div class="contact-block" id={"contact-block-#{idx}"}>
                     <input type="hidden" name={"corporate[contacts][#{idx}][id]"} value={contact.id} />
-
                     <div class="corp-field-group">
                       <label class="corp-label">Full Name <span class="corp-required">*</span></label>
                       <input
@@ -321,7 +328,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         value={Map.get(contact, :full_name, "")}
                       />
                     </div>
-
+                    
                     <div class="corp-field-group">
                       <label class="corp-label">Mobile Number <span class="corp-required">*</span></label>
                       <input
@@ -332,7 +339,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         value={Map.get(contact, :mobile_number, "")}
                       />
                     </div>
-
+                    
                     <div class="corp-field-group">
                       <label class="corp-label">Email Address <span class="corp-required">*</span></label>
                       <input
@@ -343,7 +350,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         value={Map.get(contact, :email_address, "")}
                       />
                     </div>
-
+                    
                     <div class="corp-field-group">
                       <label class="corp-label">Corporate Username
                       <span class="corp-required">*</span></label>
@@ -356,7 +363,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         readonly
                       />
                     </div>
-
+                    
                     <div class="corp-field-group">
                       <label class="corp-label">Department <span class="corp-required">*</span></label>
                       <select
@@ -364,6 +371,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         class="corp-input"
                       >
                         <option value="">Select Department</option>
+                        
                         <%= for {name, id} <- @department_options do %>
                           <option
                             value={id}
@@ -374,7 +382,7 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                         <% end %>
                       </select>
                     </div>
-
+                    
                     <div class="corp-field-group contact-location-group">
                       <label class="corp-label">Location/Division <span class="corp-required">*</span></label>
                       <div class="location-delete-wrapper">
@@ -399,15 +407,16 @@ defmodule CorporatePolicyWeb.CorporateEditLive do
                   </div>
                 <% end %>
               </div>
-
+              
               <div class="corp-add-contact-wrapper mt-4">
                 <button type="button" class="btn-add-user" phx-click="add_contact">Add New User</button>
               </div>
-
+              
               <div class="corp-form-footer" id="corp-footer-contacts">
                 <button type="button" phx-click="prev_tab" class="btn-secondary" id="btn-back">
                   Back
                 </button>
+                
                 <button type="submit" name="action" value="submit" class="btn-primary" id="btn-submit">
                   Submit
                 </button>

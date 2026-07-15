@@ -38,8 +38,7 @@ defmodule CorporatePolicyWeb.Layouts do
     <main>
       {render_slot(@inner_block)}
     </main>
-
-    <.flash_group flash={@flash} />
+     <.flash_group flash={@flash} />
     """
   end
 
@@ -63,25 +62,27 @@ defmodule CorporatePolicyWeb.Layouts do
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
+          
           <div class="brand-text">
-            <span class="brand-name">CorpPolicy</span>
-            <span class="brand-tagline">Admin Portal</span>
+            <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
         </div>
-
-        <%!-- User info --%>
+         <%!-- User info --%>
         <div class="sidebar-user">
           <div class="user-avatar">
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
+          
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
-            <p class="user-role">Vibe Admin</p>
+            
+            <p class="user-role">Admin</p>
           </div>
+          
           <div class="user-actions">
             <.link
               href={~p"/logout"}
@@ -93,8 +94,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-
-        <%!-- Navigation --%>
+         <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -120,6 +120,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-corporate"
             />
           </.sidebar_group>
+          
           <.sidebar_item
             icon="hero-document-text"
             label="Policy Details"
@@ -182,14 +183,14 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-
-      <%!-- Main content area --%>
+       <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
+          
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -198,6 +199,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
+              
               <.link
                 href={~p"/logout"}
                 method="delete"
@@ -209,11 +211,9 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-
-        <%!-- Page content --%>
+         <%!-- Page content --%>
         <main class="admin-content">
-          <.flash_group flash={@flash} />
-          {render_slot(@inner_block)}
+          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
       </div>
     </div>
@@ -235,8 +235,7 @@ defmodule CorporatePolicyWeb.Layouts do
         @active && "sidebar-nav-item--active"
       ]}
     >
-      <.icon name={@icon} class="sidebar-nav-icon" />
-      <span class="sidebar-nav-label">{@label}</span>
+      <.icon name={@icon} class="sidebar-nav-icon" /> <span class="sidebar-nav-label">{@label}</span>
     </.link>
     """
   end
@@ -265,8 +264,9 @@ defmodule CorporatePolicyWeb.Layouts do
           <.icon name={@icon} class="sidebar-nav-icon" />
           <span class="sidebar-nav-label">{@label}</span>
         </span>
-        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
+      
       <div
         id={"group-children-#{String.downcase(@label)}"}
         class="sidebar-group-children"
@@ -290,8 +290,7 @@ defmodule CorporatePolicyWeb.Layouts do
       id={@id}
       class={["sidebar-child-item", @active && "sidebar-child-item--active"]}
     >
-      <span class="sidebar-child-dot"></span>
-      {@label}
+      <span class="sidebar-child-dot"></span> {@label}
     </.link>
     """
   end
@@ -309,9 +308,7 @@ defmodule CorporatePolicyWeb.Layouts do
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
-      <.flash kind={:info} flash={@flash} />
-      <.flash kind={:error} flash={@flash} />
-
+      <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash
         id="client-error"
         kind={:error}
@@ -326,7 +323,7 @@ defmodule CorporatePolicyWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-
+      
       <.flash
         id="server-error"
         kind={:error}
@@ -354,7 +351,6 @@ defmodule CorporatePolicyWeb.Layouts do
     ~H"""
     <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
       <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
-
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -362,7 +358,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
+      
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -370,7 +366,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
+      
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}

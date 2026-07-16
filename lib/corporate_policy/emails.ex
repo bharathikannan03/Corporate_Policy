@@ -8,7 +8,9 @@ defmodule CorporatePolicy.Emails do
   Builds the welcome/credentials email for a new corporate contact.
   """
   def welcome_contact(user, plain_text_password) do
-    from_email = System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME") || "no-reply@corppolicy.com"
+    from_email =
+      System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME") ||
+        "no-reply@corppolicy.com"
 
     new()
     |> to({user.full_name, user.email_address})

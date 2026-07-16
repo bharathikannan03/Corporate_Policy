@@ -317,7 +317,7 @@ defmodule CorporatePolicy.Corporates do
                 end
               else
                 # Insert new user or reactivate soft-deleted user
-                random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+                random_password = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
                 user_attrs = Map.put(user_attrs, :password, random_password)
 
                 existing_user = repo.get_by(CorporatePolicy.Accounts.User, email_address: email)
@@ -463,7 +463,7 @@ defmodule CorporatePolicy.Corporates do
             if Enum.all?([full_name, email, mobile], &(&1 == "")) do
               {{:ok, :skipped}, acc}
             else
-              random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+              random_password = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
 
               parts = String.split(full_name, ~r/\s+/, parts: 2)
 

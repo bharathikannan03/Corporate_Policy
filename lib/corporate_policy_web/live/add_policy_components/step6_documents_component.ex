@@ -263,16 +263,16 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
       </.form>
 
       <!-- Uploaded Documents Table -->
-      <div class="overflow-x-auto mb-8 rounded-lg" style="border: 1px solid #1C1917;">
-        <table class="table w-full table-zebra" style="background: white;">
-          <thead style="background: #f3f4f6; border-bottom: 1px solid #1C1917;">
+      <div class="policy-table-wrapper mb-8">
+        <table class="policy-table">
+          <thead>
             <tr>
-              <th style="color: #1C1917;">S.No</th>
-              <th style="color: #1C1917;">Document Type</th>
-              <th style="color: #1C1917;">Document Name</th>
-              <th style="color: #1C1917;">Attachment</th>
-              <th style="color: #1C1917;">Note</th>
-              <th class="text-right" style="color: #1C1917;">Action</th>
+              <th>S.No</th>
+              <th>Document Type</th>
+              <th>Document Name</th>
+              <th>Attachment</th>
+              <th>Note</th>
+              <th class="text-right">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -287,20 +287,20 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
                     </path></svg>
-                    <span style="color: #1C1917;">No data</span>
+                    <span>No data</span>
                   </div>
                 </td>
               </tr>
             <% else %>
               <%= for {doc, index} <- Enum.with_index(@documents, 1) do %>
-                <tr style="border-top: 1px solid #1C1917;">
-                  <td style="color: #1C1917;">{index}</td>
-                  <td style="color: #1C1917;">{doc.document_type}</td>
-                  <td style="color: #1C1917;">{doc.document_name}</td>
+                <tr>
+                  <td>{index}</td>
+                  <td>{doc.document_type}</td>
+                  <td>{doc.document_name}</td>
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {doc.original_file_name}
                   </td>
-                  <td style="color: #1C1917;">{doc.note}</td>
+                  <td>{doc.note}</td>
                   <td class="text-right">
                     <button
                       type="button"

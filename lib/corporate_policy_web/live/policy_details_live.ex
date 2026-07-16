@@ -38,24 +38,24 @@ defmodule CorporatePolicyWeb.PolicyDetailsLive do
           </.link>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="policy-table-wrapper">
           <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="policy-table">
               <thead>
-                <tr class="bg-gray-50 border-b border-gray-100">
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Corporate</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Policy No.</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">LOB</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Insurer</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start Date</th>
-                  <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                <tr>
+                  <th>Corporate</th>
+                  <th>Policy No.</th>
+                  <th>LOB</th>
+                  <th>Type</th>
+                  <th>Insurer</th>
+                  <th>Start Date</th>
+                  <th class="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
+              <tbody>
                 <%= if @policies == [] do %>
                   <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="7" class="text-center py-12">
                       <.icon name="hero-document-text" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
                       <p class="text-lg font-medium">No policies found</p>
                       <p class="text-sm mt-1">Click "Add Policy" to create your first policy.</p>
@@ -63,26 +63,31 @@ defmodule CorporatePolicyWeb.PolicyDetailsLive do
                   </tr>
                 <% else %>
                   <%= for policy <- @policies do %>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                      <td class="px-6 py-4">
-                        <div class="font-medium text-gray-900"><%= if policy.corporate, do: policy.corporate.corporate_name, else: "-" %></div>
+                    <tr>
+                      <td>
+                        <div class="font-medium"><%= if policy.corporate, do: policy.corporate.corporate_name, else: "-" %></div>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-600">
-                        <%= policy.policy_number || "-" %>
+                      <td>
+                        <.link
+                          navigate={~p"/admin/policy-details/#{policy.id}/edit"}
+                          class="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <%= policy.policy_number || "-" %>
+                        </.link>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-600">
+                      <td>
                         <%= if policy.line_of_business_ref, do: policy.line_of_business_ref.line_of_business_value, else: "-" %>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-600">
+                      <td>
                         <%= if policy.policy_type_ref, do: policy.policy_type_ref.policy_type_value, else: "-" %>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-600">
+                      <td>
                         <%= if policy.insurer_ref, do: policy.insurer_ref.name, else: "-" %>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                      <td class="whitespace-nowrap">
                         <%= if policy.policy_start_date, do: Calendar.strftime(policy.policy_start_date, "%d %b %Y"), else: "-" %>
                       </td>
-                      <td class="px-6 py-4 text-right">
+                      <td class="text-right">
                         <.link
                           navigate={~p"/admin/policy-details/#{policy.id}/edit"}
                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md text-sm font-medium transition-colors"
@@ -97,7 +102,9 @@ defmodule CorporatePolicyWeb.PolicyDetailsLive do
               </tbody>
             </table>
           </div>
+
         </div>
+
       </div>
     </Layouts.admin>
     """

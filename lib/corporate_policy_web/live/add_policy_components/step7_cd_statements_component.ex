@@ -177,22 +177,22 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
       </div>
 
       <!-- CD Statements Table -->
-      <div class="overflow-x-auto mb-8 rounded-lg" style="border: 1px solid #1C1917;">
-        <table class="table w-full table-zebra" style="background: white; font-size: 0.75rem;">
-          <thead style="background: #f3f4f6; border-bottom: 1px solid #1C1917;">
+      <div class="policy-table-wrapper mb-8">
+        <table class="policy-table" style="font-size: 0.75rem;">
+          <thead>
             <tr>
-              <th style="color: #1C1917;">#</th>
-              <th style="color: #1C1917;">POLICY NUMBER</th>
-              <th style="color: #1C1917;">PARTICULAR</th>
-              <th style="color: #1C1917;">DEBIT AMOUNT (DR)</th>
-              <th style="color: #1C1917;">CREDIT AMOUNT (CR)</th>
-              <th style="color: #1C1917;">POLICY ENDORSEMENT NO</th>
-              <th style="color: #1C1917;">ENDORSEMENT ISSUED DATE</th>
-              <th style="color: #1C1917;">BANK NAME</th>
-              <th style="color: #1C1917;">CHEQUE NO</th>
-              <th style="color: #1C1917;">REMARK</th>
-              <th style="color: #1C1917;">CREATED AT</th>
-              <th class="text-right" style="color: #1C1917;">DELETE</th>
+              <th>#</th>
+              <th>POLICY NUMBER</th>
+              <th>PARTICULAR</th>
+              <th>DEBIT AMOUNT (DR)</th>
+              <th>CREDIT AMOUNT (CR)</th>
+              <th>POLICY ENDORSEMENT NO</th>
+              <th>ENDORSEMENT ISSUED DATE</th>
+              <th>BANK NAME</th>
+              <th>CHEQUE NO</th>
+              <th>REMARK</th>
+              <th>CREATED AT</th>
+              <th class="text-right">DELETE</th>
             </tr>
           </thead>
           <tbody>
@@ -207,24 +207,24 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
                     </path></svg>
-                    <span style="color: #1C1917;">No data</span>
+                    <span>No data</span>
                   </div>
                 </td>
               </tr>
             <% else %>
               <%= for {stmt, index} <- Enum.with_index(@cd_statements, 1) do %>
-                <tr style="border-top: 1px solid #1C1917; font-size: 0.875rem;">
-                  <td style="color: #1C1917;">{index}</td>
-                  <td class="font-medium" style="color: #1C1917;">{stmt.policy_number}</td>
-                  <td style="color: #1C1917;">{stmt.particular}</td>
-                  <td class="text-red-500">{stmt.debit_amount}</td>
-                  <td class="text-green-600">{stmt.credit_amount}</td>
-                  <td style="color: #1C1917;">{stmt.policy_endorsement_no}</td>
-                  <td style="color: #1C1917;">{stmt.endorsement_issued_date}</td>
-                  <td style="color: #1C1917;">{stmt.bank_name}</td>
-                  <td style="color: #1C1917;">{stmt.cheque_no}</td>
-                  <td style="color: #1C1917;">{stmt.remark}</td>
-                  <td style="color: #1C1917; font-size: 0.75rem;">
+                <tr style="font-size: 0.875rem;">
+                  <td>{index}</td>
+                  <td class="font-medium">{stmt.policy_number}</td>
+                  <td>{stmt.particular}</td>
+                  <td class="text-red-500 font-medium">{stmt.debit_amount}</td>
+                  <td class="text-green-600 font-medium">{stmt.credit_amount}</td>
+                  <td>{stmt.policy_endorsement_no}</td>
+                  <td>{stmt.endorsement_issued_date}</td>
+                  <td>{stmt.bank_name}</td>
+                  <td>{stmt.cheque_no}</td>
+                  <td>{stmt.remark}</td>
+                  <td class="whitespace-nowrap" style="font-size: 0.75rem;">
                     {Calendar.strftime(stmt.inserted_at, "%d-%b-%Y")}
                   </td>
                   <td class="text-right">

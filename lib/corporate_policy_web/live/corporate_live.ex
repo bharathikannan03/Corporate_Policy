@@ -190,7 +190,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                         id={"edit-corp-#{corp.corporate_id}"}
                       >
                         <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit Corporate
-                      </.link>
+                      </button>
                     </div>
                   </td>
                 </tr>

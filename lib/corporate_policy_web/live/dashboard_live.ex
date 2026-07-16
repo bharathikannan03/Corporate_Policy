@@ -66,12 +66,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Live</span> <span class="stat-value">50</span>
-                <span class="stat-label text-blue-500">Live</span> <span class="stat-value">50</span>
               </div>
 
 
               <div class="stat-row">
-                <span class="stat-label text-gray-400">Draft</span> <span class="stat-value">5</span>
                 <span class="stat-label text-gray-400">Draft</span> <span class="stat-value">5</span>
               </div>
             </div>
@@ -90,7 +88,6 @@ defmodule CorporatePolicyWeb.DashboardLive do
 
             <div class="stat-card-rows">
               <div class="stat-row">
-                <span class="stat-label text-gray-400">Total</span> <span class="stat-value">0</span>
                 <span class="stat-label text-gray-400">Total</span> <span class="stat-value">0</span>
               </div>
             </div>
@@ -122,15 +119,16 @@ defmodule CorporatePolicyWeb.DashboardLive do
         <div class="chart-card" id="chart-card">
           <h3 class="chart-title">Upcoming Policy Renewals</h3>
 
-
-          <canvas
-            id="renewals-chart"
-            phx-hook="RenewalsChart"
-            phx-update="ignore"
-            data-labels={Jason.encode!(@chart_data.labels)}
-            data-values={Jason.encode!(@chart_data.values)}
-            class="chart-canvas"
-          ></canvas>
+          <div style="position: relative; height: 260px; width: 100%;">
+            <canvas
+              id="renewals-chart"
+              phx-hook="RenewalsChart"
+              phx-update="ignore"
+              data-labels={Jason.encode!(@chart_data.labels)}
+              data-values={Jason.encode!(@chart_data.values)}
+              class="chart-canvas"
+            ></canvas>
+          </div>
         </div>
         <%!-- Right panel: Users + Claims Corner --%>
         <div class="dashboard-right-panel">
@@ -166,14 +164,12 @@ defmodule CorporatePolicyWeb.DashboardLive do
 
             <div class="claims-corner-header">
               <span>CLAIMS</span> <span>AMOUNT</span>
-              <span>CLAIMS</span> <span>AMOUNT</span>
             </div>
 
 
             <div class="claims-corner-rows">
               <div class="claims-row" id="claims-closed">
                 <div class="claims-dot claims-dot--yellow"></div>
-                <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
                 <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
               </div>
 
@@ -254,7 +250,6 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
-                <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
               </div>
             </div>
           </div>
@@ -272,7 +267,6 @@ defmodule CorporatePolicyWeb.DashboardLive do
 
             <div class="stat-card-rows">
               <div class="stat-row">
-                <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
               </div>
             </div>

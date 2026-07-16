@@ -128,27 +128,27 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
       </.form>
 
       <!-- Configured Escalations Table -->
-      <div class="overflow-x-auto mb-8 rounded-lg" style="border: 1px solid #1C1917;">
-        <table class="table w-full table-zebra" style="background: white;">
-          <thead style="background: #f3f4f6; border-bottom: 1px solid #1C1917;">
+      <div class="policy-table-wrapper mb-8">
+        <table class="policy-table">
+          <thead>
             <tr>
-              <th style="color: #1C1917;">Level</th>
-              <th style="color: #1C1917;">Contact Person</th>
-              <th class="text-right" style="color: #1C1917;">Action</th>
+              <th>Level</th>
+              <th>Contact Person</th>
+              <th class="text-right">Action</th>
             </tr>
           </thead>
           <tbody>
             <%= if Enum.empty?(@matrices) do %>
               <tr>
-                <td colspan="3" class="text-center py-4" style="color: #1C1917;">
+                <td colspan="3" class="text-center py-4">
                   No escalation contacts configured yet.
                 </td>
               </tr>
             <% else %>
               <%= for matrix <- @matrices do %>
-                <tr style="border-top: 1px solid #1C1917;">
-                  <td class="font-medium" style="color: #1C1917;">{matrix.level}</td>
-                  <td style="color: #1C1917;">{matrix.user_fullname}</td>
+                <tr>
+                  <td class="font-medium">{matrix.level}</td>
+                  <td>{matrix.user_fullname}</td>
                   <td class="text-right">
                     <button
                       type="button"

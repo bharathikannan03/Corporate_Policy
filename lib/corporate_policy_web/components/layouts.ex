@@ -55,6 +55,49 @@ defmodule CorporatePolicyWeb.Layouts do
   def admin(assigns) do
     ~H"""
     <div class="admin-layout">
+      <style>
+        .policy-table-wrapper {
+          background: #ffffff;
+          border-radius: 0.75rem;
+          border: 1px solid #292524 !important;
+          overflow: hidden;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .policy-table {
+          width: 100%;
+          text-align: left;
+          border-collapse: collapse;
+          background: #ffffff;
+        }
+        .policy-table thead tr {
+          background-color: #f3f4f6;
+          border-bottom: 1px solid #292524 !important;
+        }
+        .policy-table th {
+          padding: 1rem 1.5rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #292524 !important;
+        }
+        .policy-table tbody tr {
+          border-bottom: 1px solid #292524 !important;
+          transition: background-color 0.15s ease;
+        }
+        .policy-table tbody tr:last-child {
+          border-bottom: none;
+        }
+        .policy-table tbody tr:hover {
+          background-color: #f8fafc;
+        }
+        .policy-table td {
+          padding: 1rem 1.5rem;
+          font-size: 0.875rem;
+          color: #292524 !important;
+        }
+        .admin-main { color: #1e293b !important; }
+      </style>
       <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
@@ -232,7 +275,6 @@ defmodule CorporatePolicyWeb.Layouts do
         <%!-- Page content --%>
         <main class="admin-content">
           <.flash_group flash={@flash} /> {render_slot(@inner_block)}
-          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
       </div>
     </div>
@@ -309,13 +351,10 @@ defmodule CorporatePolicyWeb.Layouts do
       ]}
     >
       {@label}
-        @active && "sidebar-nav-item--active"
-      ]}
-    >
-      <.icon name={@icon} class="sidebar-nav-icon" /> <span class="sidebar-nav-label">{@label}</span>
     </.link>
     """
   end
+
 
   attr :icon, :string, required: true
   attr :label, :string, required: true
@@ -369,7 +408,6 @@ defmodule CorporatePolicyWeb.Layouts do
       class={["sidebar-child-item", @active && "sidebar-child-item--active"]}
     >
       <span class="sidebar-child-dot"></span> {@label}
-      <span class="sidebar-child-dot"></span> {@label}
     </.link>
     """
   end
@@ -387,7 +425,6 @@ defmodule CorporatePolicyWeb.Layouts do
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
-      <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash
         id="client-error"

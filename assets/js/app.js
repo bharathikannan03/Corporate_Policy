@@ -49,6 +49,7 @@ const RenewalsChart = {
         ],
       },
       options: {
+        animation: false,
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -65,10 +66,22 @@ const RenewalsChart = {
     });
   },
 
+  updated() {
+    // Update chart data without destroying and recreating
+    if (this.chart) {
+      const labels = JSON.parse(this.el.dataset.labels);
+      const values = JSON.parse(this.el.dataset.values);
+      this.chart.data.labels = labels;
+      this.chart.data.datasets[0].data = values;
+      this.chart.update("none");
+    }
+  },
+
   destroyed() {
     if (this.chart) this.chart.destroy();
   },
 };
+
 
 const SidebarDropdown = {
   mounted() {

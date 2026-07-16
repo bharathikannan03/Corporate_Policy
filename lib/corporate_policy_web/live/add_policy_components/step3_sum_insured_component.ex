@@ -118,27 +118,27 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
       </.form>
 
       <!-- List of Added Sum Insureds -->
-      <div class="overflow-x-auto mb-8 rounded-lg" style="border: 1px solid #1C1917;">
-        <table class="table w-full table-zebra" style="background: white; border-color: #1C1917;">
-          <thead style="background: #f3f4f6; border-bottom: 1px solid #1C1917;">
+      <div class="policy-table-wrapper mb-8">
+        <table class="policy-table">
+          <thead>
             <tr>
-              <th style="color: #1C1917;">Policy Feature</th>
-              <th style="color: #1C1917;">Sum Insured Amount</th>
-              <th class="text-right" style="color: #1C1917;">Action</th>
+              <th>Policy Feature</th>
+              <th>Sum Insured Amount</th>
+              <th class="text-right">Action</th>
             </tr>
           </thead>
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
-                <td colspan="3" class="text-center py-4" style="color: #1C1917;">No sum insureds added yet.</td>
+                <td colspan="3" class="text-center py-4">No sum insureds added yet.</td>
               </tr>
             <% else %>
               <%= for si <- @sum_insureds do %>
-                <tr style="border-top: 1px solid #1C1917;">
-                  <td class="font-medium" style="color: #1C1917;">
+                <tr>
+                  <td class="font-medium">
                     {si.policy_feature_identifier |> String.replace("_", " ") |> String.capitalize()}
                   </td>
-                  <td style="color: #1C1917;">₹ {si.sum_insured}</td>
+                  <td>₹ {si.sum_insured}</td>
                   <td class="text-right">
                     <button
                       type="button"

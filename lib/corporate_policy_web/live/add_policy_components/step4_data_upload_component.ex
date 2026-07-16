@@ -197,16 +197,16 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
       </.form>
 
       <!-- Uploaded Files Table -->
-      <div class="overflow-x-auto mb-8 rounded-lg" style="border: 1px solid #1C1917;">
-        <table class="table w-full table-zebra" style="background: white;">
-          <thead style="background: #f3f4f6; border-bottom: 1px solid #1C1917;">
+      <div class="policy-table-wrapper mb-8">
+        <table class="policy-table">
+          <thead>
             <tr>
-              <th style="color: #1C1917;">#</th>
-              <th style="color: #1C1917;">FILE NAME</th>
-              <th style="color: #1C1917;">DATA TYPE</th>
-              <th style="color: #1C1917;">REMARK</th>
-              <th style="color: #1C1917;">STATUS</th>
-              <th style="color: #1C1917;">CREATED AT</th>
+              <th>#</th>
+              <th>FILE NAME</th>
+              <th>DATA TYPE</th>
+              <th>REMARK</th>
+              <th>STATUS</th>
+              <th>CREATED AT</th>
             </tr>
           </thead>
           <tbody>
@@ -221,23 +221,23 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
                     </path></svg>
-                    <span style="color: #1C1917;">No data</span>
+                    <span>No data</span>
                   </div>
                 </td>
               </tr>
             <% else %>
               <%= for {upload, index} <- Enum.with_index(@uploads_list, 1) do %>
-                <tr style="border-top: 1px solid #1C1917;">
-                  <td style="color: #1C1917;">{index}</td>
+                <tr>
+                  <td>{index}</td>
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {upload.original_file_name}
                   </td>
-                  <td style="color: #1C1917;">{upload.data_type}</td>
-                  <td style="color: #1C1917;">{upload.remark}</td>
+                  <td>{upload.data_type}</td>
+                  <td>{upload.remark}</td>
                   <td>
-                    <span class="badge badge-success badge-sm text-white">Uploaded</span>
+                    <span class="badge badge-success badge-sm text-white border-none bg-green-500">Uploaded</span>
                   </td>
-                  <td style="color: #1C1917; font-size: 0.875rem;">
+                  <td class="whitespace-nowrap">
                     {Calendar.strftime(upload.inserted_at, "%d-%b-%Y %I:%M %p")}
                   </td>
                 </tr>

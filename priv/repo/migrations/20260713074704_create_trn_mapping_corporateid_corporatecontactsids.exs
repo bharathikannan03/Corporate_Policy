@@ -2,7 +2,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateTrnMappingCorporateidCorporateco
   use Ecto.Migration
 
   def change do
-    create table(:trn_mapping_corporateid_corporatecontactsids) do
+    create_if_not_exists table(:trn_mapping_corporateid_corporatecontactsids) do
       add :corporate_id, :integer, null: false
       add :corporatecontacts_id, :integer, null: false
       add :status, :integer, null: false, default: 1

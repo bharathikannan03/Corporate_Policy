@@ -6,6 +6,6 @@ defmodule CorporatePolicy.Repo.Migrations.AddLobReferenceToInsurers do
       add :ref_md_line_of_businesses_id, :bigint, null: true
     end
 
-    create index(:md_insurer_lists, [:ref_md_line_of_businesses_id])
+    create_if_not_exists index(:md_insurer_lists, [:ref_md_line_of_businesses_id])
   end
 end

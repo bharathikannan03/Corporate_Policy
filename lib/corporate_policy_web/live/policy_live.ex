@@ -24,7 +24,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
       |> assign(:financial_years, Policies.list_financial_years())
       |> assign(:line_of_businesses, Policies.list_line_of_businesses())
       |> assign(:policy_types, Policies.list_policy_types())
-      |> assign(:sum_insured_types, Policies.list_sum_insured_types())
       |> assign(:family_definitions, Policies.list_family_definitions())
       |> assign(:claim_visibilities, Policies.list_claim_visibilities())
       |> assign(:tpas, Policies.list_tpas())
@@ -333,13 +332,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
                   label="Policy Type"
                   required
                   options={for pt <- @policy_types, do: {pt.policy_type_value, pt.id}}
-                  prompt="Select"
-                />
-                <.input
-                  field={@form[:ref_md_sum_insured_types_id]}
-                  type="select"
-                  label="Sum Insured Type"
-                  options={for sit <- @sum_insured_types, do: {sit.name, sit.id}}
                   prompt="Select"
                 />
                 <.input

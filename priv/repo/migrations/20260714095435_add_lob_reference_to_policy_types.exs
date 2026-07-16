@@ -6,6 +6,6 @@ defmodule CorporatePolicy.Repo.Migrations.AddLobReferenceToPolicyTypes do
       add :ref_md_line_of_businesses_id, :bigint, null: true
     end
 
-    create index(:md_policy_types, [:ref_md_line_of_businesses_id])
+    create_if_not_exists index(:md_policy_types, [:ref_md_line_of_businesses_id])
   end
 end

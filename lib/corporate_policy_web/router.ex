@@ -31,20 +31,23 @@ defmodule CorporatePolicyWeb.Router do
   scope "/admin", CorporatePolicyWeb do
     pipe_through [:browser, :require_auth]
 
-    live "/dashboard", DashboardLive
-    live "/corporate", CorporateLive
-    live "/corporate/new", CorporateNewLive
-    live "/policy-details", PolicyLive
-    live "/policy-details/add", AddPolicyLive
-    live "/cd-statements", CdStatementsLive
-    live "/roles-configuration", RolesConfigurationLive
-    live "/users", UsersLive
-    live "/corporate-employees", CorporateEmployeesLive
-    live "/cashless-hospitals", CashlessHospitalsLive
-    live "/escalation-matrix", EscalationMatrixLive
-    live "/total-claim-reported", TotalClaimReportedLive
-    live "/claims-intimation", ClaimsIntimationLive
-    live "/claims-submission", ClaimsSubmissionLive
+    live_session :admin_authenticated, on_mount: [{CorporatePolicyWeb.LiveAuth, :default}] do
+      live "/dashboard", DashboardLive
+      live "/corporate", CorporateLive
+      live "/corporate/new", CorporateNewLive
+      live "/policy-details", PolicyDetailsLive, :index
+      live "/policy-details/add", AddPolicyLive, :new
+      live "/policy-details/:id/edit", AddPolicyLive, :edit
+      live "/cd-statements", CdStatementsLive
+      live "/roles-configuration", RolesConfigurationLive
+      live "/users", UsersLive
+      live "/corporate-employees", CorporateEmployeesLive
+      live "/cashless-hospitals", CashlessHospitalsLive
+      live "/escalation-matrix", EscalationMatrixLive
+      live "/total-claim-reported", TotalClaimReportedLive
+      live "/claims-intimation", ClaimsIntimationLive
+      live "/claims-submission", ClaimsSubmissionLive
+    end
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -17,7 +17,7 @@ defmodule CorporatePolicy.Policies.Corporate do
     field :pincode, :string
     field :city, :string
     field :state, :string
-    field :ref_master_logos_corporate_logo, :id
+    field :ref_master_corporate_logos_id, :id
     field :ref_master_pincode_pincode_id, :id
     field :ref_master_city_city_id, :id
     field :ref_master_state_state_id, :id
@@ -45,7 +45,7 @@ defmodule CorporatePolicy.Policies.Corporate do
       :pincode,
       :city,
       :state,
-      :ref_master_logos_corporate_logo,
+      :ref_master_corporate_logos_id,
       :ref_master_pincode_pincode_id,
       :ref_master_city_city_id,
       :ref_master_state_state_id,

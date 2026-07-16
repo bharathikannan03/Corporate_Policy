@@ -10,7 +10,6 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.FinancialYear
   alias CorporatePolicy.Policies.LineOfBusiness
   alias CorporatePolicy.Policies.PolicyType
-  alias CorporatePolicy.Policies.SumInsuredType
   alias CorporatePolicy.Policies.FamilyDefinition
   alias CorporatePolicy.Policies.Tpa
   alias CorporatePolicy.Policies.Corporate
@@ -26,7 +25,6 @@ defmodule CorporatePolicy.Policies do
       :financial_year_ref,
       :line_of_business_ref,
       :policy_type_ref,
-      :sum_insured_type_ref,
       :insurer_ref,
       :tpa_ref,
       :family_definition_ref,
@@ -47,7 +45,6 @@ defmodule CorporatePolicy.Policies do
           :financial_year_ref,
           :line_of_business_ref,
           :policy_type_ref,
-          :sum_insured_type_ref,
           :insurer_ref,
           :tpa_ref,
           :family_definition_ref,
@@ -66,7 +63,6 @@ defmodule CorporatePolicy.Policies do
           :financial_year_ref,
           :line_of_business_ref,
           :policy_type_ref,
-          :sum_insured_type_ref,
           :insurer_ref,
           :tpa_ref,
           :family_definition_ref,
@@ -85,7 +81,6 @@ defmodule CorporatePolicy.Policies do
           :financial_year_ref,
           :line_of_business_ref,
           :policy_type_ref,
-          :sum_insured_type_ref,
           :insurer_ref,
           :tpa_ref,
           :family_definition_ref,
@@ -104,7 +99,6 @@ defmodule CorporatePolicy.Policies do
           :financial_year_ref,
           :line_of_business_ref,
           :policy_type_ref,
-          :sum_insured_type_ref,
           :insurer_ref,
           :tpa_ref,
           :family_definition_ref,
@@ -127,7 +121,6 @@ defmodule CorporatePolicy.Policies do
       :financial_year_ref,
       :line_of_business_ref,
       :policy_type_ref,
-      :sum_insured_type_ref,
       :insurer_ref,
       :tpa_ref,
       :family_definition_ref,
@@ -138,6 +131,7 @@ defmodule CorporatePolicy.Policies do
   end
 
   def create_policy(attrs, user_id \\ nil) do
+    attrs = populate_reference_names(attrs)
     attrs_with_fy = calculate_financial_year(attrs)
 
     attrs_with_status = determine_initial_status(attrs_with_fy)
@@ -160,12 +154,57 @@ defmodule CorporatePolicy.Policies do
   end
 
   def create_or_update_policy(attrs, user_id \\ nil) do
+    attrs = populate_reference_names(attrs)
     id = attrs["policy_id"] || attrs["id"] || attrs[:id]
 
     case id do
       nil -> create_policy(attrs, user_id)
       id -> update_policy_by_id(id, Map.put(attrs, "updated_by", user_id))
     end
+  end
+
+  defp populate_reference_names(attrs) do
+    attrs = 
+      if attrs["ref_corporate_id"] && attrs["ref_corporate_id"] != "" do
+        corporate = Repo.get(Corporate, attrs["ref_corporate_id"])
+        if corporate, do: Map.put(attrs, "corporate_name", corporate.corporate_name), else: attrs
+      else
+        attrs
+      end
+
+    attrs = 
+      if attrs["ref_md_line_of_businesses_id"] && attrs["ref_md_line_of_businesses_id"] != "" do
+        lob = Repo.get(LineOfBusiness, attrs["ref_md_line_of_businesses_id"])
+        if lob, do: Map.put(attrs, "line_of_business", lob.line_of_business_value), else: attrs
+      else
+        attrs
+      end
+
+    attrs = 
+      if attrs["ref_md_policy_types_id"] && attrs["ref_md_policy_types_id"] != "" do
+        pt = Repo.get(PolicyType, attrs["ref_md_policy_types_id"])
+        if pt, do: Map.put(attrs, "policy_type", pt.policy_type_value), else: attrs
+      else
+        attrs
+      end
+
+    attrs = 
+      if attrs["ref_select_insurer_id"] && attrs["ref_select_insurer_id"] != "" do
+        insurer = Repo.get(Insurer, attrs["ref_select_insurer_id"])
+        if insurer, do: Map.put(attrs, "select_insurer", insurer.name), else: attrs
+      else
+        attrs
+      end
+
+    attrs = 
+      if attrs["ref_md_sum_insured_types_id"] && attrs["ref_md_sum_insured_types_id"] != "" do
+        sit = Repo.get(CorporatePolicy.Policies.SumInsuredType, attrs["ref_md_sum_insured_types_id"])
+        if sit, do: Map.put(attrs, "sum_insured_type", sit.name), else: attrs
+      else
+        attrs
+      end
+
+    attrs
   end
 
   defp update_policy_by_id(id, attrs) do
@@ -288,9 +327,14 @@ defmodule CorporatePolicy.Policies do
         nil ->
           false
 
-        date_str ->
-          end_date = Date.from_iso8601!(date_str)
+        %Date{} = end_date ->
           Date.compare(end_date, Date.utc_today()) == :lt
+
+        date_str when is_binary(date_str) ->
+          case Date.from_iso8601(date_str) do
+            {:ok, end_date} -> Date.compare(end_date, Date.utc_today()) == :lt
+            _ -> false
+          end
       end
 
     is_completed = check_policy_completion(policy_id)
@@ -303,7 +347,9 @@ defmodule CorporatePolicy.Policies do
       end
 
     if new_status != policy.status do
-      Repo.update(%{policy | status: new_status})
+      policy
+      |> Ecto.Changeset.change(status: new_status)
+      |> Repo.update()
     else
       {:ok, policy}
     end
@@ -324,14 +370,6 @@ defmodule CorporatePolicy.Policies do
       from pt in PolicyType,
         where: pt.status == 1,
         order_by: [asc: pt.display_id]
-    )
-  end
-
-  def list_sum_insured_types do
-    Repo.all(
-      from sit in SumInsuredType,
-        where: sit.status == 1,
-        order_by: [asc: sit.display_id]
     )
   end
 
@@ -388,6 +426,14 @@ defmodule CorporatePolicy.Policies do
       from fy in FinancialYear,
         where: fy.status == 1,
         order_by: [desc: fy.year_name]
+    )
+  end
+
+  def list_sum_insured_types do
+    Repo.all(
+      from sit in CorporatePolicy.Policies.SumInsuredType,
+        where: sit.status == 1,
+        order_by: [asc: sit.display_id]
     )
   end
 
@@ -460,7 +506,6 @@ defmodule CorporatePolicy.Policies do
       end)
 
     general_metas = %{
-      sum_insurer_types: list_sum_insured_types(),
       family_definitions: list_family_definitions(),
       intimate_claim_visibilities: list_claim_visibilities()
     }

@@ -9,16 +9,17 @@ defmodule CorporatePolicy.Policies.Policy do
     field :corporate_name, :string
     field :line_of_business, :string
     field :policy_type, :string
-    field :sum_insured_type, :string
     field :select_insurer, :string
     field :select_tpa, :string
     field :have_policy_number, :integer, default: 0
     field :policy_number, :string
+    field :policy_number_identifier, :string
     field :policy_start_date, :date
     field :policy_end_date, :date
     field :family_definition, :string
     field :claim_submission_additional_email, :string
     field :intimate_claim_visibility, :string
+    field :sum_insured_type, :string
     field :status, :integer, default: 0
 
     belongs_to :corporate, CorporatePolicy.Policies.Corporate,
@@ -31,9 +32,6 @@ defmodule CorporatePolicy.Policies.Policy do
     belongs_to :policy_type_ref, CorporatePolicy.Policies.PolicyType,
       foreign_key: :ref_md_policy_types_id
 
-    belongs_to :sum_insured_type_ref, CorporatePolicy.Policies.SumInsuredType,
-      foreign_key: :ref_md_sum_insured_types_id
-
     belongs_to :insurer_ref, CorporatePolicy.Policies.Insurer, foreign_key: :ref_select_insurer_id
     belongs_to :tpa_ref, CorporatePolicy.Policies.Tpa, foreign_key: :ref_tpa_id
 
@@ -45,6 +43,9 @@ defmodule CorporatePolicy.Policies.Policy do
 
     belongs_to :financial_year_ref, CorporatePolicy.Policies.FinancialYear,
       foreign_key: :ref_fy_year_id
+
+    belongs_to :sum_insured_type_ref, CorporatePolicy.Policies.SumInsuredType,
+      foreign_key: :ref_md_sum_insured_types_id
 
     belongs_to :creator, CorporatePolicy.Accounts.User, foreign_key: :created_by
     belongs_to :updater, CorporatePolicy.Accounts.User, foreign_key: :updated_by
@@ -60,18 +61,19 @@ defmodule CorporatePolicy.Policies.Policy do
       :line_of_business,
       :ref_md_policy_types_id,
       :policy_type,
-      :ref_md_sum_insured_types_id,
-      :sum_insured_type,
       :ref_select_insurer_id,
       :select_insurer,
       :ref_tpa_id,
       :select_tpa,
       :have_policy_number,
       :policy_number,
+      :policy_number_identifier,
       :policy_start_date,
       :policy_end_date,
       :ref_md_family_definitions_id,
       :family_definition,
+      :ref_md_sum_insured_types_id,
+      :sum_insured_type,
       :ref_intimate_claim_visibilities_id,
       :intimate_claim_visibility,
       :status,
@@ -81,19 +83,15 @@ defmodule CorporatePolicy.Policies.Policy do
       :updated_by
     ])
     |> validate_required([
-      :corporate_name,
+      :ref_corporate_id,
       :ref_md_line_of_businesses_id,
-      :line_of_business,
       :ref_md_policy_types_id,
-      :policy_type,
-      :ref_select_insurer_id,
-      :select_insurer,
-      :ref_fy_year_id,
-      :ref_corporate_id
+      :ref_select_insurer_id
     ])
     |> validate_inclusion(:status, [0, 1, 2, 3])
     |> validate_inclusion(:have_policy_number, [0, 1])
     |> put_updated_by(attrs)
+    |> validate_conditional_fields()
   end
 
   def update_changeset(policy, attrs \\ %{}) do
@@ -104,18 +102,19 @@ defmodule CorporatePolicy.Policies.Policy do
       :line_of_business,
       :ref_md_policy_types_id,
       :policy_type,
-      :ref_md_sum_insured_types_id,
-      :sum_insured_type,
       :ref_select_insurer_id,
       :select_insurer,
       :ref_tpa_id,
       :select_tpa,
       :have_policy_number,
       :policy_number,
+      :policy_number_identifier,
       :policy_start_date,
       :policy_end_date,
       :ref_md_family_definitions_id,
       :family_definition,
+      :ref_md_sum_insured_types_id,
+      :sum_insured_type,
       :ref_intimate_claim_visibilities_id,
       :intimate_claim_visibility,
       :status,
@@ -123,9 +122,30 @@ defmodule CorporatePolicy.Policies.Policy do
       :ref_fy_year_id,
       :updated_by
     ])
+    |> validate_required([
+      :ref_corporate_id,
+      :ref_md_line_of_businesses_id,
+      :ref_md_policy_types_id,
+      :ref_select_insurer_id
+    ])
     |> validate_inclusion(:status, [0, 1, 2, 3])
     |> validate_inclusion(:have_policy_number, [0, 1])
     |> put_updated_by(attrs)
+    |> validate_conditional_fields()
+  end
+
+  defp validate_conditional_fields(changeset) do
+    lob = get_field(changeset, :line_of_business)
+    pt = get_field(changeset, :policy_type)
+
+    cond do
+      lob == "Health" and pt in ["GMC", "Parent Policy", "Top Up Policy"] ->
+        validate_required(changeset, [:ref_md_family_definitions_id])
+      lob == "Health" and pt == "GPA" ->
+        validate_required(changeset, [:ref_md_sum_insured_types_id])
+      true ->
+        changeset
+    end
   end
 
   def status_changeset(policy, attrs \\ %{}) do

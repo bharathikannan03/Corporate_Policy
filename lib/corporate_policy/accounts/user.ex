@@ -17,6 +17,8 @@ defmodule CorporatePolicy.Accounts.User do
     field :corporate_username, :string
     field :department_name, :string
     field :location, :string
+    field :department_id, :integer
+    field :ref_corporate_id, :integer
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -33,7 +35,9 @@ defmodule CorporatePolicy.Accounts.User do
       :status,
       :corporate_username,
       :department_name,
-      :location
+      :location,
+      :department_id,
+      :ref_corporate_id
     ])
     |> validate_required([:first_name, :last_name, :email_address, :password])
     |> validate_format(:email_address, ~r/^[^\s]+@[^\s]+$/)

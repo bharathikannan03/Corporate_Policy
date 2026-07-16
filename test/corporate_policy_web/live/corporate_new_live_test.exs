@@ -17,10 +17,29 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
         status: 1
       })
 
-    {:ok, user: user}
+    # Seed departments
+    dept_hr =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "HR",
+        is_visible: 2,
+        status: 1
+      })
+
+    dept_finance =
+      Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
+        role: "Finance",
+        is_visible: 2,
+        status: 1
+      })
+
+    {:ok, user: user, dept_hr: dept_hr, dept_finance: dept_finance}
   end
 
-  test "complete corporate creation flow step-by-step", %{conn: conn, user: user} do
+  test "complete corporate creation flow step-by-step", %{
+    conn: conn,
+    user: user,
+    dept_hr: dept_hr
+  } do
     # Authenticate by adding user to session
     conn = conn |> init_test_session(current_user_id: user.id)
 
@@ -93,7 +112,7 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
           "mobile_number" => "9876543210",
           "email_address" => "john@acme.com",
           "corporate_username" => "johndoe",
-          "department" => "IT",
+          "department" => to_string(dept_hr.role_id),
           "location" => "Bengaluru"
         }
       }
@@ -115,7 +134,9 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     assert user_in_db.full_name == "John Doe"
     assert user_in_db.mobile_no == "9876543210"
     assert user_in_db.corporate_username == "johndoe"
-    assert user_in_db.department_name == "IT"
+    assert user_in_db.department_name == "HR"
+    assert user_in_db.department_id == dept_hr.role_id
+    assert user_in_db.ref_corporate_id == corporate.corporate_id
     assert user_in_db.location == "Bengaluru"
 
     # Verify trn_mapping_corporateid_corporatecontactsids table entry
@@ -273,5 +294,38 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     # It should display Logo upload failed and stop creation
     assert html =~ "Logo upload failed"
     assert Repo.aggregate(Corporate, :count, :corporate_id) == 0
+  end
+
+  test "autofetches city and state when a valid 6-digit pincode is entered", %{
+    conn: conn,
+    user: user
+  } do
+    # Insert test data for state, city, pincode, and mapping
+    {:ok, state} = Repo.insert(%CorporatePolicy.Corporates.State{state: "Karnataka", status: 1})
+    {:ok, city} = Repo.insert(%CorporatePolicy.Corporates.City{city: "Bengaluru", status: 1})
+    {:ok, pincode} = Repo.insert(%CorporatePolicy.Corporates.Pincode{pincode: 560_001, status: 1})
+
+    {:ok, _mapping} =
+      Repo.insert(%CorporatePolicy.Corporates.TrnMappingPincodeCityState{
+        pincode_id: pincode.pincode_id,
+        city_id: city.city_id,
+        state_id: state.state_id,
+        status: 1
+      })
+
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/new")
+
+    # Trigger form change with a matching pincode
+    html =
+      view
+      |> form("#corporate-form", %{
+        "corporate" => %{"pincode" => "560001"}
+      })
+      |> render_change()
+
+    # The HTML should now be reactively updated with the fetched city and state
+    assert html =~ "value=\"Bengaluru\""
+    assert html =~ "value=\"Karnataka\""
   end
 end

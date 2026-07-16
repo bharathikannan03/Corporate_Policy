@@ -29,6 +29,9 @@ config :phoenix_live_view,
   # disable the warning about colocated assets
   colocated_assets: [disable_symlink_warning: true]
 
+config :phoenix_live_view, :colocated_assets,
+  target_directory: Path.expand("../assets/node_modules/phoenix-colocated", __DIR__)
+
 # Configure the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

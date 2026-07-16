@@ -63,6 +63,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <span class="brand-icon">🛡️</span>
           </div>
 
+
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
@@ -73,6 +74,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
 
+
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
@@ -82,6 +84,7 @@ defmodule CorporatePolicyWeb.Layouts do
 
             <p class="user-role">Vibe Admin</p>
           </div>
+
 
           <div class="user-actions">
             <.link
@@ -120,6 +123,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-corporate"
             />
           </.sidebar_group>
+
 
           <.sidebar_dropdown
             icon="hero-document-text"
@@ -203,6 +207,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
 
+
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -211,6 +216,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
+
 
               <.link
                 href={~p"/logout"}
@@ -225,6 +231,7 @@ defmodule CorporatePolicyWeb.Layouts do
         </header>
         <%!-- Page content --%>
         <main class="admin-content">
+          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
           <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
       </div>
@@ -302,6 +309,10 @@ defmodule CorporatePolicyWeb.Layouts do
       ]}
     >
       {@label}
+        @active && "sidebar-nav-item--active"
+      ]}
+    >
+      <.icon name={@icon} class="sidebar-nav-icon" /> <span class="sidebar-nav-label">{@label}</span>
     </.link>
     """
   end
@@ -333,6 +344,7 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
 
+
       <div
         id={"group-children-#{String.downcase(@label)}"}
         class="sidebar-group-children"
@@ -357,6 +369,7 @@ defmodule CorporatePolicyWeb.Layouts do
       class={["sidebar-child-item", @active && "sidebar-child-item--active"]}
     >
       <span class="sidebar-child-dot"></span> {@label}
+      <span class="sidebar-child-dot"></span> {@label}
     </.link>
     """
   end
@@ -374,6 +387,7 @@ defmodule CorporatePolicyWeb.Layouts do
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
+      <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash
         id="client-error"

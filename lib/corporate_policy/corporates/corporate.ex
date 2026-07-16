@@ -16,7 +16,7 @@ defmodule CorporatePolicy.Corporates.Corporate do
     field :corporate_group_code, :string
     field :industry_type, :string
     field :corporate_buffer_visibility, :integer, default: 0
-    field :corporate_status, :integer, default: 0
+    field :corporate_status, :integer, default: 1
     field :pincode, :string
     field :city, :string
     field :state, :string

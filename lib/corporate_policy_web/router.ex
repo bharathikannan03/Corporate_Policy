@@ -35,6 +35,8 @@ defmodule CorporatePolicyWeb.Router do
       live "/dashboard", DashboardLive
       live "/corporate", CorporateLive
       live "/corporate/new", CorporateNewLive
+    live "/corporate/:id/edit", CorporateEditLive
+    get "/corporate/export", CorporateExportController, :export
       live "/policy-details", PolicyDetailsLive, :index
       live "/policy-details/add", AddPolicyLive, :new
       live "/policy-details/:id/edit", AddPolicyLive, :edit

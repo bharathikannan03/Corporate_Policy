@@ -34,6 +34,7 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-building-office-2" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate</h3>
 
@@ -42,6 +43,7 @@ defmodule CorporatePolicyWeb.DashboardLive do
                 <span class="stat-label text-blue-500">Active</span>
                 <span class="stat-value">{@stats.corporate.active}</span>
               </div>
+
 
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Inactive</span>
@@ -56,13 +58,16 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-document-text" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Policies</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Live</span> <span class="stat-value">50</span>
               </div>
+
 
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Draft</span> <span class="stat-value">5</span>
@@ -76,8 +81,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-clock" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Expired Policies</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -92,8 +99,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-clipboard-document-check" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Claims</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -110,14 +119,16 @@ defmodule CorporatePolicyWeb.DashboardLive do
         <div class="chart-card" id="chart-card">
           <h3 class="chart-title">Upcoming Policy Renewals</h3>
 
-          <canvas
-            id="renewals-chart"
-            phx-hook=".RenewalsChart"
-            phx-update="ignore"
-            data-labels={Jason.encode!(@chart_data.labels)}
-            data-values={Jason.encode!(@chart_data.values)}
-            class="chart-canvas"
-          ></canvas>
+          <div style="position: relative; height: 260px; width: 100%;">
+            <canvas
+              id="renewals-chart"
+              phx-hook="RenewalsChart"
+              phx-update="ignore"
+              data-labels={Jason.encode!(@chart_data.labels)}
+              data-values={Jason.encode!(@chart_data.values)}
+              class="chart-canvas"
+            ></canvas>
+          </div>
         </div>
         <%!-- Right panel: Users + Claims Corner --%>
         <div class="dashboard-right-panel">
@@ -127,14 +138,17 @@ defmodule CorporatePolicyWeb.DashboardLive do
               <.icon name="hero-users" class="w-6 h-6" />
             </div>
 
+
             <div class="stat-card-body">
               <h3 class="stat-card-title">Users</h3>
+
 
               <div class="stat-card-rows">
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">HR Users</span>
                   <span class="stat-value">35</span>
                 </div>
+
 
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">Broker Users</span>
@@ -147,9 +161,11 @@ defmodule CorporatePolicyWeb.DashboardLive do
           <div class="claims-corner-card" id="claims-corner">
             <h3 class="claims-corner-title">CLAIMS CORNER</h3>
 
+
             <div class="claims-corner-header">
               <span>CLAIMS</span> <span>AMOUNT</span>
             </div>
+
 
             <div class="claims-corner-rows">
               <div class="claims-row" id="claims-closed">
@@ -157,17 +173,20 @@ defmodule CorporatePolicyWeb.DashboardLive do
                 <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
               </div>
 
+
               <div class="claims-row" id="claims-paid">
                 <div class="claims-dot claims-dot--green"></div>
                 <span class="claims-label">Paid</span>
                 <span class="claims-amount">₹18,31,244.00</span>
               </div>
 
+
               <div class="claims-row" id="claims-rejected">
                 <div class="claims-dot claims-dot--red"></div>
                 <span class="claims-label">Rejected</span>
                 <span class="claims-amount">₹1,66,552.00</span>
               </div>
+
 
               <div class="claims-row" id="claims-under-process">
                 <div class="claims-dot claims-dot--yellow"></div>
@@ -185,8 +204,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-user-group" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate Users</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -202,8 +223,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-bolt" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Activity</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -219,8 +242,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-arrow-up-tray" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Online Claim Submission</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -235,8 +260,10 @@ defmodule CorporatePolicyWeb.DashboardLive do
             <.icon name="hero-heart" class="w-6 h-6" />
           </div>
 
+
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Health Activity</h3>
+
 
             <div class="stat-card-rows">
               <div class="stat-row">
@@ -247,60 +274,6 @@ defmodule CorporatePolicyWeb.DashboardLive do
         </div>
       </div>
     </Layouts.admin>
-
-    <script :type={Phoenix.LiveView.ColocatedHook} name=".RenewalsChart">
-      import Chart from "chart.js/auto"
-
-      export default {
-        mounted() {
-          const labels = JSON.parse(this.el.dataset.labels)
-          const values = JSON.parse(this.el.dataset.values)
-
-          this.chart = new Chart(this.el, {
-            type: "line",
-            data: {
-              labels,
-              datasets: [{
-                label: "Renewals",
-                data: values,
-                borderColor: "#38bdf8",
-                backgroundColor: "rgba(56, 189, 248, 0.15)",
-                borderWidth: 2.5,
-                pointRadius: 3,
-                pointBackgroundColor: "#38bdf8",
-                fill: true,
-                tension: 0.45
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: true,
-                  position: "top",
-                  labels: { color: "#94a3b8", font: { size: 12 } }
-                }
-              },
-              scales: {
-                x: {
-                  ticks: { color: "#94a3b8" },
-                  grid: { color: "rgba(148,163,184,0.1)" }
-                },
-                y: {
-                  ticks: { color: "#94a3b8", stepSize: 1 },
-                  grid: { color: "rgba(148,163,184,0.1)" },
-                  beginAtZero: true
-                }
-              }
-            }
-          })
-        },
-        destroyed() {
-          if (this.chart) this.chart.destroy()
-        }
-      }
-    </script>
     """
   end
 

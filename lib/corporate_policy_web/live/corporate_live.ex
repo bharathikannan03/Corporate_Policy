@@ -43,8 +43,10 @@ defmodule CorporatePolicyWeb.CorporateLive do
           <div>
             <h1 class="corp-list-title">All Corporates</h1>
 
+
             <p class="corp-list-subtitle">Manage corporate accounts and their details</p>
           </div>
+
           <%!-- Tabs to filter status --%>
           <div class="status-tabs" id="status-tabs">
             <button
@@ -90,29 +92,36 @@ defmodule CorporatePolicyWeb.CorporateLive do
               <.icon name="hero-plus" class="w-4 h-4" /> Add Corporate
             </.link>
           </div>
-        </div>
-        <%!-- Table card --%>
+        </div>         <%!-- Table card --%>
         <div class="corp-table-card" id="corp-table-card">
           <table class="corp-table" id="corporates-table">
             <thead>
               <tr>
                 <th class="corp-th">#</th>
 
+
                 <th class="corp-th">Corporate Name</th>
+
 
                 <th class="corp-th">Group Code</th>
 
+
                 <th class="corp-th">City</th>
+
 
                 <th class="corp-th">State</th>
 
+
                 <th class="corp-th">PAN Number</th>
 
+
                 <th class="corp-th">Status</th>
+
 
                 <th class="corp-th">Actions</th>
               </tr>
             </thead>
+
 
             <tbody id="corporates-tbody" phx-update="stream">
               <tr class="hidden only:table-row corp-empty-row" id="corporates-empty-row">
@@ -120,6 +129,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                   <div class="corp-empty-state" id="corp-empty-state">
                     <.icon name="hero-building-office-2" class="w-12 h-12 text-gray-300 mb-3" />
                     <p class="corp-empty-text">No corporates yet</p>
+
 
                     <.link
                       navigate={~p"/admin/corporate/new"}
@@ -132,21 +142,28 @@ defmodule CorporatePolicyWeb.CorporateLive do
                 </td>
               </tr>
 
+
               <%= for {id, corp} <- @streams.corporates do %>
                 <tr id={id} class="corp-tr">
                   <td class="corp-td">{Map.get(corp, :row_num)}</td>
 
+
                   <td class="corp-td corp-td--name">{corp.corporate_name}</td>
+
 
                   <td class="corp-td">
                     <span class="corp-code-badge">{corp.corporate_group_code}</span>
                   </td>
 
+
                   <td class="corp-td">{corp.city}</td>
+
 
                   <td class="corp-td">{corp.state}</td>
 
+
                   <td class="corp-td">{corp.pan_number}</td>
+
 
                   <td class="corp-td">
                     <%= if corp.corporate_status == 1 do %>
@@ -156,16 +173,24 @@ defmodule CorporatePolicyWeb.CorporateLive do
                     <% end %>
                   </td>
 
+
                   <td class="corp-td">
                     <div class="corp-actions">
-                      <.link
-                        navigate={~p"/admin/corporate/#{corp.corporate_id}/edit"}
-                        class="corp-action-btn-text corp-action-btn-text--edit"
-                        title="Edit Corporate"
+                      <button
+                        class="corp-action-btn corp-action-btn--view"
+                        title="View"
+                        id={"view-corp-#{corp.corporate_id}"}
+                      >
+                        <.icon name="hero-eye" class="w-4 h-4" />
+                      </button>
+
+                      <button
+                        class="corp-action-btn corp-action-btn--edit"
+                        title="Edit"
                         id={"edit-corp-#{corp.corporate_id}"}
                       >
                         <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit Corporate
-                      </.link>
+                      </button>
                     </div>
                   </td>
                 </tr>

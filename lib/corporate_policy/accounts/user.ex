@@ -2,6 +2,8 @@ defmodule CorporatePolicy.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias CorporatePolicy.Accounts.Password
+
   schema "users" do
     field :first_name, :string
     field :last_name, :string
@@ -46,11 +48,7 @@ defmodule CorporatePolicy.Accounts.User do
   defp put_password_hash(changeset) do
     case get_change(changeset, :password) do
       nil -> changeset
-      password -> put_change(changeset, :password, hash_password(password))
+      password -> put_change(changeset, :password, Password.hash_password(password))
     end
-  end
-
-  defp hash_password(password) do
-    :crypto.hash(:sha256, password) |> Base.encode16(case: :lower)
   end
 end

@@ -2,7 +2,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateUsers do
   use Ecto.Migration
 
   def change do
-    create table(:users) do
+    create_if_not_exists table(:users) do
       add :first_name, :string, null: false
       add :last_name, :string, null: false
       add :email_address, :string, null: false
@@ -14,6 +14,6 @@ defmodule CorporatePolicy.Repo.Migrations.CreateUsers do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create unique_index(:users, :email_address)
+    create_if_not_exists unique_index(:users, :email_address)
   end
 end

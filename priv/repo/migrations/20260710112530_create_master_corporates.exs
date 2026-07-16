@@ -2,7 +2,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterCorporates do
   use Ecto.Migration
 
   def change do
-    create table(:master_corporates, primary_key: false) do
+    create_if_not_exists table(:master_corporates, primary_key: false) do
       add :corporate_id, :bigserial, primary_key: true
       add :corporate_name, :string, null: false
       add :ref_master_corporate_logos_id, :integer

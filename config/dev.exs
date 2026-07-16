@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :corporate_policy, CorporatePolicy.Repo,
-  username: System.get_env("DB_USER", "postgres"),
-  password: System.get_env("DB_PASSWORD", "postgres"),
+  username: System.get_env("DB_USER", "elixir_vibe"),
+  password: System.get_env("DB_PASSWORD", "Vibe@26"),
   hostname: System.get_env("DB_HOST", "localhost"),
   database: System.get_env("DB_NAME", "corporate_policy"),
   stacktrace: true,
@@ -16,6 +16,23 @@ config :corporate_policy, CorporatePolicy.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
+windows? = match?({:win32, _}, :os.type())
+
+dev_watchers = [
+  esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]}
+]
+
+dev_watchers =
+  if windows? do
+    dev_watchers
+  else
+    Keyword.put(
+      dev_watchers,
+      :tailwind,
+      {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
+    )
+  end
+
 config :corporate_policy, CorporatePolicyWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
@@ -24,10 +41,7 @@ config :corporate_policy, CorporatePolicyWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   secret_key_base: "Hi2pKR9uimLvFV8fUCiq5atc6MFbFak+ErUY7TKBhIyY0by7M+ainoY6o8pPoEmE",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
-  ]
+  watchers: dev_watchers
 
 # ## SSL Support
 #
@@ -86,7 +100,8 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   debug_attributes: true,
   # Enable helpful, but potentially expensive runtime checks
-  enable_expensive_runtime_checks: true
+  enable_expensive_runtime_checks: true,
+  colocated_assets: [disable_symlink_warning: true]
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

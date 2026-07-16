@@ -1,8 +1,9 @@
 defmodule CorporatePolicy.Accounts do
   import Ecto.Query, warn: false
 
-  alias CorporatePolicy.Repo
+  alias CorporatePolicy.Accounts.Password
   alias CorporatePolicy.Accounts.User
+  alias CorporatePolicy.Repo
 
   def list_users do
     Repo.all(User)
@@ -19,7 +20,7 @@ defmodule CorporatePolicy.Accounts do
 
     cond do
       is_nil(user) -> {:error, :invalid_credentials}
-      valid_password?(password, user.password) -> {:ok, user}
+      Password.valid_password?(password, user.password) -> {:ok, user}
       true -> {:error, :invalid_credentials}
     end
   end
@@ -32,13 +33,5 @@ defmodule CorporatePolicy.Accounts do
 
   def change_user(user, attrs \\ %{}) do
     User.changeset(user, attrs)
-  end
-
-  defp valid_password?(password, hashed_password) do
-    hashed_password == hash_password(password)
-  end
-
-  defp hash_password(password) do
-    :crypto.hash(:sha256, password) |> Base.encode16(case: :lower)
   end
 end

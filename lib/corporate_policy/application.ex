@@ -14,6 +14,7 @@ defmodule CorporatePolicy.Application do
       {Phoenix.PubSub, name: CorporatePolicy.PubSub},
       # Start a worker by calling: CorporatePolicy.Worker.start_link(arg)
       # {CorporatePolicy.Worker, arg},
+      CorporatePolicy.Emails.MailQueue,
       # Start to serve requests, typically the last entry
       CorporatePolicyWeb.Endpoint
     ]

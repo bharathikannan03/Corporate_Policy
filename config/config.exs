@@ -27,6 +27,9 @@ config :phoenix_live_view,
   # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
   root_tag_attribute: "phx-r"
 
+config :phoenix_live_view, :colocated_assets,
+  target_directory: Path.expand("../assets/node_modules/phoenix-colocated", __DIR__)
+
 # Configure the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

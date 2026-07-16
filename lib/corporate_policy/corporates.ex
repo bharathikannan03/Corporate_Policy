@@ -8,6 +8,7 @@ defmodule CorporatePolicy.Corporates do
   alias CorporatePolicy.Corporates.Corporate
   alias CorporatePolicy.Corporates.Logo
   alias CorporatePolicy.Corporates.MdVisibilityRoleFeature
+  alias CorporatePolicy.Corporates.ContactEmailLog
 
   # ─── Logos ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,23 @@ defmodule CorporatePolicy.Corporates do
     %Logo{}
     |> Logo.changeset(attrs)
     |> Repo.insert()
+  end
+
+  # ─── Contact Email Logs ────────────────────────────────────────────────────────
+
+  @doc "Creates a contact email log record."
+  def create_email_log(attrs) do
+    %ContactEmailLog{}
+    |> ContactEmailLog.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc "Checks if user has a mail sent/failed log entry."
+  def email_logged?(user_id) do
+    Repo.exists?(
+      from l in ContactEmailLog,
+        where: l.user_id == ^user_id
+    )
   end
 
   # ─── Corporates ───────────────────────────────────────────────────────────────
@@ -153,23 +171,24 @@ defmodule CorporatePolicy.Corporates do
   inserting new ones, and soft-deleting removed ones from the mapping.
   """
   def update_contacts(corporate_id, contacts_params) when is_list(contacts_params) do
-    Repo.transaction(fn repo ->
-      # 1. Fetch current mappings for this corporate
-      current_mappings =
-        repo.all(
-          from m in "trn_mapping_corporateid_corporatecontactsids",
-            where: m.corporate_id == ^corporate_id and m.status == 1,
-            select: %{id: m.corporatecontacts_id}
-        )
+    result =
+      Repo.transaction(fn repo ->
+        # 1. Fetch current mappings for this corporate
+        current_mappings =
+          repo.all(
+            from m in "trn_mapping_corporateid_corporatecontactsids",
+              where: m.corporate_id == ^corporate_id and m.status == 1,
+              select: %{id: m.corporatecontacts_id}
+          )
 
-      current_contact_ids = Enum.map(current_mappings, & &1.id)
+        current_contact_ids = Enum.map(current_mappings, & &1.id)
 
-      # 2. Process each submitted contact
-      submitted_ids =
-        Enum.map(contacts_params, fn contact ->
-          contact_id = Map.get(contact, "id")
+        # 2. Extract submitted database IDs to identify removed contacts
+        submitted_ids =
+          contacts_params
+          |> Enum.map(fn contact ->
+            contact_id = Map.get(contact, "id")
 
-          db_id =
             case contact_id do
               id when is_integer(id) ->
                 id
@@ -183,27 +202,35 @@ defmodule CorporatePolicy.Corporates do
               _ ->
                 nil
             end
+          end)
+          |> Enum.reject(&is_nil/1)
 
-          full_name = Map.get(contact, "full_name", "")
-          email = Map.get(contact, "email_address", "")
-          mobile = Map.get(contact, "mobile_number", "")
+        removed_ids = current_contact_ids -- submitted_ids
 
-          if Enum.all?([full_name, email, mobile], &(&1 == "")) do
-            nil
-          else
-            parts = String.split(full_name, ~r/\s+/, parts: 2)
+        # 3. Soft-delete the removed mappings and user records FIRST, so that
+        # if any of them are re-added (with the same email), they are already soft-deleted in the DB
+        # when we run the reactivation check.
+        if not Enum.empty?(removed_ids) do
+          now = DateTime.utc_now()
 
-            {first_name, last_name} =
-              case parts do
-                [f, l] when l != "" -> {f, l}
-                [f] when f != "" -> {f, "User"}
-                _ -> {"Contact", "User"}
-              end
+          from(m in "trn_mapping_corporateid_corporatecontactsids",
+            where: m.corporate_id == ^corporate_id and m.corporatecontacts_id in ^removed_ids
+          )
+          |> repo.update_all(set: [status: 0, deleted_at: now, updated_at: now])
 
-            dep_id_val = Map.get(contact, "department")
+          from(u in CorporatePolicy.Accounts.User,
+            where: u.id in ^removed_ids
+          )
+          |> repo.update_all(set: [status: 0, deleted_at: now, updated_at: now])
+        end
 
-            dep_id =
-              case dep_id_val do
+        # 4. Process each submitted contact
+        {_final_ids, new_users} =
+          Enum.map_reduce(contacts_params, [], fn contact, acc ->
+            contact_id = Map.get(contact, "id")
+
+            db_id =
+              case contact_id do
                 id when is_integer(id) ->
                   id
 
@@ -217,94 +244,180 @@ defmodule CorporatePolicy.Corporates do
                   nil
               end
 
-            dep_name =
-              if dep_id do
-                case repo.one(
-                       from r in MdVisibilityRoleFeature,
-                         where: r.role_id == ^dep_id,
-                         select: r.role,
-                         limit: 1
-                     ) do
-                  nil -> ""
-                  name -> name
+            full_name = Map.get(contact, "full_name", "")
+            email = Map.get(contact, "email_address", "")
+            mobile = Map.get(contact, "mobile_number", "")
+
+            if Enum.all?([full_name, email, mobile], &(&1 == "")) do
+              {nil, acc}
+            else
+              parts = String.split(full_name, ~r/\s+/, parts: 2)
+
+              {first_name, last_name} =
+                case parts do
+                  [f, l] when l != "" -> {f, l}
+                  [f] when f != "" -> {f, "User"}
+                  _ -> {"Contact", "User"}
+                end
+
+              dep_id_val = Map.get(contact, "department")
+
+              dep_id =
+                case dep_id_val do
+                  id when is_integer(id) ->
+                    id
+
+                  id when is_binary(id) ->
+                    case Integer.parse(id) do
+                      {num, ""} -> num
+                      _ -> nil
+                    end
+
+                  _ ->
+                    nil
+                end
+
+              dep_name =
+                if dep_id do
+                  case repo.one(
+                         from r in MdVisibilityRoleFeature,
+                           where: r.role_id == ^dep_id,
+                           select: r.role,
+                           limit: 1
+                       ) do
+                    nil -> ""
+                    name -> name
+                  end
+                else
+                  Map.get(contact, "department", "")
+                end
+
+              user_attrs = %{
+                first_name: first_name,
+                last_name: last_name,
+                full_name: full_name,
+                mobile_no: mobile,
+                email_address: email,
+                status: 1,
+                corporate_username: Map.get(contact, "corporate_username", ""),
+                department_name: dep_name,
+                department_id: dep_id,
+                location: Map.get(contact, "location", ""),
+                ref_corporate_id: corporate_id
+              }
+
+              if db_id && db_id in current_contact_ids do
+                # Update existing user
+                user = repo.get!(CorporatePolicy.Accounts.User, db_id)
+                user_changeset = CorporatePolicy.Accounts.User.changeset(user, user_attrs)
+
+                case repo.update(user_changeset) do
+                  {:ok, updated_user} -> {updated_user.id, acc}
+                  {:error, cs} -> repo.rollback(cs)
                 end
               else
-                Map.get(contact, "department", "")
-              end
+                # Insert new user or reactivate soft-deleted user
+                random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+                user_attrs = Map.put(user_attrs, :password, random_password)
 
-            user_attrs = %{
-              first_name: first_name,
-              last_name: last_name,
-              full_name: full_name,
-              mobile_no: mobile,
-              email_address: email,
-              status: 1,
-              corporate_username: Map.get(contact, "corporate_username", ""),
-              department_name: dep_name,
-              department_id: dep_id,
-              location: Map.get(contact, "location", ""),
-              ref_corporate_id: corporate_id
-            }
+                existing_user = repo.get_by(CorporatePolicy.Accounts.User, email_address: email)
 
-            if db_id && db_id in current_contact_ids do
-              # Update existing user
-              user = repo.get!(CorporatePolicy.Accounts.User, db_id)
-              user_changeset = CorporatePolicy.Accounts.User.changeset(user, user_attrs)
+                if existing_user &&
+                     (existing_user.status == 0 || not is_nil(existing_user.deleted_at)) do
+                  # Reactivate the soft-deleted user
+                  user_changeset =
+                    existing_user
+                    |> CorporatePolicy.Accounts.User.changeset(user_attrs)
+                    |> Ecto.Changeset.change(%{status: 1, deleted_at: nil})
 
-              case repo.update(user_changeset) do
-                {:ok, updated_user} -> updated_user.id
-                {:error, cs} -> repo.rollback(cs)
-              end
-            else
-              # Insert new user
-              random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
-              user_attrs = Map.put(user_attrs, :password, random_password)
+                  case repo.update(user_changeset) do
+                    {:ok, user} ->
+                      now = DateTime.utc_now()
 
-              user_changeset =
-                CorporatePolicy.Accounts.User.changeset(
-                  %CorporatePolicy.Accounts.User{},
-                  user_attrs
-                )
+                      # Update or insert mapping
+                      existing_mapping =
+                        repo.one(
+                          from(m in "trn_mapping_corporateid_corporatecontactsids",
+                            where:
+                              m.corporate_id == ^corporate_id and
+                                m.corporatecontacts_id == ^user.id,
+                            select: m.corporate_id,
+                            limit: 1
+                          )
+                        )
 
-              case repo.insert(user_changeset) do
-                {:ok, user} ->
-                  now = DateTime.utc_now()
+                      if existing_mapping do
+                        from(m in "trn_mapping_corporateid_corporatecontactsids",
+                          where:
+                            m.corporate_id == ^corporate_id and m.corporatecontacts_id == ^user.id
+                        )
+                        |> repo.update_all(set: [status: 1, deleted_at: nil, updated_at: now])
+                      else
+                        mapping = %{
+                          corporate_id: corporate_id,
+                          corporatecontacts_id: user.id,
+                          status: 1,
+                          inserted_at: now,
+                          updated_at: now
+                        }
 
-                  mapping = %{
-                    corporate_id: corporate_id,
-                    corporatecontacts_id: user.id,
-                    status: 1,
-                    inserted_at: now,
-                    updated_at: now
-                  }
+                        repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                      end
 
-                  repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
-                  user.id
+                      {user.id, [%{user: user, password: random_password} | acc]}
 
-                {:error, cs} ->
-                  repo.rollback(cs)
+                    {:error, cs} ->
+                      repo.rollback(cs)
+                  end
+                else
+                  # Insert a new user normally
+                  user_changeset =
+                    CorporatePolicy.Accounts.User.changeset(
+                      %CorporatePolicy.Accounts.User{},
+                      user_attrs
+                    )
+
+                  case repo.insert(user_changeset) do
+                    {:ok, user} ->
+                      now = DateTime.utc_now()
+
+                      mapping = %{
+                        corporate_id: corporate_id,
+                        corporatecontacts_id: user.id,
+                        status: 1,
+                        inserted_at: now,
+                        updated_at: now
+                      }
+
+                      repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                      {user.id, [%{user: user, password: random_password} | acc]}
+
+                    {:error, cs} ->
+                      repo.rollback(cs)
+                  end
+                end
               end
             end
-          end
+          end)
+
+        {{:ok, :success}, new_users}
+      end)
+
+    case result do
+      {:ok, {{:ok, :success}, new_users}} ->
+        # Queue welcome emails
+        Enum.each(new_users, fn %{user: user, password: password} ->
+          CorporatePolicy.Emails.MailQueue.queue_welcome_email(user, password)
         end)
-        |> Enum.reject(&is_nil/1)
 
-      # 3. Soft-delete mappings for contacts that were deleted in UI
-      removed_ids = current_contact_ids -- submitted_ids
+        {:ok, :success}
 
-      if not Enum.empty?(removed_ids) do
-        from(m in "trn_mapping_corporateid_corporatecontactsids",
-          where: m.corporate_id == ^corporate_id and m.corporatecontacts_id in ^removed_ids
-        )
-        |> repo.update_all(set: [status: 0, updated_at: DateTime.utc_now()])
-      end
-
-      {:ok, :success}
-    end)
+      {:error, failed_changeset} ->
+        {:error, failed_changeset}
+    end
   end
 
   @doc """
-  Step 1 — saves logo (if any) into `master_logos` then inserts the corporate
   row into `master_corporates` linking the logo id.
 
   Returns `{:ok, corporate}` or `{:error, changeset}`.
@@ -339,104 +452,173 @@ defmodule CorporatePolicy.Corporates do
   Returns `{:ok, [users | :skipped]}` or `{:error, changeset}`.
   """
   def save_contacts(corporate_id, contacts_params) when is_list(contacts_params) do
-    Repo.transaction(fn repo ->
-      results =
-        Enum.map(contacts_params, fn contact ->
-          full_name = Map.get(contact, "full_name", "")
-          email = Map.get(contact, "email_address", "")
-          mobile = Map.get(contact, "mobile_number", "")
+    result =
+      Repo.transaction(fn repo ->
+        {results, new_users} =
+          Enum.map_reduce(contacts_params, [], fn contact, acc ->
+            full_name = Map.get(contact, "full_name", "")
+            email = Map.get(contact, "email_address", "")
+            mobile = Map.get(contact, "mobile_number", "")
 
-          if Enum.all?([full_name, email, mobile], &(&1 == "")) do
-            {:ok, :skipped}
-          else
-            random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+            if Enum.all?([full_name, email, mobile], &(&1 == "")) do
+              {{:ok, :skipped}, acc}
+            else
+              random_password = :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
 
-            parts = String.split(full_name, ~r/\s+/, parts: 2)
+              parts = String.split(full_name, ~r/\s+/, parts: 2)
 
-            {first_name, last_name} =
-              case parts do
-                [f, l] when l != "" -> {f, l}
-                [f] when f != "" -> {f, "User"}
-                _ -> {"Contact", "User"}
-              end
+              {first_name, last_name} =
+                case parts do
+                  [f, l] when l != "" -> {f, l}
+                  [f] when f != "" -> {f, "User"}
+                  _ -> {"Contact", "User"}
+                end
 
-            dep_id_val = Map.get(contact, "department")
+              dep_id_val = Map.get(contact, "department")
 
-            dep_id =
-              case dep_id_val do
-                id when is_integer(id) ->
-                  id
+              dep_id =
+                case dep_id_val do
+                  id when is_integer(id) ->
+                    id
 
-                id when is_binary(id) ->
-                  case Integer.parse(id) do
-                    {num, ""} -> num
-                    _ -> nil
+                  id when is_binary(id) ->
+                    case Integer.parse(id) do
+                      {num, ""} -> num
+                      _ -> nil
+                    end
+
+                  _ ->
+                    nil
+                end
+
+              dep_name =
+                if dep_id do
+                  case repo.one(
+                         from r in MdVisibilityRoleFeature,
+                           where: r.role_id == ^dep_id,
+                           select: r.role,
+                           limit: 1
+                       ) do
+                    nil -> ""
+                    name -> name
                   end
+                else
+                  Map.get(contact, "department", "")
+                end
 
-                _ ->
-                  nil
-              end
+              user_attrs = %{
+                first_name: first_name,
+                last_name: last_name,
+                full_name: full_name,
+                mobile_no: mobile,
+                email_address: email,
+                password: random_password,
+                status: 1,
+                corporate_username: Map.get(contact, "corporate_username", ""),
+                department_name: dep_name,
+                department_id: dep_id,
+                location: Map.get(contact, "location", ""),
+                ref_corporate_id: corporate_id
+              }
 
-            dep_name =
-              if dep_id do
-                case repo.one(
-                       from r in MdVisibilityRoleFeature,
-                         where: r.role_id == ^dep_id,
-                         select: r.role,
-                         limit: 1
-                     ) do
-                  nil -> ""
-                  name -> name
+              existing_user = repo.get_by(CorporatePolicy.Accounts.User, email_address: email)
+
+              if existing_user &&
+                   (existing_user.status == 0 || not is_nil(existing_user.deleted_at)) do
+                # Reactivate the soft-deleted user
+                user_changeset =
+                  existing_user
+                  |> CorporatePolicy.Accounts.User.changeset(user_attrs)
+                  |> Ecto.Changeset.change(%{status: 1, deleted_at: nil})
+
+                case repo.update(user_changeset) do
+                  {:ok, user} ->
+                    now = DateTime.utc_now()
+
+                    # Update or insert mapping
+                    existing_mapping =
+                      repo.one(
+                        from(m in "trn_mapping_corporateid_corporatecontactsids",
+                          where:
+                            m.corporate_id == ^corporate_id and m.corporatecontacts_id == ^user.id,
+                          select: m.corporate_id,
+                          limit: 1
+                        )
+                      )
+
+                    if existing_mapping do
+                      from(m in "trn_mapping_corporateid_corporatecontactsids",
+                        where:
+                          m.corporate_id == ^corporate_id and m.corporatecontacts_id == ^user.id
+                      )
+                      |> repo.update_all(set: [status: 1, deleted_at: nil, updated_at: now])
+                    else
+                      mapping = %{
+                        corporate_id: corporate_id,
+                        corporatecontacts_id: user.id,
+                        status: 1,
+                        inserted_at: now,
+                        updated_at: now
+                      }
+
+                      repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                    end
+
+                    {{:ok, user}, [%{user: user, password: random_password} | acc]}
+
+                  {:error, cs} ->
+                    IO.inspect(cs.errors,
+                      label: "User changeset errors in save_contacts (reactivation)"
+                    )
+
+                    repo.rollback(cs)
                 end
               else
-                Map.get(contact, "department", "")
+                # Insert a new user normally
+                user_changeset =
+                  CorporatePolicy.Accounts.User.changeset(
+                    %CorporatePolicy.Accounts.User{},
+                    user_attrs
+                  )
+
+                case repo.insert(user_changeset) do
+                  {:ok, user} ->
+                    now = DateTime.utc_now()
+
+                    mapping = %{
+                      corporate_id: corporate_id,
+                      corporatecontacts_id: user.id,
+                      status: 1,
+                      inserted_at: now,
+                      updated_at: now
+                    }
+
+                    repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
+                    {{:ok, user}, [%{user: user, password: random_password} | acc]}
+
+                  {:error, cs} ->
+                    IO.inspect(cs.errors, label: "User changeset errors in save_contacts")
+                    repo.rollback(cs)
+                end
               end
-
-            user_attrs = %{
-              first_name: first_name,
-              last_name: last_name,
-              full_name: full_name,
-              mobile_no: mobile,
-              email_address: email,
-              password: random_password,
-              status: 1,
-              corporate_username: Map.get(contact, "corporate_username", ""),
-              department_name: dep_name,
-              department_id: dep_id,
-              location: Map.get(contact, "location", ""),
-              ref_corporate_id: corporate_id
-            }
-
-            user_changeset =
-              CorporatePolicy.Accounts.User.changeset(
-                %CorporatePolicy.Accounts.User{},
-                user_attrs
-              )
-
-            case repo.insert(user_changeset) do
-              {:ok, user} ->
-                now = DateTime.utc_now()
-
-                mapping = %{
-                  corporate_id: corporate_id,
-                  corporatecontacts_id: user.id,
-                  status: 1,
-                  inserted_at: now,
-                  updated_at: now
-                }
-
-                repo.insert_all("trn_mapping_corporateid_corporatecontactsids", [mapping])
-                {:ok, user}
-
-              {:error, cs} ->
-                IO.inspect(cs.errors, label: "User changeset errors in save_contacts")
-                repo.rollback(cs)
             end
-          end
+          end)
+
+        {Enum.map(results, fn {:ok, val} -> val end), new_users}
+      end)
+
+    case result do
+      {:ok, {mapped_results, new_users}} ->
+        # Queue welcome emails
+        Enum.each(new_users, fn %{user: user, password: password} ->
+          CorporatePolicy.Emails.MailQueue.queue_welcome_email(user, password)
         end)
 
-      Enum.map(results, fn {:ok, val} -> val end)
-    end)
+        {:ok, mapped_results}
+
+      {:error, failed_changeset} ->
+        {:error, failed_changeset}
+    end
   end
 
   @doc """

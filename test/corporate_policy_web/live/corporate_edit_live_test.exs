@@ -301,7 +301,7 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
 
     assert_redirected(view, "/admin/corporate")
 
-    # Verify mapping status is updated to 0 (soft-deleted) for contact_user2
+    # Verify mapping status is updated to 0 (soft-deleted) for contact_user2 and deleted_at is set
     mapping =
       Repo.get_by(CorporatePolicy.Corporates.TrnMappingCorporateContact,
         corporate_id: corporate.corporate_id,
@@ -310,6 +310,12 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
 
     assert mapping != nil
     assert mapping.status == 0
+    assert mapping.deleted_at != nil
+
+    # Verify user record status is updated to 0 and deleted_at is set
+    user_in_db = Repo.get!(Accounts.User, contact_user2.id)
+    assert user_in_db.status == 0
+    assert user_in_db.deleted_at != nil
   end
 
   test "autofetches city and state when pincode changes to a matching 6-digit value", %{
@@ -344,5 +350,153 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     # The city and state inputs should update to Mumbai/Maharashtra
     assert html =~ "value=\"Mumbai\""
     assert html =~ "value=\"Maharashtra\""
+  end
+
+  test "reactivates a soft-deleted contact if added back with same email", %{
+    conn: conn,
+    user: user,
+    corporate: corporate,
+    contact_user2: contact_user2,
+    dept_hr: dept_hr
+  } do
+    # 1. Soft-delete contact_user2 first
+    now = DateTime.utc_now()
+    Repo.update!(Accounts.User.changeset(contact_user2, %{status: 0, deleted_at: now}))
+
+    # Verify it is soft-deleted
+    assert Repo.get!(Accounts.User, contact_user2.id).status == 0
+
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/#{corporate.corporate_id}/edit")
+
+    # Step 2: Go to contacts tab
+    view
+    |> form("#corporate-form", %{
+      "corporate" => %{
+        "corporate_name" => "Corp Name",
+        "pincode" => "600001",
+        "city" => "Madras",
+        "state" => "Tamil Nadu",
+        "corporate_address" => "789 New Road",
+        "pan_number" => "FIHPB4074D"
+      }
+    })
+    |> render_submit(%{"action" => "next"})
+
+    # Click Add New User to render inputs for index 1 in the DOM (since index 1 was soft-deleted, only index 0 is loaded)
+    view |> element("button", "Add New User") |> render_click()
+
+    # Step 3: Add a new contact using contact_user2's email
+    contact_attrs = %{
+      "contacts" => %{
+        "1" => %{
+          "full_name" => "Jane Reactivated",
+          "mobile_number" => "8888888888",
+          "email_address" => contact_user2.email_address,
+          "corporate_username" => "janedoe",
+          "department" => to_string(dept_hr.role_id),
+          "location" => "Chennai"
+        }
+      }
+    }
+
+    view
+    |> form("#corporate-form", %{
+      "corporate" => contact_attrs
+    })
+    |> render_submit(%{"action" => "submit"})
+
+    assert_redirected(view, "/admin/corporate")
+
+    # Verify contact_user2 is reactivated (status 1, deleted_at nil, and updated fields)
+    reactivated_user = Repo.get!(Accounts.User, contact_user2.id)
+    assert reactivated_user.status == 1
+    assert reactivated_user.deleted_at == nil
+    assert reactivated_user.full_name == "Jane Reactivated"
+    assert reactivated_user.mobile_no == "8888888888"
+
+    # Verify mapping status is updated to 1
+    mapping =
+      Repo.get_by(CorporatePolicy.Corporates.TrnMappingCorporateContact,
+        corporate_id: corporate.corporate_id,
+        corporatecontacts_id: contact_user2.id
+      )
+
+    assert mapping != nil
+    assert mapping.status == 1
+    assert mapping.deleted_at == nil
+  end
+
+  test "deletes and immediately re-adds a contact with the same email in one submission", %{
+    conn: conn,
+    user: user,
+    corporate: corporate,
+    contact_user2: contact_user2,
+    dept_hr: dept_hr
+  } do
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, view, _html} = live(conn, ~p"/admin/corporate/#{corporate.corporate_id}/edit")
+
+    # Step 1: Go to contacts tab
+    view
+    |> form("#corporate-form", %{
+      "corporate" => %{
+        "corporate_name" => "Corp Name",
+        "pincode" => "600001",
+        "city" => "Madras",
+        "state" => "Tamil Nadu",
+        "corporate_address" => "789 New Road",
+        "pan_number" => "FIHPB4074D"
+      }
+    })
+    |> render_submit(%{"action" => "next"})
+
+    # Step 2: Delete index 1 contact using UI click
+    view
+    |> element("button[phx-click='remove_contact'][phx-value-index='1']", "Delete")
+    |> render_click()
+
+    # Step 3: Click Add New User to re-add a contact row
+    view |> element("button", "Add New User") |> render_click()
+
+    # Step 4: Submit form re-adding contact_user2 with same email address
+    contact_attrs = %{
+      "contacts" => %{
+        "1" => %{
+          "full_name" => "Jane Readded Immediately",
+          "mobile_number" => "7777777777",
+          "email_address" => contact_user2.email_address,
+          "corporate_username" => "janedoe",
+          "department" => to_string(dept_hr.role_id),
+          "location" => "Chennai"
+        }
+      }
+    }
+
+    view
+    |> form("#corporate-form", %{
+      "corporate" => contact_attrs
+    })
+    |> render_submit(%{"action" => "submit"})
+
+    assert_redirected(view, "/admin/corporate")
+
+    # Verify contact_user2 was reactivated and updated in the DB
+    updated_user = Repo.get!(Accounts.User, contact_user2.id)
+    assert updated_user.status == 1
+    assert updated_user.deleted_at == nil
+    assert updated_user.full_name == "Jane Readded Immediately"
+    assert updated_user.mobile_no == "7777777777"
+
+    # Verify mapping is active
+    mapping =
+      Repo.get_by(CorporatePolicy.Corporates.TrnMappingCorporateContact,
+        corporate_id: corporate.corporate_id,
+        corporatecontacts_id: contact_user2.id
+      )
+
+    assert mapping != nil
+    assert mapping.status == 1
+    assert mapping.deleted_at == nil
   end
 end

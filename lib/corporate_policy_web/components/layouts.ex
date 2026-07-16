@@ -157,12 +157,27 @@ defmodule CorporatePolicyWeb.Layouts do
             href={~p"/admin/cashless-hospitals"}
             active={@active_path == "/admin/cashless-hospitals"}
           />
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-chart-bar"
             label="Escalation Matrix"
-            href={~p"/admin/escalation-matrix"}
-            active={@active_path == "/admin/escalation-matrix"}
-          />
+            open={String.starts_with?(@active_path, "/admin/escalation-matrix")}
+          >
+            <.sidebar_child_item
+              label="Add User"
+              href={~p"/admin/escalation-matrix/add-user"}
+              active={
+                @active_path == "/admin/escalation-matrix/add-user" ||
+                  @active_path == "/admin/escalation-matrix"
+              }
+              id="sidebar-escalation-matrix-add-user"
+            />
+            <.sidebar_child_item
+              label="User Master"
+              href={~p"/admin/escalation-matrix/user-master"}
+              active={@active_path == "/admin/escalation-matrix/user-master"}
+              id="sidebar-escalation-matrix-user-master"
+            />
+          </.sidebar_group>
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -246,18 +261,21 @@ defmodule CorporatePolicyWeb.Layouts do
   slot :inner_block, required: true
 
   defp sidebar_group(assigns) do
+    group_id = String.replace(String.downcase(assigns.label), " ", "-")
+    assigns = assign(assigns, :group_id, group_id)
+
     ~H"""
     <div
       class={["sidebar-group", @open && "sidebar-group--open"]}
-      id={"group-#{String.downcase(@label)}"}
+      id={"group-#{@group_id}"}
     >
       <button
         type="button"
-        id={"group-toggle-#{String.downcase(@label)}"}
+        id={"group-toggle-#{@group_id}"}
         class="sidebar-group-header"
         phx-click={
-          JS.toggle(to: "#group-children-#{String.downcase(@label)}")
-          |> JS.toggle_class("sidebar-group--open", to: "#group-#{String.downcase(@label)}")
+          JS.toggle(to: "#group-children-#{@group_id}")
+          |> JS.toggle_class("sidebar-group--open", to: "#group-#{@group_id}")
         }
       >
         <span class="sidebar-group-header-left">
@@ -268,7 +286,7 @@ defmodule CorporatePolicyWeb.Layouts do
       </button>
 
       <div
-        id={"group-children-#{String.downcase(@label)}"}
+        id={"group-children-#{@group_id}"}
         class="sidebar-group-children"
         style={if @open, do: "display:block", else: "display:none"}
       >

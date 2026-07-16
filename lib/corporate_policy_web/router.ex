@@ -39,10 +39,17 @@ defmodule CorporatePolicyWeb.Router do
     live "/policy-details", PolicyDetailsLive
     live "/cd-statements", CdStatementsLive
     live "/roles-configuration", RolesConfigurationLive
+
     live "/users", UsersLive
     live "/corporate-employees", CorporateEmployeesLive
     live "/cashless-hospitals", CashlessHospitalsLive
-    live "/escalation-matrix", EscalationMatrixLive
+
+    live "/escalation-matrix", EscalationMatrixAddLive, :new
+    live "/escalation-matrix/add-user", EscalationMatrixAddLive, :new
+    live "/escalation-matrix/edit-user/:id", EscalationMatrixAddLive, :edit
+    live "/escalation-matrix/user-master", EscalationMatrixMasterLive, :index
+    get "/escalation-matrix/export", EscalationMatrixExportController, :export
+
     live "/total-claim-reported", TotalClaimReportedLive
     live "/claims-intimation", ClaimsIntimationLive
     live "/claims-submission", ClaimsSubmissionLive

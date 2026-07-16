@@ -516,4 +516,9 @@ And **never** do this:
 - **Never** use `<.form let={f} ...>` in the template, instead **always use `<.form for={@form} ...>`**, then drive all form references from the form assign as in `@form[:field]`. The UI should **always** be driven by a `to_form/2` assigned in the LiveView module that is derived from a changeset
 <!-- phoenix:liveview-end -->
 
+### Datatable and Action Confirmation guidelines
+
+- **Always ask confirmation** from the user using a modal popup before deleting any data or resource from a table or view (do not use default browser alert/confirm boxes unless explicitly requested).
+- **Always include an export option** (such as CSV/Excel) as a mandatory feature when building any data tables.
+
 <!-- usage-rules-end -->

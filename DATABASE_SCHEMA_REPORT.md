@@ -1461,7 +1461,7 @@ Migration sources: `database/migrations/2025_01_23_110401_create_master_escalati
 | company_fulladdress | text |  | Yes |  |  |  |  |  |
 | type | varchar | 30 | Yes |  |  |  |  |  |
 | type_id | integer |  | Yes |  |  |  |  |  |
-| status | integer |  | No | 0 |  |  |  |  |
+| status | integer |  | No | 1 |  |  |  |  |
 | created_at | timestamp |  | Yes |  |  |  |  |  |
 | updated_at | timestamp |  | Yes |  |  |  |  |  |
 | deleted_at | timestamp |  | Yes |  |  |  |  |  |

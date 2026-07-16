@@ -981,6 +981,16 @@ body {
   color: #ffffff;
 }
 
+.corp-action-btn-text--delete {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.corp-action-btn-text--delete:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
 .status-tabs {
   display: flex;
   border: 1px solid #e5e7eb;

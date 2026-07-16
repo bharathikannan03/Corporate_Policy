@@ -42,10 +42,10 @@ defmodule CorporatePolicyWeb.CorporateLive do
         <div class="corp-list-header" id="corp-list-header">
           <div>
             <h1 class="corp-list-title">All Corporates</h1>
-            
+
             <p class="corp-list-subtitle">Manage corporate accounts and their details</p>
           </div>
-           <%!-- Tabs to filter status --%>
+          <%!-- Tabs to filter status --%>
           <div class="status-tabs" id="status-tabs">
             <button
               phx-click="filter_status"
@@ -55,7 +55,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
             >
               ALL
             </button>
-            
+
             <button
               phx-click="filter_status"
               phx-value-status="active"
@@ -64,7 +64,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
             >
               ACTIVE
             </button>
-            
+
             <button
               phx-click="filter_status"
               phx-value-status="inactive"
@@ -74,7 +74,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
               IN-ACTIVE
             </button>
           </div>
-          
+
           <div class="header-actions">
             <.link
               href={~p"/admin/corporate/export?status=#{@active_tab}"}
@@ -85,101 +85,96 @@ defmodule CorporatePolicyWeb.CorporateLive do
             >
               <.icon name="hero-arrow-up-tray" class="w-4 h-4 mr-1" /> Export
             </.link>
-            
+
             <.link navigate={~p"/admin/corporate/new"} id="add-corporate-btn" class="btn-primary">
               <.icon name="hero-plus" class="w-4 h-4" /> Add Corporate
             </.link>
           </div>
         </div>
-         <%!-- Table card --%>
+        <%!-- Table card --%>
         <div class="corp-table-card" id="corp-table-card">
-          <table class="corp-table" id="corporates-table">
-            <thead>
-              <tr>
-                <th class="corp-th">#</th>
-                
-                <th class="corp-th">Corporate Name</th>
-                
-                <th class="corp-th">Group Code</th>
-                
-                <th class="corp-th">City</th>
-                
-                <th class="corp-th">State</th>
-                
-                <th class="corp-th">PAN Number</th>
-                
-                <th class="corp-th">Status</th>
-                
-                <th class="corp-th">Actions</th>
-              </tr>
-            </thead>
-            
-            <tbody id="corporates-tbody" phx-update="stream">
-              <tr class="hidden only:table-row corp-empty-row" id="corporates-empty-row">
-                <td colspan="8" class="corp-empty-cell">
-                  <div class="corp-empty-state" id="corp-empty-state">
-                    <.icon name="hero-building-office-2" class="w-12 h-12 text-gray-300 mb-3" />
-                    <p class="corp-empty-text">No corporates yet</p>
-                    
-                    <.link
-                      navigate={~p"/admin/corporate/new"}
-                      class="btn-primary mt-4"
-                      id="add-first-corporate-btn"
-                    >
-                      Add your first corporate
-                    </.link>
-                  </div>
-                </td>
-              </tr>
-              
-              <%= for {id, corp} <- @streams.corporates do %>
-                <tr id={id} class="corp-tr">
-                  <td class="corp-td">{Map.get(corp, :row_num)}</td>
-                  
-                  <td class="corp-td corp-td--name">{corp.corporate_name}</td>
-                  
-                  <td class="corp-td">
-                    <span class="corp-code-badge">{corp.corporate_group_code}</span>
-                  </td>
-                  
-                  <td class="corp-td">{corp.city}</td>
-                  
-                  <td class="corp-td">{corp.state}</td>
-                  
-                  <td class="corp-td">{corp.pan_number}</td>
-                  
-                  <td class="corp-td">
-                    <%= if corp.corporate_status == 1 do %>
-                      <span class="corp-status corp-status--active">Active</span>
-                    <% else %>
-                      <span class="corp-status corp-status--inactive">Inactive</span>
-                    <% end %>
-                  </td>
-                  
-                  <td class="corp-td">
-                    <div class="corp-actions">
-                      <button
-                        class="corp-action-btn corp-action-btn--view"
-                        title="View"
-                        id={"view-corp-#{corp.corporate_id}"}
+          <div class="overflow-x-auto">
+            <table class="corp-table" id="corporates-table">
+              <thead>
+                <tr>
+                  <th class="corp-th">#</th>
+
+                  <th class="corp-th">Corporate Name</th>
+
+                  <th class="corp-th">Group Code</th>
+
+                  <th class="corp-th">City</th>
+
+                  <th class="corp-th">State</th>
+
+                  <th class="corp-th">PAN Number</th>
+
+                  <th class="corp-th">Status</th>
+
+                  <th class="corp-th">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="corporates-tbody" phx-update="stream">
+                <tr class="hidden only:table-row corp-empty-row" id="corporates-empty-row">
+                  <td colspan="8" class="corp-empty-cell">
+                    <div class="corp-empty-state" id="corp-empty-state">
+                      <.icon name="hero-building-office-2" class="w-12 h-12 text-gray-300 mb-3" />
+                      <p class="corp-empty-text">No corporates yet</p>
+
+                      <.link
+                        navigate={~p"/admin/corporate/new"}
+                        class="btn-primary mt-4"
+                        id="add-first-corporate-btn"
                       >
-                        <.icon name="hero-eye" class="w-4 h-4" />
-                      </button>
-                      
-                      <button
-                        class="corp-action-btn corp-action-btn--edit"
-                        title="Edit"
-                        id={"edit-corp-#{corp.corporate_id}"}
-                      >
-                        <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit Corporate
-                      </button>
+                        Add your first corporate
+                      </.link>
                     </div>
                   </td>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
-           <%!-- Pagination bar --%>
+
+                <%= for {id, corp} <- @streams.corporates do %>
+                  <tr id={id} class="corp-tr">
+                    <td class="corp-td">{Map.get(corp, :row_num)}</td>
+
+                    <td class="corp-td corp-td--name">{corp.corporate_name}</td>
+
+                    <td class="corp-td">
+                      <span class="corp-code-badge">{corp.corporate_group_code}</span>
+                    </td>
+
+                    <td class="corp-td">{corp.city}</td>
+
+                    <td class="corp-td">{corp.state}</td>
+
+                    <td class="corp-td">{corp.pan_number}</td>
+
+                    <td class="corp-td">
+                      <%= if corp.corporate_status == 1 do %>
+                        <span class="corp-status corp-status--active">Active</span>
+                      <% else %>
+                        <span class="corp-status corp-status--inactive">Inactive</span>
+                      <% end %>
+                    </td>
+
+                    <td class="corp-td">
+                      <div class="corp-actions">
+                        <.link
+                          navigate={~p"/admin/corporate/#{corp.corporate_id}/edit"}
+                          class="corp-action-btn-text corp-action-btn-text--edit"
+                          title="Edit Corporate"
+                          id={"edit-corp-#{corp.corporate_id}"}
+                        >
+                          <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit Corporate
+                        </.link>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          <%!-- Pagination bar --%>
           <%= if @total_pages > 1 do %>
             <div
               class="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100"
@@ -197,7 +192,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                 >
                   Previous
                 </button>
-                
+
                 <button
                   phx-click="next_page"
                   disabled={@page == @total_pages}
@@ -210,7 +205,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                   Next
                 </button>
               </div>
-              
+
               <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
                   <p class="text-sm text-gray-500">
@@ -220,7 +215,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                     total records)
                   </p>
                 </div>
-                
+
                 <div>
                   <nav class="inline-flex items-center gap-1" aria-label="Pagination">
                     <button
@@ -235,7 +230,7 @@ defmodule CorporatePolicyWeb.CorporateLive do
                       <span class="sr-only">Previous</span>
                       <.icon name="hero-chevron-left" class="w-4 h-4" />
                     </button>
-                    
+
                     <button
                       phx-click="next_page"
                       disabled={@page == @total_pages}

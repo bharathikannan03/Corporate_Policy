@@ -24,9 +24,9 @@ defmodule CorporatePolicyWeb.TotalClaimReportedLive do
         <div class="coming-soon-icon">
           <.icon name="hero-clipboard-document-list" class="w-16 h-16 text-blue-400" />
         </div>
-        
+
         <h1 class="coming-soon-title">Total Claim Reported</h1>
-        
+
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

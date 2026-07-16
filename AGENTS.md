@@ -78,8 +78,21 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
     *   `.admin-topbar`: Top navigation bar.
     *   `.admin-content`: Main scrollable page workspace.
 *   **Buttons**:
-    *   `.btn-primary`: Blue gradient background (`linear-gradient(135deg, #3b82f6, #1d4ed8)`), hover shadows, and lift transform.
-    *   `.btn-secondary`: Light gray background (`#f1f5f9`) with slate text.
+    *   `.btn-primary`: Blue gradient background (`linear-gradient(135deg, #3b82f6, #1d4ed8)`), hover shadows, and lift transform. Used for primary action buttons (e.g. Add, Save, Next).
+    *   `.btn-secondary`: Light gray background (`#f1f5f9`) with slate text. Used for secondary/cancel actions.
+    *   `.corp-action-btn-text`: Standard inline action button class for list tables. Used with a modifier class:
+        *   `.corp-action-btn-text--edit`: Blue edit button (`#3b82f6` background).
+        *   `.corp-action-btn-text--delete`: Red delete button (`#ef4444` background).
+    *   **Button Icons**: Always include a descriptive icon (using the `<.icon>` component) inside buttons/links (e.g. `hero-pencil` for Edit, `hero-trash` for Delete, `hero-plus` for Add, `hero-arrow-up-tray` for Export) to maintain visual consistency.
+*   **Table Layout**:
+    *   **Overflow Scrolling**: Always wrap listing tables with `<div class="overflow-x-auto">` inside `.corp-table-card` containers to ensure tables with many columns remain scrollable on narrow viewports without clipping columns.
+    *   **Core CSS Classes**:
+        *   `.corp-table-card`: Table container card (white background, shadow, rounded corners).
+        *   `.corp-table`: Main table class (`width: 100%`, border collapse).
+        *   `.corp-th`: Header cells (capitalized, light gray background).
+        *   `.corp-tr`: Table rows with hover effect (`background: #f8fafc`).
+        *   `.corp-td`: Table data cells.
+        *   `.corp-td--name`: Styling for name columns (bold, dark text).
 *   **Form Design**:
     *   `.corp-form-grid`: 3-column responsive grid layout for fields.
     *   `.corp-input`: Standard text input with focus ring (`#3b82f6` border, soft blue shadow).

@@ -21,7 +21,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterInceptionDataUploads do
       add :member_card_number, :string
       add :designation, :string
       add :status, :string, default: "0"
-      
+
       add :otp, :integer
       add :otp_expires_at, :utc_datetime
       add :is_register, :integer, default: 0

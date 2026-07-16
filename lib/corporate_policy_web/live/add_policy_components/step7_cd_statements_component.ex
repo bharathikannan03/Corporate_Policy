@@ -175,26 +175,37 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
           <button phx-click="open_add_modal" phx-target={@myself} class="btn btn-primary">Add CD Statements</button>
         </div>
       </div>
-
       <!-- CD Statements Table -->
       <div class="policy-table-wrapper mb-8">
         <table class="policy-table" style="font-size: 0.75rem;">
           <thead>
             <tr>
               <th>#</th>
+              
               <th>POLICY NUMBER</th>
+              
               <th>PARTICULAR</th>
+              
               <th>DEBIT AMOUNT (DR)</th>
+              
               <th>CREDIT AMOUNT (CR)</th>
+              
               <th>POLICY ENDORSEMENT NO</th>
+              
               <th>ENDORSEMENT ISSUED DATE</th>
+              
               <th>BANK NAME</th>
+              
               <th>CHEQUE NO</th>
+              
               <th>REMARK</th>
+              
               <th>CREATED AT</th>
+              
               <th class="text-right">DELETE</th>
             </tr>
           </thead>
+          
           <tbody>
             <%= if Enum.empty?(@cd_statements) do %>
               <tr>
@@ -206,8 +217,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                       stroke-width="2"
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
-                    </path></svg>
-                    <span>No data</span>
+                    </path></svg> <span>No data</span>
                   </div>
                 </td>
               </tr>
@@ -215,18 +225,29 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
               <%= for {stmt, index} <- Enum.with_index(@cd_statements, 1) do %>
                 <tr style="font-size: 0.875rem;">
                   <td>{index}</td>
+                  
                   <td class="font-medium">{stmt.policy_number}</td>
+                  
                   <td>{stmt.particular}</td>
+                  
                   <td class="text-red-500 font-medium">{stmt.debit_amount}</td>
+                  
                   <td class="text-green-600 font-medium">{stmt.credit_amount}</td>
+                  
                   <td>{stmt.policy_endorsement_no}</td>
+                  
                   <td>{stmt.endorsement_issued_date}</td>
+                  
                   <td>{stmt.bank_name}</td>
+                  
                   <td>{stmt.cheque_no}</td>
+                  
                   <td>{stmt.remark}</td>
+                  
                   <td class="whitespace-nowrap" style="font-size: 0.75rem;">
                     {Calendar.strftime(stmt.inserted_at, "%d-%b-%Y")}
                   </td>
+                  
                   <td class="text-right">
                     <button
                       type="button"
@@ -255,17 +276,16 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
           </tbody>
         </table>
       </div>
-
-
+      
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
+        
         <button type="button" phx-click="save_step7" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Complete Policy"}
         </button>
       </div>
-
       <!-- Upload Modal -->
       <%= if @show_add_modal do %>
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
@@ -288,6 +308,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                 </button>
                 Back To CD Statement
               </h2>
+              
               <button
                 type="button"
                 phx-click="close_add_modal"
@@ -303,12 +324,12 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                 </path></svg>
               </button>
             </div>
-
+            
             <div class="p-6">
               <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-semibold">Add CD Statement</h3>
               </div>
-
+              
               <.form
                 for={@form}
                 id="add-cd-form"
@@ -325,6 +346,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                         <option value="" disabled selected={@form[:corporate_id].value == ""}>
                           Select Corporate name
                         </option>
+                        
                         <%= for corp <- @corporates do %>
                           <option
                             value={corp.id}
@@ -335,7 +357,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                         <% end %>
                       </select>
                     </div>
-
+                    
                     <div>
                       <label class="corp-label">CD Accounts (Insurer | CD Number)
                       <span class="text-red-500">*</span></label>
@@ -348,6 +370,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                         <option value="" disabled selected={@form[:cd_account_id].value == ""}>
                           Select CD Account
                         </option>
+                        
                         <%= for acc <- @available_cd_accounts do %>
                           <option
                             value={acc.id}
@@ -359,7 +382,6 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                       </select>
                     </div>
                   </div>
-
                   <!-- Right side: File Upload -->
                   <div>
                     <label class="corp-label">CD Statement Data Upload</label>
@@ -390,7 +412,6 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                         Drag and drop a file here or click
                       </label>
                     </div>
-
                     <!-- Preview pending uploads -->
                     <%= for entry <- @uploads.cd_csv.entries do %>
                       <div class="flex justify-between items-center bg-white p-3 rounded border mt-4">
@@ -411,7 +432,7 @@ defmodule CorporatePolicyWeb.Step7CDStatementsComponent do
                     <% end %>
                   </div>
                 </div>
-
+                
                 <div class="flex justify-end pt-4 border-t border-gray-200">
                   <button
                     type="submit"

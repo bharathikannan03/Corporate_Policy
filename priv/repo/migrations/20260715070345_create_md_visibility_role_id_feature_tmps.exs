@@ -16,10 +16,9 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMdVisibilityRoleIdFeatureTmps do
     create_if_not_exists index(:md_visibility_role_id_feature_tmps, [:is_visible])
 
     create_if_not_exists unique_index(
-             :md_visibility_role_id_feature_tmps,
-             [:role_id, :is_visible],
-             name: :unique_roles
-           )
+                           :md_visibility_role_id_feature_tmps,
+                           [:role_id, :is_visible],
+                           name: :unique_roles
+                         )
   end
 end
-

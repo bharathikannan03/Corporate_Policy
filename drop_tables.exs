@@ -16,7 +16,7 @@ defmodule DropOrphanedTables do
       IO.puts("Dropping table #{table}...")
       Ecto.Adapters.SQL.query!(CorporatePolicy.Repo, "DROP TABLE IF EXISTS #{table} CASCADE")
     end)
-    
+
     IO.puts("All orphaned tables dropped successfully!")
   end
 end

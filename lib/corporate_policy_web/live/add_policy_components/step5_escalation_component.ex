@@ -100,6 +100,7 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
             <option value="" disabled selected={@form[:escalation_level_id].value == ""}>
               Select Level
             </option>
+            
             <%= for {id, name} <- @levels do %>
               <option value={id} selected={@form[:escalation_level_id].value == to_string(id)}>
                 {name}
@@ -107,11 +108,12 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
             <% end %>
           </select>
         </div>
-
+        
         <div class="flex-1">
           <label class="corp-label">Assign To</label>
           <select name="user_id" class="corp-input" required>
             <option value="" disabled selected={@form[:user_id].value == ""}>Select Contact</option>
+            
             <%= for user <- @available_users do %>
               <option value={user.id} selected={@form[:user_id].value == to_string(user.id)}>
                 {user.fullname} ({user.role})
@@ -119,24 +121,26 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
             <% end %>
           </select>
         </div>
-
+        
         <div>
           <button type="submit" class="btn btn-outline btn-primary">
             + Assign
           </button>
         </div>
       </.form>
-
       <!-- Configured Escalations Table -->
       <div class="policy-table-wrapper mb-8">
         <table class="policy-table">
           <thead>
             <tr>
               <th>Level</th>
+              
               <th>Contact Person</th>
+              
               <th class="text-right">Action</th>
             </tr>
           </thead>
+          
           <tbody>
             <%= if Enum.empty?(@matrices) do %>
               <tr>
@@ -148,7 +152,9 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
               <%= for matrix <- @matrices do %>
                 <tr>
                   <td class="font-medium">{matrix.level}</td>
+                  
                   <td>{matrix.user_fullname}</td>
+                  
                   <td class="text-right">
                     <button
                       type="button"
@@ -166,12 +172,12 @@ defmodule CorporatePolicyWeb.Step5EscalationComponent do
           </tbody>
         </table>
       </div>
-
-
+      
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
+        
         <button type="button" phx-click="save_step5" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

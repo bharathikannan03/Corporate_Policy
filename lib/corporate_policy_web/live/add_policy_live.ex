@@ -21,7 +21,7 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
         :edit ->
           id = params["id"]
           policy = Policies.get_policy!(id)
-          step = params["step"] |> then(&(if &1, do: String.to_existing_atom(&1), else: :step1))
+          step = params["step"] |> then(&if &1, do: String.to_existing_atom(&1), else: :step1)
           {policy, true, step}
 
         :new ->
@@ -79,7 +79,6 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
       <h1 class="text-2xl font-bold mb-6">
         {if @edit_mode, do: "Edit Policy", else: "Add Policy"}
       </h1>
-
       <!-- Custom Styled Wizard Navigation -->
       <div class="w-full mb-8 border rounded-lg bg-base-100 shadow-sm flex overflow-hidden">
         <%= for {step_id, step_num, step_name} <- [
@@ -91,20 +90,18 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
           {:step6, 6, "Documents"},
           {:step7, 7, "CD Statements"}
         ] do %>
-          <% is_active = @current_step == step_id %>
-          <% is_completed = step_id in @completed_steps %>
-          <% color_class =
+          <% is_active = @current_step == step_id %> <% is_completed = step_id in @completed_steps %> <% color_class =
             if is_active or is_completed,
               do: "bg-blue-500 text-white",
-              else: "bg-gray-300 text-gray-600" %>
-          <% text_color = if is_active, do: "text-blue-500 font-semibold", else: "text-gray-600" %>
-
-          <div class={[
-            "flex-1 flex items-center justify-center py-4 border-r last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors",
-            if(is_active, do: "border-b-2 border-b-blue-500 bg-blue-50/30")
-          ]}
-          phx-click="goto-step"
-          phx-value-step={step_id}
+              else: "bg-gray-300 text-gray-600" %> <% text_color =
+            if is_active, do: "text-blue-500 font-semibold", else: "text-gray-600" %>
+          <div
+            class={[
+              "flex-1 flex items-center justify-center py-4 border-r last:border-r-0 cursor-pointer hover:bg-gray-50 transition-colors",
+              if(is_active, do: "border-b-2 border-b-blue-500 bg-blue-50/30")
+            ]}
+            phx-click="goto-step"
+            phx-value-step={step_id}
           >
             <div class={[
               "flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-2",
@@ -122,11 +119,10 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
                 {step_num}
               <% end %>
             </div>
-            <span class={["text-sm", text_color]}>{step_name}</span>
+             <span class={["text-sm", text_color]}>{step_name}</span>
           </div>
         <% end %>
       </div>
-
       <!-- Main Content Area -->
       <div class="mt-4 bg-base-100 shadow-xl rounded-box p-6">
         <%= case @current_step do %>
@@ -183,6 +179,7 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
           <% _ -> %>
             <div class="text-center p-10">
               <h2 class="text-xl font-semibold">{@current_step}</h2>
+              
               <p class="text-gray-500 mt-2">Implementation pending...</p>
             </div>
         <% end %>

@@ -102,9 +102,10 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
         <div class="corp-list-header" id="escalation-master-header">
           <div>
             <h1 class="corp-list-title">Escalation Matrix Users Master</h1>
+            
             <p class="corp-list-subtitle">Manage escalation matrix users, contacts, and roles</p>
           </div>
-
+          
           <div class="header-actions">
             <.link
               href={~p"/admin/escalation-matrix/export"}
@@ -115,7 +116,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
             >
               <.icon name="hero-arrow-up-tray" class="w-4 h-4 mr-1" /> Export
             </.link>
-
+            
             <.link
               navigate={~p"/admin/escalation-matrix/add-user"}
               id="add-escalation-user-btn"
@@ -125,25 +126,35 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
             </.link>
           </div>
         </div>
-
         <!-- Table card -->
         <div class="corp-table-card mt-6" id="escalation-table-card">
           <table class="corp-table" id="escalation-table">
             <thead>
               <tr>
                 <th class="corp-th">SI NO</th>
+                
                 <th class="corp-th">Full Name</th>
+                
                 <th class="corp-th">Phone Number</th>
+                
                 <th class="corp-th">Mobile Number</th>
+                
                 <th class="corp-th">Email</th>
+                
                 <th class="corp-th">Alt Email</th>
+                
                 <th class="corp-th">Address</th>
+                
                 <th class="corp-th">Type</th>
+                
                 <th class="corp-th">Status</th>
+                
                 <th class="corp-th">Created At</th>
+                
                 <th class="corp-th">Actions</th>
               </tr>
             </thead>
+            
             <tbody id="escalation-tbody" phx-update="stream">
               <tr class="hidden only:table-row corp-empty-row" id="escalation-empty-row">
                 <td colspan="11" class="corp-empty-cell text-center py-12">
@@ -152,6 +163,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                     <p class="corp-empty-text text-gray-500 font-medium">
                       No escalation matrix users yet
                     </p>
+                    
                     <.link
                       navigate={~p"/admin/escalation-matrix/add-user"}
                       class="btn-primary mt-4"
@@ -162,28 +174,36 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                   </div>
                 </td>
               </tr>
-
+              
               <%= for {id, matrix} <- @streams.escalation_matrices do %>
                 <tr id={id} class="corp-tr">
                   <td class="corp-td font-medium text-slate-500">{Map.get(matrix, :row_num)}</td>
+                  
                   <td class="corp-td corp-td--name font-semibold text-slate-800">
                     {matrix.fullname}
                   </td>
+                  
                   <td class="corp-td text-slate-600">{matrix.phone_number || "—"}</td>
+                  
                   <td class="corp-td text-slate-600">{matrix.mobile_number}</td>
+                  
                   <td class="corp-td text-slate-600">{matrix.email_id}</td>
+                  
                   <td class="corp-td text-slate-600">{matrix.alt_email_id || "—"}</td>
+                  
                   <td
                     class="corp-td max-w-xs truncate text-slate-600"
                     title={matrix.company_fulladdress}
                   >
                     {matrix.company_fulladdress || "—"}
                   </td>
+                  
                   <td class="corp-td">
                     <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                       {matrix.type || "—"}
                     </span>
                   </td>
+                  
                   <td class="corp-td">
                     <%= if matrix.status == 1 do %>
                       <span class="corp-status corp-status--active">Active</span>
@@ -191,11 +211,13 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                       <span class="corp-status corp-status--inactive">Inactive</span>
                     <% end %>
                   </td>
+                  
                   <td class="corp-td text-slate-500">
                     {if matrix.created_at,
                       do: Calendar.strftime(matrix.created_at, "%d-%m-%Y"),
                       else: "—"}
                   </td>
+                  
                   <td class="corp-td">
                     <div class="flex items-center gap-2">
                       <.link
@@ -205,6 +227,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                       >
                         Edit
                       </.link>
+                      
                       <button
                         type="button"
                         phx-click="delete_click"
@@ -220,7 +243,6 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
               <% end %>
             </tbody>
           </table>
-
           <!-- Pagination bar -->
           <%= if @total_pages > 1 do %>
             <div
@@ -239,6 +261,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                 >
                   Previous
                 </button>
+                
                 <button
                   phx-click="next_page"
                   disabled={@page == @total_pages}
@@ -251,7 +274,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                   Next
                 </button>
               </div>
-
+              
               <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
                   <p class="text-sm text-gray-500 font-medium">
@@ -261,6 +284,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                     total records)
                   </p>
                 </div>
+                
                 <div>
                   <nav class="inline-flex items-center gap-1.5" aria-label="Pagination">
                     <button
@@ -275,6 +299,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
                       <span class="sr-only">Previous</span>
                       <.icon name="hero-chevron-left" class="w-4 h-4" />
                     </button>
+                    
                     <button
                       phx-click="next_page"
                       disabled={@page == @total_pages}
@@ -294,7 +319,6 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
           <% end %>
         </div>
       </div>
-
       <!-- Delete Confirmation Modal -->
       <%= if @deleting_id do %>
         <div
@@ -311,13 +335,16 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
               <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full text-red-600 mb-4">
                 <.icon name="hero-exclamation-triangle" class="w-6 h-6" />
               </div>
+              
               <h3 class="text-lg font-semibold text-center text-slate-900 mb-2">
                 Delete Escalation Matrix User
               </h3>
+              
               <p class="text-slate-600 text-center text-sm">
                 Are you sure you want to delete this escalation matrix user? This action cannot be undone.
               </p>
             </div>
+            
             <div class="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100">
               <button
                 type="button"
@@ -327,6 +354,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
               >
                 Cancel
               </button>
+              
               <button
                 type="button"
                 phx-click="confirm_delete"

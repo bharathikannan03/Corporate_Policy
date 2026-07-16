@@ -164,7 +164,7 @@ defmodule CorporatePolicy.Policies do
   end
 
   defp populate_reference_names(attrs) do
-    attrs = 
+    attrs =
       if attrs["ref_corporate_id"] && attrs["ref_corporate_id"] != "" do
         corporate = Repo.get(Corporate, attrs["ref_corporate_id"])
         if corporate, do: Map.put(attrs, "corporate_name", corporate.corporate_name), else: attrs
@@ -172,7 +172,7 @@ defmodule CorporatePolicy.Policies do
         attrs
       end
 
-    attrs = 
+    attrs =
       if attrs["ref_md_line_of_businesses_id"] && attrs["ref_md_line_of_businesses_id"] != "" do
         lob = Repo.get(LineOfBusiness, attrs["ref_md_line_of_businesses_id"])
         if lob, do: Map.put(attrs, "line_of_business", lob.line_of_business_value), else: attrs
@@ -180,7 +180,7 @@ defmodule CorporatePolicy.Policies do
         attrs
       end
 
-    attrs = 
+    attrs =
       if attrs["ref_md_policy_types_id"] && attrs["ref_md_policy_types_id"] != "" do
         pt = Repo.get(PolicyType, attrs["ref_md_policy_types_id"])
         if pt, do: Map.put(attrs, "policy_type", pt.policy_type_value), else: attrs
@@ -188,7 +188,7 @@ defmodule CorporatePolicy.Policies do
         attrs
       end
 
-    attrs = 
+    attrs =
       if attrs["ref_select_insurer_id"] && attrs["ref_select_insurer_id"] != "" do
         insurer = Repo.get(Insurer, attrs["ref_select_insurer_id"])
         if insurer, do: Map.put(attrs, "select_insurer", insurer.name), else: attrs
@@ -196,9 +196,11 @@ defmodule CorporatePolicy.Policies do
         attrs
       end
 
-    attrs = 
+    attrs =
       if attrs["ref_md_sum_insured_types_id"] && attrs["ref_md_sum_insured_types_id"] != "" do
-        sit = Repo.get(CorporatePolicy.Policies.SumInsuredType, attrs["ref_md_sum_insured_types_id"])
+        sit =
+          Repo.get(CorporatePolicy.Policies.SumInsuredType, attrs["ref_md_sum_insured_types_id"])
+
         if sit, do: Map.put(attrs, "sum_insured_type", sit.name), else: attrs
       else
         attrs

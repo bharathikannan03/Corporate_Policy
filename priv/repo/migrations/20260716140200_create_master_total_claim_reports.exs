@@ -42,7 +42,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterTotalClaimReports do
       add :claim_sub_status, :string
       add :insurance_claim_no, :string
       add :status, :integer, default: 0
-      
+
       add :created_by, :integer
       add :updated_by, :integer
       add :deleted_at, :utc_datetime

@@ -9,7 +9,7 @@ defmodule CorporatePolicy.Policies.MasterEcardsDataUpload do
     field :ecards_data_url, :string
     field :data_upload, :integer, default: 0
     field :status, :integer, default: 0
-    
+
     field :created_by, :integer
     field :updated_by, :integer
     field :deleted_at, :utc_datetime
@@ -23,8 +23,16 @@ defmodule CorporatePolicy.Policies.MasterEcardsDataUpload do
   def changeset(master_ecards_data_upload, attrs) do
     master_ecards_data_upload
     |> cast(attrs, [
-      :ref_doc_id, :employee_code, :ecard_data_originalname, :ecards_data_url,
-      :data_upload, :status, :created_by, :updated_by, :deleted_at, :ref_policy_id
+      :ref_doc_id,
+      :employee_code,
+      :ecard_data_originalname,
+      :ecards_data_url,
+      :data_upload,
+      :status,
+      :created_by,
+      :updated_by,
+      :deleted_at,
+      :ref_policy_id
     ])
     |> validate_required([:ref_policy_id, :ecards_data_url])
   end

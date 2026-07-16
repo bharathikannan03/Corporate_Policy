@@ -48,15 +48,12 @@ defmodule CorporatePolicyWeb.Step2PolicyFeaturesComponent do
         phx-target={@myself}
         class="corp-form-grid"
       >
-
-
         <%= for field <- @template_fields do %>
           <div class="corp-field-group">
             <label class="corp-label">
-              {field.name}
-              <span :if={field.is_mandatory} class="corp-required">*</span>
+              {field.name} <span :if={field.is_mandatory} class="corp-required">*</span>
             </label>
-
+            
             <%= if field.field_type_id == 4 do %>
               <!-- Radio/Checkbox Type -->
               <div class="flex gap-4 mt-2">
@@ -69,6 +66,7 @@ defmodule CorporatePolicyWeb.Step2PolicyFeaturesComponent do
                     class="corp-radio"
                   /> Yes
                 </label>
+                
                 <label class="inline-flex items-center gap-2">
                   <input
                     type="radio"
@@ -90,16 +88,18 @@ defmodule CorporatePolicyWeb.Step2PolicyFeaturesComponent do
                 required={field.is_mandatory}
               />
             <% end %>
+            
             <p :if={field.description != ""} class="text-xs text-gray-400 mt-1">
               {field.description}
             </p>
           </div>
         <% end %>
-
+        
         <div class="corp-field-group corp-field-group--full flex justify-end gap-4 mt-4">
           <button type="button" phx-click="cancel" class="btn btn-secondary">
             Cancel
           </button>
+          
           <button type="submit" class="btn btn-primary">
             {if @edit_mode, do: "Save Changes", else: "Save Features & Next"}
           </button>

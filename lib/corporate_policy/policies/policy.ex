@@ -141,8 +141,10 @@ defmodule CorporatePolicy.Policies.Policy do
     cond do
       lob == "Health" and pt in ["GMC", "Parent Policy", "Top Up Policy"] ->
         validate_required(changeset, [:ref_md_family_definitions_id])
+
       lob == "Health" and pt == "GPA" ->
         validate_required(changeset, [:ref_md_sum_insured_types_id])
+
       true ->
         changeset
     end

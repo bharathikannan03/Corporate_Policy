@@ -33,18 +33,16 @@ defmodule CorporatePolicyWeb.DashboardLive do
           <div class="stat-card-icon stat-card-icon--blue">
             <.icon name="hero-building-office-2" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Active</span>
                 <span class="stat-value">{@stats.corporate.active}</span>
               </div>
-
-
+              
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Inactive</span>
                 <span class="stat-value">{@stats.corporate.inactive}</span>
@@ -52,40 +50,35 @@ defmodule CorporatePolicyWeb.DashboardLive do
             </div>
           </div>
         </.link>
-        <%!-- Policies --%>
+         <%!-- Policies --%>
         <div class="stat-card" id="stat-policies">
           <div class="stat-card-icon stat-card-icon--indigo">
             <.icon name="hero-document-text" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Policies</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Live</span> <span class="stat-value">50</span>
               </div>
-
-
+              
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Draft</span> <span class="stat-value">5</span>
               </div>
             </div>
           </div>
         </div>
-        <%!-- Expired Policies --%>
+         <%!-- Expired Policies --%>
         <div class="stat-card" id="stat-expired-policies">
           <div class="stat-card-icon stat-card-icon--cyan">
             <.icon name="hero-clock" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Expired Policies</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Total</span> <span class="stat-value">0</span>
@@ -93,17 +86,15 @@ defmodule CorporatePolicyWeb.DashboardLive do
             </div>
           </div>
         </div>
-        <%!-- Claims --%>
+         <%!-- Claims --%>
         <div class="stat-card" id="stat-claims">
           <div class="stat-card-icon stat-card-icon--purple">
             <.icon name="hero-clipboard-document-check" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Claims</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Reported</span>
@@ -113,12 +104,12 @@ defmodule CorporatePolicyWeb.DashboardLive do
           </div>
         </div>
       </div>
-      <%!-- Middle section: Chart + Users & Claims Corner --%>
+       <%!-- Middle section: Chart + Users & Claims Corner --%>
       <div class="dashboard-middle">
         <%!-- Chart card --%>
         <div class="chart-card" id="chart-card">
           <h3 class="chart-title">Upcoming Policy Renewals</h3>
-
+          
           <div style="position: relative; height: 260px; width: 100%;">
             <canvas
               id="renewals-chart"
@@ -130,26 +121,23 @@ defmodule CorporatePolicyWeb.DashboardLive do
             ></canvas>
           </div>
         </div>
-        <%!-- Right panel: Users + Claims Corner --%>
+         <%!-- Right panel: Users + Claims Corner --%>
         <div class="dashboard-right-panel">
           <%!-- Users card --%>
           <div class="stat-card" id="stat-users">
             <div class="stat-card-icon stat-card-icon--teal">
               <.icon name="hero-users" class="w-6 h-6" />
             </div>
-
-
+            
             <div class="stat-card-body">
               <h3 class="stat-card-title">Users</h3>
-
-
+              
               <div class="stat-card-rows">
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">HR Users</span>
                   <span class="stat-value">35</span>
                 </div>
-
-
+                
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">Broker Users</span>
                   <span class="stat-value">2</span>
@@ -157,58 +145,51 @@ defmodule CorporatePolicyWeb.DashboardLive do
               </div>
             </div>
           </div>
-          <%!-- Claims Corner --%>
+           <%!-- Claims Corner --%>
           <div class="claims-corner-card" id="claims-corner">
             <h3 class="claims-corner-title">CLAIMS CORNER</h3>
-
-
+            
             <div class="claims-corner-header">
               <span>CLAIMS</span> <span>AMOUNT</span>
             </div>
-
-
+            
             <div class="claims-corner-rows">
               <div class="claims-row" id="claims-closed">
                 <div class="claims-dot claims-dot--yellow"></div>
-                <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
+                 <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
               </div>
-
-
+              
               <div class="claims-row" id="claims-paid">
                 <div class="claims-dot claims-dot--green"></div>
-                <span class="claims-label">Paid</span>
+                 <span class="claims-label">Paid</span>
                 <span class="claims-amount">₹18,31,244.00</span>
               </div>
-
-
+              
               <div class="claims-row" id="claims-rejected">
                 <div class="claims-dot claims-dot--red"></div>
-                <span class="claims-label">Rejected</span>
+                 <span class="claims-label">Rejected</span>
                 <span class="claims-amount">₹1,66,552.00</span>
               </div>
-
-
+              
               <div class="claims-row" id="claims-under-process">
                 <div class="claims-dot claims-dot--yellow"></div>
-                <span class="claims-label">Under Process</span>
+                 <span class="claims-label">Under Process</span>
                 <span class="claims-amount">₹0.00</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <%!-- Bottom stat cards --%>
+       <%!-- Bottom stat cards --%>
       <div class="dashboard-stats-grid" id="bottom-stats">
         <div class="stat-card" id="stat-corporate-users">
           <div class="stat-card-icon stat-card-icon--blue">
             <.icon name="hero-user-group" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate Users</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span>
@@ -217,17 +198,15 @@ defmodule CorporatePolicyWeb.DashboardLive do
             </div>
           </div>
         </div>
-
+        
         <div class="stat-card" id="stat-employee-activity">
           <div class="stat-card-icon stat-card-icon--indigo">
             <.icon name="hero-bolt" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Activity</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span>
@@ -236,17 +215,15 @@ defmodule CorporatePolicyWeb.DashboardLive do
             </div>
           </div>
         </div>
-
+        
         <div class="stat-card" id="stat-online-claims">
           <div class="stat-card-icon stat-card-icon--cyan">
             <.icon name="hero-arrow-up-tray" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Online Claim Submission</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
@@ -254,17 +231,15 @@ defmodule CorporatePolicyWeb.DashboardLive do
             </div>
           </div>
         </div>
-
+        
         <div class="stat-card" id="stat-health-activity">
           <div class="stat-card-icon stat-card-icon--purple">
             <.icon name="hero-heart" class="w-6 h-6" />
           </div>
-
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Health Activity</h3>
-
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>

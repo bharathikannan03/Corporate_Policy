@@ -145,6 +145,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
               <option value="" disabled selected={@form[:document_type_id].value == ""}>
                 Select Document Type
               </option>
+              
               <%= for type <- @doc_types do %>
                 <option
                   value={type.id}
@@ -155,7 +156,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
               <% end %>
             </select>
           </div>
-
+          
           <div>
             <label class="corp-label">Document Name <span class="text-red-500">*</span></label>
             <select
@@ -167,6 +168,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
               <option value="" disabled selected={@form[:document_name_id].value == ""}>
                 Type or select Document Name
               </option>
+              
               <%= for name <- @available_doc_names do %>
                 <option
                   value={name.id}
@@ -178,7 +180,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
             </select>
           </div>
         </div>
-
+        
         <div class="mb-4">
           <label class="corp-label">Note</label>
           <input
@@ -189,7 +191,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
             placeholder="Enter a note (Optional)"
           />
         </div>
-
+        
         <div class="mb-4">
           <label class="corp-label">Attach Documents (PDF only) <span class="text-red-500">*</span></label>
           <div
@@ -200,13 +202,15 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
               upload={@uploads.policy_doc}
               class="hidden"
             />
-            <label for={@uploads.policy_doc.ref} class="cursor-pointer text-blue-600 hover:underline font-medium">
+            <label
+              for={@uploads.policy_doc.ref}
+              class="cursor-pointer text-blue-600 hover:underline font-medium"
+            >
               Click to browse
             </label>
-            <span class="text-gray-500"> or drag and drop your PDF here</span>
+             <span class="text-gray-500"> or drag and drop your PDF here</span>
           </div>
         </div>
-
         <!-- Preview pending uploads -->
         <%= for entry <- @uploads.policy_doc.entries do %>
           <div class="flex justify-between items-center bg-white p-3 rounded border mb-4">
@@ -225,7 +229,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
             </div>
           </div>
         <% end %>
-
+        
         <div class="flex justify-start mt-4">
           <button
             type="submit"
@@ -235,7 +239,6 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
             Submit
           </button>
         </div>
-
         <!-- Info Note -->
         <div class="mt-6 bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-start text-sm text-blue-800">
           <div class="mr-3 mt-0.5">
@@ -247,12 +250,15 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
             >
             </path></svg>
           </div>
+          
           <div>
             <p class="font-semibold mb-1">Note:</p>
+            
             <ul class="list-disc ml-5">
               <li>
                 <strong>Service Document</strong> - Service documents which help for claim procedure
               </li>
+              
               <li>
                 <strong>Policy Documents (Policy Copies)</strong>
                 - Policy Documents will be only visible to HR
@@ -261,20 +267,25 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
           </div>
         </div>
       </.form>
-
       <!-- Uploaded Documents Table -->
       <div class="policy-table-wrapper mb-8">
         <table class="policy-table">
           <thead>
             <tr>
               <th>S.No</th>
+              
               <th>Document Type</th>
+              
               <th>Document Name</th>
+              
               <th>Attachment</th>
+              
               <th>Note</th>
+              
               <th class="text-right">Action</th>
             </tr>
           </thead>
+          
           <tbody>
             <%= if Enum.empty?(@documents) do %>
               <tr>
@@ -286,8 +297,7 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
                       stroke-width="2"
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
-                    </path></svg>
-                    <span>No data</span>
+                    </path></svg> <span>No data</span>
                   </div>
                 </td>
               </tr>
@@ -295,12 +305,17 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
               <%= for {doc, index} <- Enum.with_index(@documents, 1) do %>
                 <tr>
                   <td>{index}</td>
+                  
                   <td>{doc.document_type}</td>
+                  
                   <td>{doc.document_name}</td>
+                  
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {doc.original_file_name}
                   </td>
+                  
                   <td>{doc.note}</td>
+                  
                   <td class="text-right">
                     <button
                       type="button"
@@ -318,18 +333,17 @@ defmodule CorporatePolicyWeb.Step6DocumentsComponent do
           </tbody>
         </table>
       </div>
-
-
       <!-- Pagination Controls for Table (Mocked) -->
       <div class="flex justify-between items-center mb-8 bg-gray-50 p-2 rounded-b-lg border-t-0">
         <button class="btn btn-sm btn-primary">Previous</button>
         <button class="btn btn-sm btn-primary">Next</button>
       </div>
-
+      
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
+        
         <button type="button" phx-click="save_step6" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

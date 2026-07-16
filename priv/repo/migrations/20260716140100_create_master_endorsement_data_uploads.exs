@@ -20,7 +20,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterEndorsementDataUploads do
       add :member_card_number, :string
       add :designation, :string
       add :status, :integer, default: 0
-      
+
       add :ref_policy_id, references(:master_add_policies, on_delete: :nothing), null: false
 
       add :is_register, :integer, default: 0
@@ -34,6 +34,10 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterEndorsementDataUploads do
     end
 
     create_if_not_exists index(:master_endorsement_data_uploads, [:ref_policy_id])
-    create_if_not_exists index(:master_endorsement_data_uploads, [:ref_policy_id, :endorsement_type])
+
+    create_if_not_exists index(:master_endorsement_data_uploads, [
+                           :ref_policy_id,
+                           :endorsement_type
+                         ])
   end
 end

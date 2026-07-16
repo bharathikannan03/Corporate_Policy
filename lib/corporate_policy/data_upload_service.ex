@@ -1,5 +1,6 @@
 defmodule CorporatePolicy.DataUploadService do
   alias CorporatePolicy.Repo
+
   alias CorporatePolicy.Policies.{
     MasterPolicyDataUpload,
     MasterInceptionDataUpload,
@@ -19,7 +20,8 @@ defmodule CorporatePolicy.DataUploadService do
       original_file_name: original_file_name,
       status: 1,
       is_dataupload: true,
-      created_by: 1, # default placeholder user id
+      # default placeholder user id
+      created_by: 1,
       updated_by: 1
     }
 
@@ -49,6 +51,7 @@ defmodule CorporatePolicy.DataUploadService do
   defp process_file(data_type, file_path, policy_id, _original_file_name) do
     # For CSV types (Inception Data, Endorsement Data, Claim Dumps)
     content = File.read!(file_path)
+
     # Parse without headers (drop first row if it has headers, but here we just parse all and maybe skip first if we want)
     # For simplicity, we just take the parsed CSV rows. NimbleCSV.RFC4180.parse_string drops headers by default if skip_headers: true.
     rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
@@ -70,7 +73,8 @@ defmodule CorporatePolicy.DataUploadService do
     Enum.each(rows, fn row ->
       # Example row format (assuming based on DB structure):
       # [employee_code, employee_name, gender, relationship, dob, age, mobile_number, email, sum_insured, doj]
-      [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] = pad_row(row, 10)
+      [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
+        pad_row(row, 10)
 
       Repo.insert!(%MasterInceptionDataUpload{
         ref_policy_id: policy_id,
@@ -90,7 +94,8 @@ defmodule CorporatePolicy.DataUploadService do
 
   defp process_endorsement(rows, policy_id) do
     Enum.each(rows, fn row ->
-      [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] = pad_row(row, 10)
+      [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
+        pad_row(row, 10)
 
       Repo.insert!(%MasterEndorsementDataUpload{
         ref_policy_id: policy_id,
@@ -110,7 +115,19 @@ defmodule CorporatePolicy.DataUploadService do
 
   defp process_claim_dumps(rows, policy_id) do
     Enum.each(rows, fn row ->
-      [emp_code, emp_name, patient_name, rel, claim_type, tpa_no, date_hosp, date_dis, hosp_name, claimed, sanctioned | _] = pad_row(row, 15)
+      [
+        emp_code,
+        emp_name,
+        patient_name,
+        rel,
+        claim_type,
+        tpa_no,
+        date_hosp,
+        date_dis,
+        hosp_name,
+        claimed,
+        sanctioned | _
+      ] = pad_row(row, 15)
 
       Repo.insert!(%MasterTotalClaimReport{
         ref_policy_id: policy_id,
@@ -131,6 +148,7 @@ defmodule CorporatePolicy.DataUploadService do
 
   defp pad_row(row, min_length) do
     len = length(row)
+
     if len < min_length do
       row ++ List.duplicate("", min_length - len)
     else

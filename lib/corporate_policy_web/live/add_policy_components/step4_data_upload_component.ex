@@ -34,53 +34,64 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
   @impl true
   def handle_event("save_upload", %{"data_type" => data_type, "remark" => remark}, socket) do
     if is_nil(socket.assigns.policy) do
-      {:noreply, put_flash(socket, :error, "Cannot upload data. Policy is missing or not saved properly. Please complete Step 1 first.")}
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         "Cannot upload data. Policy is missing or not saved properly. Please complete Step 1 first."
+       )}
     else
       policy_id = socket.assigns.policy.id
 
-    uploaded_files =
-      consume_uploaded_entries(socket, :data_file, fn %{path: path}, entry ->
-        dest = Path.join("priv/static/uploads", filename(entry))
-        # Ensure uploads directory exists
-        File.mkdir_p!(Path.dirname(dest))
-        File.cp!(path, dest)
-        {:ok, %{original_file_name: entry.client_name, file_path: dest}}
-      end)
+      uploaded_files =
+        consume_uploaded_entries(socket, :data_file, fn %{path: path}, entry ->
+          dest = Path.join("priv/static/uploads", filename(entry))
+          # Ensure uploads directory exists
+          File.mkdir_p!(Path.dirname(dest))
+          File.cp!(path, dest)
+          {:ok, %{original_file_name: entry.client_name, file_path: dest}}
+        end)
 
-    case uploaded_files do
-      [file_info] ->
-        try do
-          CorporatePolicy.DataUploadService.process_upload(
-            policy_id,
-            data_type,
-            remark,
-            file_info.file_path,
-            file_info.original_file_name
-          )
-
-          # Fetch updated list
-          uploads_list =
-            CorporatePolicy.Repo.all(
-              from u in CorporatePolicy.Policies.MasterPolicyDataUpload,
-                where: u.policy_id == ^policy_id,
-                order_by: [desc: u.inserted_at]
+      case uploaded_files do
+        [file_info] ->
+          try do
+            CorporatePolicy.DataUploadService.process_upload(
+              policy_id,
+              data_type,
+              remark,
+              file_info.file_path,
+              file_info.original_file_name
             )
 
-          {:noreply,
-           socket
-           |> assign(:uploads_list, uploads_list)
-           |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
-           |> put_flash(:info, "Data uploaded successfully.")}
-        rescue
-          e ->
-            require Logger
-            Logger.error("Failed to process upload: #{inspect(e)}")
-            {:noreply, put_flash(socket, :error, "Failed to parse and save file. Please check file format.")}
-        end
+            # Fetch updated list
+            uploads_list =
+              CorporatePolicy.Repo.all(
+                from u in CorporatePolicy.Policies.MasterPolicyDataUpload,
+                  where: u.policy_id == ^policy_id,
+                  order_by: [desc: u.inserted_at]
+              )
 
-      _ ->
-        {:noreply, put_flash(socket, :error, "Failed to upload file.")}
-    end
+            {:noreply,
+             socket
+             |> assign(:uploads_list, uploads_list)
+             |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
+             |> put_flash(:info, "Data uploaded successfully.")}
+          rescue
+            e ->
+              require Logger
+              Logger.error("Failed to process upload: #{inspect(e)}")
+
+              {:noreply,
+               put_flash(
+                 socket,
+                 :error,
+                 "Failed to parse and save file. Please check file format."
+               )}
+          end
+
+        _ ->
+          {:noreply, put_flash(socket, :error, "Failed to upload file.")}
+      end
     end
   end
 
@@ -131,15 +142,17 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
               <option value="" disabled selected={@form[:data_type].value == ""}>
                 Select Data Type
               </option>
+              
               <%= for type <- available_data_types(@policy) do %>
                 <option value={type} selected={@form[:data_type].value == type}>{type}</option>
               <% end %>
             </select>
+            
             <p class="text-xs text-gray-400 mt-1">
               Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
             </p>
           </div>
-
+          
           <div>
             <label class="corp-label">Remark</label>
             <input
@@ -151,7 +164,7 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
             />
           </div>
         </div>
-
+        
         <div class="mb-4">
           <label class="corp-label">Upload File <span class="text-red-500">*</span></label>
           <div
@@ -162,10 +175,9 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
             <label for={@uploads.data_file.ref} class="cursor-pointer text-primary hover:underline">
               Click to browse
             </label>
-            <span class="text-gray-500"> or drag and drop here</span>
+             <span class="text-gray-500"> or drag and drop here</span>
           </div>
         </div>
-
         <!-- Preview pending uploads -->
         <%= for entry <- @uploads.data_file.entries do %>
           <div class="flex justify-between items-center bg-white p-3 rounded border mb-4">
@@ -184,7 +196,7 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
             </div>
           </div>
         <% end %>
-
+        
         <div class="flex justify-end mt-4">
           <button
             type="submit"
@@ -195,20 +207,25 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
           </button>
         </div>
       </.form>
-
       <!-- Uploaded Files Table -->
       <div class="policy-table-wrapper mb-8">
         <table class="policy-table">
           <thead>
             <tr>
               <th>#</th>
+              
               <th>FILE NAME</th>
+              
               <th>DATA TYPE</th>
+              
               <th>REMARK</th>
+              
               <th>STATUS</th>
+              
               <th>CREATED AT</th>
             </tr>
           </thead>
+          
           <tbody>
             <%= if Enum.empty?(@uploads_list) do %>
               <tr>
@@ -220,8 +237,7 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
                       stroke-width="2"
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     >
-                    </path></svg>
-                    <span>No data</span>
+                    </path></svg> <span>No data</span>
                   </div>
                 </td>
               </tr>
@@ -229,14 +245,19 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
               <%= for {upload, index} <- Enum.with_index(@uploads_list, 1) do %>
                 <tr>
                   <td>{index}</td>
+                  
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {upload.original_file_name}
                   </td>
+                  
                   <td>{upload.data_type}</td>
+                  
                   <td>{upload.remark}</td>
+                  
                   <td>
                     <span class="badge badge-success badge-sm text-white border-none bg-green-500">Uploaded</span>
                   </td>
+                  
                   <td class="whitespace-nowrap">
                     {Calendar.strftime(upload.inserted_at, "%d-%b-%Y %I:%M %p")}
                   </td>
@@ -246,17 +267,17 @@ defmodule CorporatePolicyWeb.Step4DataUploadComponent do
           </tbody>
         </table>
       </div>
-
       <!-- Pagination Controls for Table (Mocked) -->
       <div class="flex justify-between items-center mb-8 bg-gray-50 p-2 rounded-b-lg border-t-0">
         <button class="btn btn-sm btn-primary">Previous</button>
         <button class="btn btn-sm btn-primary">Next</button>
       </div>
-
+      
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
+        
         <button type="button" phx-click="save_step4" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

@@ -110,7 +110,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
         <div class="corp-form-header">
           <h1 class="corp-form-title">{@page_title}</h1>
         </div>
-
+        
         <div class="corp-form-card" id="escalation-form-card">
           <.form
             for={@form}
@@ -124,6 +124,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                 <label class="corp-label" for="fullname">
                   Full Name <span class="corp-required">*</span>
                 </label>
+                
                 <.input
                   field={@form[:fullname]}
                   type="text"
@@ -132,12 +133,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   id="fullname"
                 />
               </div>
-
               <!-- Phone Number -->
               <div class="corp-field-group">
                 <label class="corp-label" for="phone_number">
                   Phone Number
                 </label>
+                
                 <.input
                   field={@form[:phone_number]}
                   type="text"
@@ -146,12 +147,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   id="phone_number"
                 />
               </div>
-
               <!-- Mobile Number -->
               <div class="corp-field-group">
                 <label class="corp-label" for="mobile_number">
                   Mobile Number <span class="corp-required">*</span>
                 </label>
+                
                 <.input
                   field={@form[:mobile_number]}
                   type="text"
@@ -160,12 +161,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   id="mobile_number"
                 />
               </div>
-
               <!-- Email Address -->
               <div class="corp-field-group">
                 <label class="corp-label" for="email_id">
                   Email Address <span class="corp-required">*</span>
                 </label>
+                
                 <.input
                   field={@form[:email_id]}
                   type="email"
@@ -174,12 +175,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   id="email_id"
                 />
               </div>
-
               <!-- Alternate Email ID -->
               <div class="corp-field-group">
                 <label class="corp-label" for="alt_email_id">
                   Alternate Email ID
                 </label>
+                
                 <.input
                   field={@form[:alt_email_id]}
                   type="email"
@@ -188,12 +189,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   id="alt_email_id"
                 />
               </div>
-
               <!-- Send email to alternate email -->
               <div class="corp-field-group">
                 <label class="corp-label">
                   Send email to alternate email
                 </label>
+                
                 <div class="flex gap-6 mt-3">
                   <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
                     <input
@@ -206,6 +207,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                       class="radio radio-primary w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500"
                     /> No
                   </label>
+                  
                   <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
                     <input
                       type="radio"
@@ -217,12 +219,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   </label>
                 </div>
               </div>
-
               <!-- Full Address -->
               <div class="corp-field-group md:col-span-2">
                 <label class="corp-label" for="company_fulladdress">
                   Full address of Respective Company
                 </label>
+                
                 <.input
                   field={@form[:company_fulladdress]}
                   type="textarea"
@@ -232,12 +234,12 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                   rows="3"
                 />
               </div>
-
               <!-- Type -->
               <div class="corp-field-group">
                 <label class="corp-label" for="type_id">
                   Type
                 </label>
+                
                 <.input
                   field={@form[:type_id]}
                   type="select"
@@ -248,7 +250,7 @@ defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
                 />
               </div>
             </div>
-
+            
             <div class="mt-8 flex justify-start">
               <button
                 type="submit"

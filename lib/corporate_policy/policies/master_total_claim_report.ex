@@ -41,7 +41,7 @@ defmodule CorporatePolicy.Policies.MasterTotalClaimReport do
     field :claim_sub_status, :string
     field :insurance_claim_no, :string
     field :status, :integer, default: 0
-    
+
     field :created_by, :integer
     field :updated_by, :integer
     field :deleted_at, :utc_datetime
@@ -55,16 +55,48 @@ defmodule CorporatePolicy.Policies.MasterTotalClaimReport do
   def changeset(master_total_claim_report, attrs) do
     master_total_claim_report
     |> cast(attrs, [
-      :employee_code, :employee_name, :patient_name, :relationship, :claim_type,
-      :tpa_claim_no, :date_of_hospitalization, :date_of_discharge, :hospital_name,
-      :amount_claimed, :amount_sanctioned, :claim_status, :patient_gender,
-      :hospital_state, :network_status, :treatment_type, :level_of_care, :cause,
-      :city, :age, :claim_file_submitted_dt, :claim_settled_date, :disease_category,
-      :claim_registered_date, :intimation_method, :sum_insured, :tds_amount,
-      :deduction_amount, :deduction_reason, :deficiency_intimated_date,
-      :deficiency_submission_date, :icd_code, :claim_paid_amount, :close_reasons,
-      :deficiency_reason, :claim_sub_status, :insurance_claim_no, :status,
-      :created_by, :updated_by, :deleted_at, :ref_policy_id
+      :employee_code,
+      :employee_name,
+      :patient_name,
+      :relationship,
+      :claim_type,
+      :tpa_claim_no,
+      :date_of_hospitalization,
+      :date_of_discharge,
+      :hospital_name,
+      :amount_claimed,
+      :amount_sanctioned,
+      :claim_status,
+      :patient_gender,
+      :hospital_state,
+      :network_status,
+      :treatment_type,
+      :level_of_care,
+      :cause,
+      :city,
+      :age,
+      :claim_file_submitted_dt,
+      :claim_settled_date,
+      :disease_category,
+      :claim_registered_date,
+      :intimation_method,
+      :sum_insured,
+      :tds_amount,
+      :deduction_amount,
+      :deduction_reason,
+      :deficiency_intimated_date,
+      :deficiency_submission_date,
+      :icd_code,
+      :claim_paid_amount,
+      :close_reasons,
+      :deficiency_reason,
+      :claim_sub_status,
+      :insurance_claim_no,
+      :status,
+      :created_by,
+      :updated_by,
+      :deleted_at,
+      :ref_policy_id
     ])
     |> validate_required([:ref_policy_id, :employee_code])
   end

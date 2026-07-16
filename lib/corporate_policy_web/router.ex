@@ -35,23 +35,23 @@ defmodule CorporatePolicyWeb.Router do
       live "/dashboard", DashboardLive
       live "/corporate", CorporateLive
       live "/corporate/new", CorporateNewLive
-    live "/corporate/:id/edit", CorporateEditLive
-    get "/corporate/export", CorporateExportController, :export
+      live "/corporate/:id/edit", CorporateEditLive
+      get "/corporate/export", CorporateExportController, :export
       live "/policy-details", PolicyDetailsLive, :index
       live "/policy-details/add", AddPolicyLive, :new
       live "/policy-details/:id/edit", AddPolicyLive, :edit
       live "/cd-statements", CdStatementsLive
       live "/roles-configuration", RolesConfigurationLive
-  
-    live "/users", UsersLive
+
+      live "/users", UsersLive
       live "/corporate-employees", CorporateEmployeesLive
       live "/cashless-hospitals", CashlessHospitalsLive
-  
-    live "/escalation-matrix", EscalationMatrixAddLive, :new
-    live "/escalation-matrix/add-user", EscalationMatrixAddLive, :new
-    live "/escalation-matrix/edit-user/:id", EscalationMatrixAddLive, :edit
-    live "/escalation-matrix/user-master", EscalationMatrixMasterLive, :index
-    get "/escalation-matrix/export", EscalationMatrixExportController, :export
+
+      live "/escalation-matrix", EscalationMatrixAddLive, :new
+      live "/escalation-matrix/add-user", EscalationMatrixAddLive, :new
+      live "/escalation-matrix/edit-user/:id", EscalationMatrixAddLive, :edit
+      live "/escalation-matrix/user-master", EscalationMatrixMasterLive, :index
+      get "/escalation-matrix/export", EscalationMatrixExportController, :export
 
       live "/total-claim-reported", TotalClaimReportedLive
       live "/claims-intimation", ClaimsIntimationLive

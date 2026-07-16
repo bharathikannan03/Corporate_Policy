@@ -184,10 +184,11 @@ defmodule CorporatePolicy.Repo.Migrations.CreatePolicyTables do
 
     # Visibility role mapping
     create_if_not_exists table(:md_visibility_role_id_feature_tmps, primary_key: false) do
-      add :id, :bigserial, primary_key: true
-      add :ref_feature_template_field_id, :bigint, null: false
-      add :role_id, :integer, null: false
-      add :is_visible, :boolean, default: true
+      add :role_id, :bigserial, primary_key: true
+      add :role, :string, size: 255, null: true
+      add :is_visible, :integer, null: false, default: 2
+      add :status, :integer, null: false, default: 1
+      add :deleted_at, :utc_datetime_usec, null: true
 
       timestamps(type: :utc_datetime_usec)
     end

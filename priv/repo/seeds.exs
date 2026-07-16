@@ -8,6 +8,7 @@ alias CorporatePolicy.Policies.IntimateClaimVisibility
 alias CorporatePolicy.Policies.Corporate
 alias CorporatePolicy.Policies.FinancialYear
 alias CorporatePolicy.Policies.SumInsuredType
+
 # ─── Admin User ───────────────────────────────────────────────────────────────
 admin_attrs = %{
   first_name: "Admin",
@@ -336,6 +337,7 @@ Enum.each(sum_insured_types, fn attrs ->
     nil ->
       %SumInsuredType{} |> SumInsuredType.changeset(attrs) |> Repo.insert!()
       IO.puts("✓ Sum Insured Type: #{attrs.name}")
+
     _ ->
       :ok
   end

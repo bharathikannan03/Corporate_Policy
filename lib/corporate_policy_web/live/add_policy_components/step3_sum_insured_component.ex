@@ -89,7 +89,7 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
             <option value="" disabled selected={@form[:policy_feature_identifier].value == ""}>
               Select Feature
             </option>
-
+            
             <%= for {label, val} <- @available_features do %>
               <option value={val} selected={@form[:policy_feature_identifier].value == val}>
                 {label}
@@ -97,7 +97,7 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
             <% end %>
           </select>
         </div>
-
+        
         <div class="flex-1">
           <label class="corp-label">Sum Insured Amount (₹)</label>
           <input
@@ -110,7 +110,7 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
             min="1"
           />
         </div>
-
+        
         <div>
           <button type="submit" class="btn btn-outline btn-primary">
             + Add
@@ -123,13 +123,13 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
           <thead>
             <tr>
               <th>Policy Feature</th>
-
+              
               <th>Sum Insured Amount</th>
-
+              
               <th class="text-right">Action</th>
             </tr>
           </thead>
-
+          
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
@@ -141,9 +141,9 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
                   <td class="font-medium">
                     {si.policy_feature_identifier |> String.replace("_", " ") |> String.capitalize()}
                   </td>
-
+                  
                   <td>₹ {si.sum_insured}</td>
-
+                  
                   <td class="text-right">
                     <button
                       type="button"
@@ -161,12 +161,12 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
           </tbody>
         </table>
       </div>
-
+      
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-
+        
         <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

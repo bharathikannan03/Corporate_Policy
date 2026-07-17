@@ -38,7 +38,7 @@ defmodule CorporatePolicyWeb.Layouts do
     <main>
       {render_slot(@inner_block)}
     </main>
-    <.flash_group flash={@flash} />
+     <.flash_group flash={@flash} />
     """
   end
 
@@ -98,34 +98,34 @@ defmodule CorporatePolicyWeb.Layouts do
         }
         .admin-main { color: #1e293b !important; }
       </style>
-      <%!-- Sidebar --%>
+       <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
-
+          
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
         </div>
-        <%!-- User info --%>
+         <%!-- User info --%>
         <div class="sidebar-user">
           <div class="user-avatar">
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
-
+          
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
-
+            
             <p class="user-role">Vibe Admin</p>
           </div>
-
+          
           <div class="user-actions">
             <.link
               href={~p"/logout"}
@@ -137,7 +137,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-        <%!-- Navigation --%>
+         <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -163,25 +163,26 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-corporate"
             />
           </.sidebar_group>
-
-          <.sidebar_dropdown
+          
+          <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
-            active={@active_path =~ ~r{^/admin/policy-details}}
-            id="policy-details-dropdown"
+            open={String.starts_with?(@active_path, "/admin/policy-details")}
           >
-            <.sidebar_dropdown_item
+            <.sidebar_child_item
               label="All Policies"
               href={~p"/admin/policy-details"}
               active={@active_path == "/admin/policy-details"}
+              id="sidebar-all-policies"
             />
-            <.sidebar_dropdown_item
+            <.sidebar_child_item
               label="Add Policy"
               href={~p"/admin/policy-details/add"}
               active={@active_path == "/admin/policy-details/add"}
+              id="sidebar-add-policy"
             />
-          </.sidebar_dropdown>
-
+          </.sidebar_group>
+          
           <.sidebar_item
             icon="hero-banknotes"
             label="CD Statements"
@@ -233,7 +234,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-escalation-matrix-user-master"
             />
           </.sidebar_group>
-
+          
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -254,14 +255,14 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-      <%!-- Main content area --%>
+       <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
-
+          
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -270,7 +271,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
-
+              
               <.link
                 href={~p"/logout"}
                 method="delete"
@@ -282,7 +283,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-        <%!-- Page content --%>
+         <%!-- Page content --%>
         <main class="admin-content">
           <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
@@ -307,60 +308,6 @@ defmodule CorporatePolicyWeb.Layouts do
       ]}
     >
       <.icon name={@icon} class="sidebar-nav-icon" /> <span class="sidebar-nav-label">{@label}</span>
-    </.link>
-    """
-  end
-
-  attr :icon, :string, required: true
-  attr :label, :string, required: true
-  attr :active, :boolean, default: false
-  attr :id, :string, required: true
-
-  slot :inner_block, required: true
-
-  def sidebar_dropdown(assigns) do
-    ~H"""
-    <div
-      class={[
-        "sidebar-dropdown",
-        @active && "open"
-      ]}
-      phx-hook="SidebarDropdown"
-      id={@id}
-    >
-      <button
-        type="button"
-        class={[
-          "sidebar-nav-item sidebar-dropdown-toggle",
-          @active && "sidebar-nav-item--active"
-        ]}
-      >
-        <.icon name={@icon} class="sidebar-nav-icon" />
-        <span class="sidebar-nav-label">{@label}</span>
-        <.icon name="hero-chevron-down" class="sidebar-dropdown-chevron" />
-      </button>
-
-      <div class="sidebar-dropdown-menu">
-        {render_slot(@inner_block)}
-      </div>
-    </div>
-    """
-  end
-
-  attr :label, :string, required: true
-  attr :href, :string, required: true
-  attr :active, :boolean, default: false
-
-  defp sidebar_dropdown_item(assigns) do
-    ~H"""
-    <.link
-      navigate={@href}
-      class={[
-        "sidebar-dropdown-item",
-        @active && "sidebar-dropdown-item--active"
-      ]}
-    >
-      {@label}
     </.link>
     """
   end
@@ -392,9 +339,9 @@ defmodule CorporatePolicyWeb.Layouts do
           <.icon name={@icon} class="sidebar-nav-icon" />
           <span class="sidebar-nav-label">{@label}</span>
         </span>
-        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
-
+      
       <div
         id={"group-children-#{@group_id}"}
         class="sidebar-group-children"
@@ -451,7 +398,7 @@ defmodule CorporatePolicyWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-
+      
       <.flash
         id="server-error"
         kind={:error}
@@ -486,7 +433,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
+      
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -494,7 +441,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
+      
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}

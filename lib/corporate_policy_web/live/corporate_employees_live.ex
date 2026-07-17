@@ -24,9 +24,9 @@ defmodule CorporatePolicyWeb.CorporateEmployeesLive do
         <div class="coming-soon-icon">
           <.icon name="hero-user-group" class="w-16 h-16 text-blue-400" />
         </div>
-
+        
         <h1 class="coming-soon-title">Corporate Employees</h1>
-
+        
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

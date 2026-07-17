@@ -6,13 +6,7 @@ defmodule CorporatePolicyWeb.Step2PolicyFeaturesComponent do
 
   @impl true
   def update(assigns, socket) do
-    # Fetch template fields from DB
-    template_fields =
-      if connected?(socket) do
-        Repo.all(MasterPolicyFeatureTemplateField)
-      else
-        []
-      end
+    template_fields = Repo.all(MasterPolicyFeatureTemplateField)
 
     form_data = assigns[:feature_data] || %{}
 

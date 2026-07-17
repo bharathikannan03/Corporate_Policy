@@ -82,39 +82,13 @@ const RenewalsChart = {
   },
 };
 
-
-const SidebarDropdown = {
-  mounted() {
-    const toggleButton = this.el.querySelector(".sidebar-dropdown-toggle");
-    const dropdownMenu = this.el.querySelector(".sidebar-dropdown-menu");
-
-    if (toggleButton) {
-      toggleButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this.el.classList.toggle("open");
-      });
-    }
-
-    this.closeOnClickAway = (event) => {
-      if (!this.el.contains(event.target)) {
-        this.el.classList.remove("open");
-      }
-    };
-
-    document.addEventListener("click", this.closeOnClickAway);
-  },
-
-  destroyed() {
-    document.removeEventListener("click", this.closeOnClickAway);
-  },
-};
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { RenewalsChart, SidebarDropdown, ...colocatedHooks },
+  hooks: { RenewalsChart, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

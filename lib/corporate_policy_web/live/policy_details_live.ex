@@ -23,100 +23,119 @@ defmodule CorporatePolicyWeb.PolicyDetailsLive do
   def render(assigns) do
     ~H"""
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
+      <div class="corp-list-page" id="policy-list-page">
+        <%!-- Page header --%>
+        <div class="corp-list-header" id="policy-list-header">
           <div>
-            <h1 class="text-2xl font-bold text-slate-900">Policy Details</h1>
+            <h1 class="corp-list-title">Policy Details</h1>
 
-            <p class="text-sm text-slate-600 mt-1">Manage and view all corporate policies</p>
+            <p class="corp-list-subtitle">Manage and view all corporate policies</p>
           </div>
 
-          <.link
-            navigate={~p"/admin/policy-details/add"}
-            class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-          >
-            <.icon name="hero-plus-circle" class="w-5 h-5" /> <span>Add Policy</span>
-          </.link>
+          <div class="header-actions">
+            <.link
+              navigate={~p"/admin/policy-details/add"}
+              id="add-policy-btn"
+              class="btn-primary"
+            >
+              <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add Policy
+            </.link>
+          </div>
         </div>
 
-        <div class="policy-table-wrapper">
+        <%!-- Table card --%>
+        <div class="corp-table-card" id="policy-table-card">
           <div class="overflow-x-auto">
-            <table class="policy-table">
+            <table class="corp-table" id="policies-table">
               <thead>
                 <tr>
-                  <th>Corporate</th>
+                  <th class="corp-th">Corporate</th>
 
-                  <th>Policy No.</th>
+                  <th class="corp-th">Policy No.</th>
 
-                  <th>LOB</th>
+                  <th class="corp-th">LOB</th>
 
-                  <th>Type</th>
+                  <th class="corp-th">Type</th>
 
-                  <th>Insurer</th>
+                  <th class="corp-th">Insurer</th>
 
-                  <th>Start Date</th>
+                  <th class="corp-th">Start Date</th>
 
-                  <th class="text-right">Actions</th>
+                  <th class="corp-th text-right">Actions</th>
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody id="policies-tbody">
                 <%= if @policies == [] do %>
-                  <tr>
-                    <td colspan="7" class="text-center py-12">
-                      <.icon name="hero-document-text" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p class="text-lg font-medium">No policies found</p>
+                  <tr class="corp-empty-row" id="policies-empty-row">
+                    <td colspan="7" class="corp-empty-cell">
+                      <div class="corp-empty-state" id="corp-empty-state">
+                        <.icon name="hero-document-text" class="w-12 h-12 text-gray-300 mb-3" />
+                        <p class="corp-empty-text">No policies yet</p>
 
-                      <p class="text-sm mt-1">Click "Add Policy" to create your first policy.</p>
+                        <.link
+                          navigate={~p"/admin/policy-details/add"}
+                          class="btn-primary mt-4"
+                          id="add-first-policy-btn"
+                        >
+                          <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add your first policy
+                        </.link>
+                      </div>
                     </td>
                   </tr>
                 <% else %>
                   <%= for policy <- @policies do %>
-                    <tr>
-                      <td>
-                        <div class="font-medium">
-                          {if policy.corporate, do: policy.corporate.corporate_name, else: "-"}
-                        </div>
+                    <tr class="corp-tr" id={"policy-#{policy.id}"}>
+                      <td class="corp-td corp-td--name">
+                        {if policy.corporate, do: policy.corporate.corporate_name, else: "-"}
                       </td>
 
-                      <td>
-                        <.link
-                          navigate={~p"/admin/policy-details/#{policy.id}/edit"}
-                          class="text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {policy.policy_number || "-"}
-                        </.link>
+                      <td class="corp-td">
+                        <%= if policy.policy_number do %>
+                          <.link
+                            navigate={~p"/admin/policy-details/#{policy.id}/edit"}
+                            class="corp-code-badge hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                          >
+                            {policy.policy_number}
+                          </.link>
+                        <% else %>
+                          -
+                        <% end %>
                       </td>
 
-                      <td>
+                      <td class="corp-td">
                         {if policy.line_of_business_ref,
                           do: policy.line_of_business_ref.line_of_business_value,
                           else: "-"}
                       </td>
 
-                      <td>
+                      <td class="corp-td">
                         {if policy.policy_type_ref,
                           do: policy.policy_type_ref.policy_type_value,
                           else: "-"}
                       </td>
 
-                      <td>
+                      <td class="corp-td">
                         {if policy.insurer_ref, do: policy.insurer_ref.name, else: "-"}
                       </td>
 
-                      <td class="whitespace-nowrap">
+                      <td class="corp-td whitespace-nowrap">
                         {if policy.policy_start_date,
                           do: Calendar.strftime(policy.policy_start_date, "%d %b %Y"),
                           else: "-"}
                       </td>
 
-                      <td class="text-right">
-                        <.link
-                          navigate={~p"/admin/policy-details/#{policy.id}/edit"}
-                          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md text-sm font-medium transition-colors"
-                        >
-                          <.icon name="hero-pencil-square" class="w-4 h-4" /> Edit
-                        </.link>
+                      <td class="corp-td">
+                        <div class="corp-actions justify-end">
+                          <.link
+                            navigate={~p"/admin/policy-details/#{policy.id}/edit"}
+                            class="corp-action-btn-text corp-action-btn-text--edit"
+                            title="Edit Policy"
+                            id={"edit-policy-#{policy.id}"}
+                          >
+                            <.icon name="hero-pencil" class="w-4 h-4 mr-1" /> Edit
+                          </.link>
+                        </div>
                       </td>
                     </tr>
                   <% end %>

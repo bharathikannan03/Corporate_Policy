@@ -25,7 +25,7 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
   def update(assigns, socket) do
     # Only load master data once
     socket =
-      if connected?(socket) and not Map.has_key?(socket.assigns, :corporates) do
+      if not Map.has_key?(socket.assigns, :corporates) do
         line_of_businesses =
           Policies.list_line_of_businesses()
           |> Enum.filter(&(&1.line_of_business_value in @line_of_business_values))

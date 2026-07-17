@@ -80,6 +80,7 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 *   **Buttons**:
     *   `.btn-primary`: Blue gradient background (`linear-gradient(135deg, #3b82f6, #1d4ed8)`), hover shadows, and lift transform. Used for primary action buttons (e.g. Add, Save, Next).
     *   `.btn-secondary`: Light gray background (`#f1f5f9`) with slate text. Used for secondary/cancel actions.
+    *   `button[type="submit"]` / `input[type="submit"]` (Submit Buttons): Always use the green color palette (green gradient background for solid buttons, green text/borders for outlined buttons) to distinguish submit actions.
     *   `.corp-action-btn-text`: Standard inline action button class for list tables. Used with a modifier class:
         *   `.corp-action-btn-text--edit`: Blue edit button (`#3b82f6` background).
         *   `.corp-action-btn-text--delete`: Red delete button (`#ef4444` background).

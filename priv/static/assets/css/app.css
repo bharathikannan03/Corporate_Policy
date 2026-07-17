@@ -4944,6 +4944,29 @@ html, body {
   font-size: 0.875rem;
   color: #292524 !important;
 }
+button[type="submit"]:not(.btn-outline), input[type="submit"]:not(.btn-outline) {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+button[type="submit"]:not(.btn-outline):hover, input[type="submit"]:not(.btn-outline):hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-1px);
+}
+button[type="submit"].btn-outline, input[type="submit"].btn-outline {
+  border: 1.5px solid #10b981 !important;
+  color: #10b981 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+button[type="submit"].btn-outline:hover, input[type="submit"].btn-outline:hover {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+  transform: translateY(-1px);
+}
 @layer base {
   :root:not(span) {
     overflow: var(--page-overflow);

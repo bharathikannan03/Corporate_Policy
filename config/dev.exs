@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :corporate_policy, CorporatePolicy.Repo,
-  username: System.get_env("DB_USER", "postgres"),
-  password: System.get_env("DB_PASSWORD", "postgres"),
+  username: System.get_env("DB_USER", "elixir_vibe"),
+  password: System.get_env("DB_PASSWORD", "Vibe@26"),
   hostname: System.get_env("DB_HOST", "localhost"),
   database: System.get_env("DB_NAME", "corporate_policy"),
   stacktrace: true,

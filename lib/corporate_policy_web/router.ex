@@ -59,6 +59,13 @@ defmodule CorporatePolicyWeb.Router do
     end
   end
 
+  # ─── API routes ─────────────────────────────────────────────────────────────
+  scope "/api", CorporatePolicyWeb.Api, as: :api do
+    pipe_through :api
+
+    get "/get_visibility_role_id_tempalte", VisibilityRoleController, :index
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:corporate_policy, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put

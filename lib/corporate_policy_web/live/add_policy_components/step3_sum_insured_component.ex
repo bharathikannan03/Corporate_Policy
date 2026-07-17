@@ -1,24 +1,22 @@
 defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
   use CorporatePolicyWeb, :live_component
 
+  alias CorporatePolicy.Policies
+
   @impl true
   def update(assigns, socket) do
-    # In a real scenario, this would be fetched from the database based on the policy ID
-    # and the policy features created in step 2.
+    policy = assigns[:policy]
     sum_insureds = assigns[:sum_insureds] || []
 
-    # Mocked feature list based on Step 2 (Normally fetched from DB)
-    available_features = [
-      {"Base Cover", "base_cover"},
-      {"Top-up Cover", "top_up_cover"},
-      {"Maternity Add-on", "maternity_add_on"}
-    ]
+    # Fetch policy_identifier options from master_policy_feature_templates
+    # based on the policy's type (GMC, GPA, etc.)
+    policy_identifiers = Policies.list_policy_identifiers_for_policy(policy)
 
     socket =
       socket
       |> assign(assigns)
       |> assign(:sum_insureds, sum_insureds)
-      |> assign(:available_features, available_features)
+      |> assign(:policy_identifiers, policy_identifiers)
       |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))
 
     {:ok, socket}
@@ -30,13 +28,17 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
         %{"sum_insured" => si_amount, "policy_feature_identifier" => feature_id},
         socket
       ) do
-    # Validate the input is a number
-    case Integer.parse(si_amount) do
-      {amount, ""} when amount > 0 ->
+    cond do
+      String.trim(si_amount) == "" ->
+        {:noreply, socket |> put_flash(:error, "Sum Insured amount cannot be blank.")}
+
+      String.trim(feature_id) == "" ->
+        {:noreply, socket |> put_flash(:error, "Please select a Policy Feature Identifier.")}
+
+      true ->
         new_entry = %{
-          # Mock ID
           id: System.unique_integer([:positive]),
-          sum_insured: amount,
+          sum_insured: String.trim(si_amount),
           policy_feature_identifier: feature_id
         }
 
@@ -46,9 +48,6 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
          socket
          |> assign(:sum_insureds, updated_list)
          |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))}
-
-      _ ->
-        {:noreply, socket |> put_flash(:error, "Sum Insured must be a valid positive number.")}
     end
   end
 
@@ -56,18 +55,16 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
   def handle_event("remove_sum_insured", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
     updated_list = Enum.reject(socket.assigns.sum_insureds, &(&1.id == id))
-
     {:noreply, assign(socket, :sum_insureds, updated_list)}
   end
 
   @impl true
   def handle_event("save_step3", _params, socket) do
     if Enum.empty?(socket.assigns.sum_insureds) do
-      {:noreply, socket |> put_flash(:error, "Please add at least one Sum Insured.")}
+      {:noreply, socket |> put_flash(:error, "Please add at least one Sum Insured entry.")}
     else
-      # In a real scenario, save to DB
       send(self(), {:step_completed, :step3, socket.assigns.policy})
-      {:noreply, socket}
+      {:noreply, socket |> put_flash(:info, "Sum Insured saved successfully.")}
     end
   end
 
@@ -75,7 +72,7 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
   def render(assigns) do
     ~H"""
     <div class="corp-form-card">
-      <!-- Add New Sum Insured Form -->
+      <%!-- Add Sum Insured Form --%>
       <.form
         for={@form}
         id="add-sum-insured-form"
@@ -83,76 +80,86 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
         phx-target={@myself}
         class="flex gap-4 items-end mb-8 bg-gray-50 p-4 rounded-lg"
       >
+        <%!-- Field 1: Policy Feature Identifier Dropdown --%>
         <div class="flex-1">
-          <label class="corp-label">Policy Feature</label>
+          <label class="corp-label">
+            Policy Feature Identifier <span class="corp-required">*</span>
+          </label>
           <select name="policy_feature_identifier" class="corp-input" required>
             <option value="" disabled selected={@form[:policy_feature_identifier].value == ""}>
               Select Feature
             </option>
-            
-            <%= for {label, val} <- @available_features do %>
-              <option value={val} selected={@form[:policy_feature_identifier].value == val}>
-                {label}
+
+            <%= for pi <- @policy_identifiers do %>
+              <option
+                value={pi.policy_identifier}
+                selected={@form[:policy_feature_identifier].value == pi.policy_identifier}
+              >
+                {pi.policy_identifier}
               </option>
             <% end %>
           </select>
         </div>
-        
+
+        <%!-- Field 2: Sum Insured Text Box --%>
         <div class="flex-1">
-          <label class="corp-label">Sum Insured Amount (₹)</label>
+          <label class="corp-label">
+            Sum Insured <span class="corp-required">*</span>
+          </label>
           <input
-            type="number"
+            type="text"
             name="sum_insured"
             value={@form[:sum_insured].value}
             class="corp-input"
-            placeholder="e.g. 500000"
+            placeholder="e.g. 500000 or 5L–10L"
             required
-            min="1"
           />
         </div>
-        
+
         <div>
           <button type="submit" class="btn btn-outline btn-primary">
-            + Add
+            <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add
           </button>
         </div>
       </.form>
-      <!-- List of Added Sum Insureds -->
-      <div class="policy-table-wrapper mb-8">
-        <table class="policy-table">
+
+      <%!-- List of Added Sum Insureds --%>
+      <div class="overflow-x-auto corp-table-card mb-8">
+        <table class="corp-table">
           <thead>
             <tr>
-              <th>Policy Feature</th>
-              
-              <th>Sum Insured Amount</th>
-              
-              <th class="text-right">Action</th>
+              <th class="corp-th p-4 border-b text-left">POLICY FEATURE IDENTIFIER</th>
+              <th class="corp-th p-4 border-b text-left">SUM INSURED AMOUNT</th>
+              <th class="corp-th p-4 border-b text-right w-24">ACTION</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
-                <td colspan="3" class="text-center py-4">No sum insureds added yet.</td>
+                <td colspan="3" class="p-8 text-center text-slate-500 bg-slate-50">
+                  No sum insureds added yet.
+                </td>
               </tr>
             <% else %>
               <%= for si <- @sum_insureds do %>
-                <tr>
-                  <td class="font-medium">
-                    {si.policy_feature_identifier |> String.replace("_", " ") |> String.capitalize()}
+                <tr class="corp-tr hover:bg-slate-50 transition-colors">
+                  <td class="corp-td p-4 border-b font-medium">
+                    {si.policy_feature_identifier}
                   </td>
-                  
-                  <td>₹ {si.sum_insured}</td>
-                  
-                  <td class="text-right">
+                  <td class="corp-td p-4 border-b">
+                    {si.sum_insured}
+                  </td>
+                  <td class="corp-td p-4 border-b text-right">
                     <button
                       type="button"
                       phx-click="remove_sum_insured"
                       phx-value-id={si.id}
                       phx-target={@myself}
-                      class="text-red-500 hover:text-red-700"
+                      class="corp-action-btn-text corp-action-btn-text--delete"
+                      title="Remove"
                     >
-                      Remove
+                      <.icon name="hero-trash" class="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -161,12 +168,12 @@ defmodule CorporatePolicyWeb.Step3SumInsuredComponent do
           </tbody>
         </table>
       </div>
-      
+
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

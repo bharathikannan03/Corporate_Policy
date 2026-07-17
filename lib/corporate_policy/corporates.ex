@@ -737,4 +737,11 @@ defmodule CorporatePolicy.Corporates do
       attrs
     end
   end
+
+  # ─── Visibility Roles ─────────────────────────────────────────────────────────
+
+  @doc "Returns all visibility roles."
+  def list_visibility_roles do
+    Repo.all(from v in MdVisibilityRoleFeature, select: %{role_id: v.role_id, role: v.role})
+  end
 end

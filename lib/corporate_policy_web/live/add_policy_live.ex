@@ -197,10 +197,23 @@ defmodule CorporatePolicyWeb.AddPolicyLive do
   end
 
   defp policy_to_map(policy) do
-    policy
-    |> Map.from_struct()
-    |> Map.drop([:__meta__, :inserted_at, :updated_at])
-    |> Enum.map(fn {k, v} -> {to_string(k), v} end)
-    |> Enum.into(%{})
+    map =
+      policy
+      |> Map.from_struct()
+      |> Map.drop([:__meta__, :inserted_at, :updated_at])
+      |> Enum.map(fn {k, v} -> {to_string(k), v} end)
+      |> Enum.into(%{})
+
+    # Compute virtual field for UI state.
+    # "On" (1) = user entered an additional email (claim_submission_additional_email is set)
+    # "Off" (0) = user chose an intimate claim visibility option (ref_intimate_claim_visibilities_id is set)
+    claim_visibility =
+      cond do
+        map["claim_submission_additional_email"] not in [nil, ""] -> 1
+        map["ref_intimate_claim_visibilities_id"] not in [nil, ""] -> 0
+        true -> 0
+      end
+
+    Map.put(map, "claim_submission_visibility", claim_visibility)
   end
 end

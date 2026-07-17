@@ -42,7 +42,6 @@ defmodule CorporatePolicyWeb.PolicyDetailsLive do
             </.link>
           </div>
         </div>
-
         <%!-- Table card --%>
         <div class="corp-table-card" id="policy-table-card">
           <div class="overflow-x-auto">

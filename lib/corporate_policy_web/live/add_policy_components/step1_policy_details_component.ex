@@ -215,11 +215,12 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
     case Policies.create_or_update_policy(final_params, socket.assigns.current_user.id) do
       {:ok, policy} ->
         send(self(), {:step_completed, :step1, policy})
-        {:noreply, socket}
+        {:noreply, socket |> put_flash(:info, "Policy details saved successfully.")}
 
       {:error, changeset} ->
         {:noreply,
          socket
+         |> put_flash(:error, "Failed to save policy. Please check the errors below.")
          |> assign(:form, to_form(changeset))}
     end
   end
@@ -253,26 +254,41 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
             Corporate Name <span class="corp-required">*</span>
           </label>
 
-          <select
-            name="ref_corporate_id"
-            class="corp-input"
-            required
-            disabled={@edit_mode}
-          >
-            <option value="">Select Corporate</option>
+          <%= if @edit_mode do %>
+            <%!-- Read-only display on edit — preserves value via hidden input --%>
+            <input
+              type="text"
+              value={
+                Enum.find_value(@corporates, "", fn c ->
+                  to_string(c.corporate_id) == to_string(@form_data["ref_corporate_id"] || "") &&
+                    c.corporate_name
+                end)
+              }
+              class="corp-input corp-input--readonly"
+              readonly
+            />
+            <input type="hidden" name="ref_corporate_id" value={@form_data["ref_corporate_id"] || ""} />
+          <% else %>
+            <select
+              name="ref_corporate_id"
+              class="corp-input"
+              required
+            >
+              <option value="">Select Corporate</option>
 
-            <%= for c <- @corporates do %>
-              <option
-                value={c.corporate_id}
-                selected={
-                  to_string(@form_data["ref_corporate_id"] || "") ==
-                    to_string(c.corporate_id)
-                }
-              >
-                {c.corporate_name}
-              </option>
-            <% end %>
-          </select>
+              <%= for c <- @corporates do %>
+                <option
+                  value={c.corporate_id}
+                  selected={
+                    to_string(@form_data["ref_corporate_id"] || "") ==
+                      to_string(c.corporate_id)
+                  }
+                >
+                  {c.corporate_name}
+                </option>
+              <% end %>
+            </select>
+          <% end %>
         </div>
 
         <div class="corp-field-group">
@@ -280,26 +296,44 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
             Line of Business <span class="corp-required">*</span>
           </label>
 
-          <select
-            name="ref_md_line_of_businesses_id"
-            class="corp-input"
-            required
-            disabled={@edit_mode}
-          >
-            <option value="">Select Line of Business</option>
+          <%= if @edit_mode do %>
+            <input
+              type="text"
+              value={
+                Enum.find_value(@line_of_businesses, "", fn l ->
+                  to_string(l.id) == to_string(@form_data["ref_md_line_of_businesses_id"] || "") &&
+                    l.line_of_business_value
+                end)
+              }
+              class="corp-input corp-input--readonly"
+              readonly
+            />
+            <input
+              type="hidden"
+              name="ref_md_line_of_businesses_id"
+              value={@form_data["ref_md_line_of_businesses_id"] || ""}
+            />
+          <% else %>
+            <select
+              name="ref_md_line_of_businesses_id"
+              class="corp-input"
+              required
+            >
+              <option value="">Select Line of Business</option>
 
-            <%= for lob <- @line_of_businesses do %>
-              <option
-                value={lob.id}
-                selected={
-                  to_string(@form_data["ref_md_line_of_businesses_id"] || "") ==
-                    to_string(lob.id)
-                }
-              >
-                {lob.line_of_business_value}
-              </option>
-            <% end %>
-          </select>
+              <%= for lob <- @line_of_businesses do %>
+                <option
+                  value={lob.id}
+                  selected={
+                    to_string(@form_data["ref_md_line_of_businesses_id"] || "") ==
+                      to_string(lob.id)
+                  }
+                >
+                  {lob.line_of_business_value}
+                </option>
+              <% end %>
+            </select>
+          <% end %>
         </div>
 
         <div class="corp-field-group">
@@ -307,23 +341,42 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
             Policy Type <span class="corp-required">*</span>
           </label>
 
-          <select
-            name="ref_md_policy_types_id"
-            class="corp-input"
-            required
-            disabled={@edit_mode or length(@policy_types) == 0}
-          >
-            <option value="">Select a policy type</option>
+          <%= if @edit_mode do %>
+            <input
+              type="text"
+              value={
+                Enum.find_value(@policy_types, "", fn p ->
+                  to_string(p.id) == to_string(@form_data["ref_md_policy_types_id"] || "") &&
+                    p.policy_type_value
+                end)
+              }
+              class="corp-input corp-input--readonly"
+              readonly
+            />
+            <input
+              type="hidden"
+              name="ref_md_policy_types_id"
+              value={@form_data["ref_md_policy_types_id"] || ""}
+            />
+          <% else %>
+            <select
+              name="ref_md_policy_types_id"
+              class="corp-input"
+              required
+              disabled={length(@policy_types) == 0}
+            >
+              <option value="">Select a policy type</option>
 
-            <%= for pt <- @policy_types do %>
-              <option
-                value={pt.id}
-                selected={to_string(@form_data["ref_md_policy_types_id"] || "") == to_string(pt.id)}
-              >
-                {pt.policy_type_value}
-              </option>
-            <% end %>
-          </select>
+              <%= for pt <- @policy_types do %>
+                <option
+                  value={pt.id}
+                  selected={to_string(@form_data["ref_md_policy_types_id"] || "") == to_string(pt.id)}
+                >
+                  {pt.policy_type_value}
+                </option>
+              <% end %>
+            </select>
+          <% end %>
         </div>
 
         <div class="corp-field-group">
@@ -483,7 +536,8 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
               type="date"
               name="policy_start_date"
               value={@form_data["policy_start_date"] || ""}
-              class="corp-input w-full pr-10"
+              class="corp-input w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
+              onclick="this.showPicker()"
               required
             />
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -513,7 +567,8 @@ defmodule CorporatePolicyWeb.Step1PolicyDetailsComponent do
               type="date"
               name="policy_end_date"
               value={@form_data["policy_end_date"] || ""}
-              class="corp-input w-full pr-10"
+              class="corp-input w-full pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
+              onclick="this.showPicker()"
               required
             />
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

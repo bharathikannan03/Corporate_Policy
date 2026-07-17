@@ -15,6 +15,8 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.Corporate
   alias CorporatePolicy.Policies.ClaimVisibility
   alias CorporatePolicy.Policies.Insurer
+  alias CorporatePolicy.Policies.MasterPolicyFeatureTemplateField
+  alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
 
   # === Policy Listing ===
 
@@ -394,7 +396,7 @@ defmodule CorporatePolicy.Policies do
   def list_corporates do
     Repo.all(
       from c in Corporate,
-        where: c.status == 1,
+        where: c.corporate_status == 1,
         order_by: [asc: c.corporate_name]
     )
   end
@@ -540,5 +542,83 @@ defmodule CorporatePolicy.Policies do
           corporate_group_code: c.corporate_group_code
         }
     )
+  end
+
+  # === Policy Features (Step 2) ===
+
+  @doc "Fetches all fields for a given template_id, ordered by id."
+  def list_policy_feature_template_fields(template_id) do
+    Repo.all(
+      from f in MasterPolicyFeatureTemplateField,
+        where: f.template_id == ^template_id and f.status >= 0,
+        order_by: [asc: f.id]
+    )
+  end
+
+  @doc """
+  Returns distinct policy_identifier values from master_policy_feature_templates
+  for the Sum Insured step dropdown. Filters by template_id matching the policy type.
+  """
+  def list_policy_identifiers_for_policy(nil), do: [%{template_id: 1, policy_identifier: "GMC"}]
+
+  def list_policy_identifiers_for_policy(policy) do
+    template_id = get_template_id_for_policy(policy)
+
+    Repo.all(
+      from t in "master_policy_feature_templates",
+        where: t.template_id == ^template_id and t.status == 1,
+        select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
+        order_by: [asc: t.template_id]
+    )
+  end
+
+  @doc """
+  Returns the feature template_id for the given policy.
+  Looks up the policy type name and maps to template_id:
+  GMC/Parent Policy/Top up Policy -> template_id 1
+  GPA -> template_id 2
+  GTL -> template_id 3
+  etc.
+  Falls back to template_id 1 if no specific mapping found.
+  """
+  def get_template_id_for_policy(%{ref_md_policy_types_id: nil}), do: 1
+
+  def get_template_id_for_policy(%{ref_md_policy_types_id: policy_type_id}) do
+    policy_type = Repo.get(PolicyType, policy_type_id)
+    template_id_from_policy_type(policy_type)
+  end
+
+  def get_template_id_for_policy(_), do: 1
+
+  defp template_id_from_policy_type(nil), do: 1
+  defp template_id_from_policy_type(%{policy_type_value: "GPA"}), do: 2
+  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 3
+  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 4
+  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 5
+  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 6
+  # GMC, Parent Policy, Top up Policy, and all others → template 1
+  defp template_id_from_policy_type(_), do: 1
+
+  @doc "Fetches mapped features for a policy, extracting the distinct Feature Identifiers."
+  def list_mapped_features_by_policy(nil), do: []
+
+  def list_mapped_features_by_policy(policy_id) do
+    Repo.all(
+      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+        where:
+          m.ref_policy_id == ^policy_id and
+            m.ref_policy_feature_template_field_name == "Feature Identifier",
+        select: %{
+          id: m.policy_feature_template_field_value_id,
+          feature_identifier: m.policy_feature_template_field_value
+        }
+    )
+  end
+
+  @doc "Creates a new mapping row for a policy feature."
+  def create_mapped_feature(attrs) do
+    %MappingPolicyFeatureTemplatesCorporatesPolicy{}
+    |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
+    |> Repo.insert()
   end
 end

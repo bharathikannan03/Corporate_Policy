@@ -21,15 +21,13 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
     dept_hr =
       Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
         role: "HR",
-        is_visible: 2,
-        status: 1
+        is_visible: 2
       })
 
     dept_finance =
       Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
         role: "Finance",
-        is_visible: 2,
-        status: 1
+        is_visible: 2
       })
 
     {:ok, user: user, dept_hr: dept_hr, dept_finance: dept_finance}

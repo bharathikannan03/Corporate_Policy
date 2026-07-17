@@ -36,15 +36,13 @@ defmodule CorporatePolicyWeb.CorporateEditLiveTest do
     dept_it_admin =
       Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
         role: "IT Admin",
-        is_visible: 2,
-        status: 1
+        is_visible: 2
       })
 
     dept_hr =
       Repo.insert!(%CorporatePolicy.Corporates.MdVisibilityRoleFeature{
         role: "HR",
-        is_visible: 2,
-        status: 1
+        is_visible: 2
       })
 
     # Add contact users to the corporate

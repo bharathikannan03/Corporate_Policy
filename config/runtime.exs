@@ -1,5 +1,23 @@
 import Config
 
+if config_env() == :dev do
+  dotenv_path = Path.expand(".env")
+
+  if File.exists?(dotenv_path) do
+    dotenv_path
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+    |> Enum.each(fn line ->
+      case String.split(line, "=", parts: 2) do
+        [key, value] -> System.put_env(String.trim(key), String.trim(value))
+        _ -> :ok
+      end
+    end)
+  end
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -117,4 +135,24 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
+end
+
+# Configure SMTP Mailer if environment variables are provided
+if config_env() != :test do
+  smtp_relay = System.get_env("SMTP_RELAY") || System.get_env("SMTP_HOST")
+
+  if smtp_relay do
+    ssl = System.get_env("SMTP_SSL") == "true"
+    tls = if ssl, do: :never, else: :always
+
+    config :corporate_policy, CorporatePolicy.Mailer,
+      adapter: Swoosh.Adapters.SMTP,
+      relay: smtp_relay,
+      username: System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME"),
+      password: System.get_env("SMTP_PASSWORD") || System.get_env("MAIL_PASSWORD"),
+      port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
+      ssl: ssl,
+      tls: tls,
+      tls_options: [verify: :verify_none]
+  end
 end

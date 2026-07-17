@@ -24,7 +24,9 @@ defmodule CorporatePolicyWeb.ClaimsSubmissionLive do
         <div class="coming-soon-icon">
           <.icon name="hero-paper-airplane" class="w-16 h-16 text-blue-400" />
         </div>
+
         <h1 class="coming-soon-title">Claims Submission</h1>
+
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

@@ -1,0 +1,38 @@
+state_id,state,status,created_at,updated_at,deleted_at
+1,"Jammu and Kashmir",0,NULL,NULL,NULL
+2,"Himachal Pradesh",0,NULL,NULL,NULL
+3,Punjab,0,NULL,NULL,NULL
+4,Chandigarh,0,NULL,NULL,NULL
+5,Uttarakhand,0,NULL,NULL,NULL
+6,Haryana,0,NULL,NULL,NULL
+7,Delhi,0,NULL,NULL,NULL
+8,Rajasthan,0,NULL,NULL,NULL
+9,"Uttar Pradesh",0,NULL,NULL,NULL
+10,Bihar,0,NULL,NULL,NULL
+11,Sikkim,0,NULL,NULL,NULL
+12,"Arunachal Pradesh",0,NULL,NULL,NULL
+13,Nagaland,0,NULL,NULL,NULL
+14,Manipur,0,NULL,NULL,NULL
+15,Mizoram,0,NULL,NULL,NULL
+16,Tripura,0,NULL,NULL,NULL
+17,Meghalaya,0,NULL,NULL,NULL
+18,Assam,0,NULL,NULL,NULL
+19,"West Bengal",0,NULL,NULL,NULL
+20,Jharkhand,0,NULL,NULL,NULL
+21,Odisha,0,NULL,NULL,NULL
+22,Chhattisgarh,0,NULL,NULL,NULL
+23,"Madhya Pradesh",0,NULL,NULL,NULL
+24,Gujarat,0,NULL,NULL,NULL
+25,"Daman and Diu",0,NULL,NULL,NULL
+26,"Dadra and Nagar Haveli",0,NULL,NULL,NULL
+27,Maharashtra,0,NULL,NULL,NULL
+28,"Andhra Pradesh(old)",0,NULL,NULL,NULL
+29,Karnataka,0,NULL,NULL,NULL
+30,Goa,0,NULL,NULL,NULL
+31,Lakshadweep,0,NULL,NULL,NULL
+32,Kerala,0,NULL,NULL,NULL
+33,"Tamil Nadu",0,NULL,NULL,NULL
+34,Pondicherry,0,NULL,NULL,NULL
+35,"Andaman and Nicobar Islands",0,NULL,NULL,NULL
+36,Telangana,0,NULL,NULL,NULL
+37,"Andhra Pradesh",0,NULL,NULL,NULL

@@ -38,7 +38,6 @@ defmodule CorporatePolicyWeb.Layouts do
     <main>
       {render_slot(@inner_block)}
     </main>
-
     <.flash_group flash={@flash} />
     """
   end
@@ -56,6 +55,49 @@ defmodule CorporatePolicyWeb.Layouts do
   def admin(assigns) do
     ~H"""
     <div class="admin-layout">
+      <style>
+        .policy-table-wrapper {
+          background: #ffffff;
+          border-radius: 0.75rem;
+          border: 1px solid #292524 !important;
+          overflow: hidden;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .policy-table {
+          width: 100%;
+          text-align: left;
+          border-collapse: collapse;
+          background: #ffffff;
+        }
+        .policy-table thead tr {
+          background-color: #f3f4f6;
+          border-bottom: 1px solid #292524 !important;
+        }
+        .policy-table th {
+          padding: 1rem 1.5rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #292524 !important;
+        }
+        .policy-table tbody tr {
+          border-bottom: 1px solid #292524 !important;
+          transition: background-color 0.15s ease;
+        }
+        .policy-table tbody tr:last-child {
+          border-bottom: none;
+        }
+        .policy-table tbody tr:hover {
+          background-color: #f8fafc;
+        }
+        .policy-table td {
+          padding: 1rem 1.5rem;
+          font-size: 0.875rem;
+          color: #292524 !important;
+        }
+        .admin-main { color: #1e293b !important; }
+      </style>
       <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
@@ -63,25 +105,27 @@ defmodule CorporatePolicyWeb.Layouts do
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
+
           <div class="brand-text">
-            <span class="brand-name">CorpPolicy</span>
-            <span class="brand-tagline">Admin Portal</span>
+            <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
         </div>
-
         <%!-- User info --%>
         <div class="sidebar-user">
           <div class="user-avatar">
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
+
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
+
             <p class="user-role">Vibe Admin</p>
           </div>
+
           <div class="user-actions">
             <.link
               href={~p"/logout"}
@@ -93,7 +137,6 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-
         <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
@@ -102,18 +145,44 @@ defmodule CorporatePolicyWeb.Layouts do
             href={~p"/admin/dashboard"}
             active={@active_path == "/admin/dashboard"}
           />
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-building-office-2"
             label="Corporate"
-            href={~p"/admin/corporate"}
-            active={@active_path == "/admin/corporate"}
-          />
-          <.sidebar_item
+            open={String.starts_with?(@active_path, "/admin/corporate")}
+          >
+            <.sidebar_child_item
+              label="All Corporates"
+              href={~p"/admin/corporate"}
+              active={@active_path == "/admin/corporate"}
+              id="sidebar-all-corporates"
+            />
+            <.sidebar_child_item
+              label="Add Corporate"
+              href={~p"/admin/corporate/new"}
+              active={@active_path == "/admin/corporate/new"}
+              id="sidebar-add-corporate"
+            />
+          </.sidebar_group>
+
+          <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
-            href={~p"/admin/policy-details"}
-            active={@active_path == "/admin/policy-details"}
-          />
+            open={String.starts_with?(@active_path, "/admin/policy-details")}
+          >
+            <.sidebar_child_item
+              label="All Policies"
+              href={~p"/admin/policy-details"}
+              active={@active_path == "/admin/policy-details"}
+              id="sidebar-all-policies"
+            />
+            <.sidebar_child_item
+              label="Add Policy"
+              href={~p"/admin/policy-details/add"}
+              active={@active_path == "/admin/policy-details/add"}
+              id="sidebar-add-policy"
+            />
+          </.sidebar_group>
+
           <.sidebar_item
             icon="hero-banknotes"
             label="CD Statements"
@@ -144,12 +213,28 @@ defmodule CorporatePolicyWeb.Layouts do
             href={~p"/admin/cashless-hospitals"}
             active={@active_path == "/admin/cashless-hospitals"}
           />
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-chart-bar"
             label="Escalation Matrix"
-            href={~p"/admin/escalation-matrix"}
-            active={@active_path == "/admin/escalation-matrix"}
-          />
+            open={String.starts_with?(@active_path, "/admin/escalation-matrix")}
+          >
+            <.sidebar_child_item
+              label="Add User"
+              href={~p"/admin/escalation-matrix/add-user"}
+              active={
+                @active_path == "/admin/escalation-matrix/add-user" ||
+                  @active_path == "/admin/escalation-matrix"
+              }
+              id="sidebar-escalation-matrix-add-user"
+            />
+            <.sidebar_child_item
+              label="User Master"
+              href={~p"/admin/escalation-matrix/user-master"}
+              active={@active_path == "/admin/escalation-matrix/user-master"}
+              id="sidebar-escalation-matrix-user-master"
+            />
+          </.sidebar_group>
+
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -170,7 +255,6 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-
       <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
@@ -178,6 +262,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
+
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -186,6 +271,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
+
               <.link
                 href={~p"/logout"}
                 method="delete"
@@ -197,11 +283,9 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-
         <%!-- Page content --%>
         <main class="admin-content">
-          <.flash_group flash={@flash} />
-          {render_slot(@inner_block)}
+          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
       </div>
     </div>
@@ -223,8 +307,65 @@ defmodule CorporatePolicyWeb.Layouts do
         @active && "sidebar-nav-item--active"
       ]}
     >
-      <.icon name={@icon} class="sidebar-nav-icon" />
-      <span class="sidebar-nav-label">{@label}</span>
+      <.icon name={@icon} class="sidebar-nav-icon" /> <span class="sidebar-nav-label">{@label}</span>
+    </.link>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :open, :boolean, default: false
+  slot :inner_block, required: true
+
+  defp sidebar_group(assigns) do
+    group_id = String.replace(String.downcase(assigns.label), " ", "-")
+    assigns = assign(assigns, :group_id, group_id)
+
+    ~H"""
+    <div
+      class={["sidebar-group", @open && "sidebar-group--open"]}
+      id={"group-#{@group_id}"}
+    >
+      <button
+        type="button"
+        id={"group-toggle-#{@group_id}"}
+        class="sidebar-group-header"
+        phx-click={
+          JS.toggle(to: "#group-children-#{@group_id}")
+          |> JS.toggle_class("sidebar-group--open", to: "#group-#{@group_id}")
+        }
+      >
+        <span class="sidebar-group-header-left">
+          <.icon name={@icon} class="sidebar-nav-icon" />
+          <span class="sidebar-nav-label">{@label}</span>
+        </span>
+        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+      </button>
+
+      <div
+        id={"group-children-#{@group_id}"}
+        class="sidebar-group-children"
+        style={if @open, do: "display:block", else: "display:none"}
+      >
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
+
+  attr :label, :string, required: true
+  attr :href, :string, required: true
+  attr :active, :boolean, default: false
+  attr :id, :string, required: true
+
+  defp sidebar_child_item(assigns) do
+    ~H"""
+    <.link
+      navigate={@href}
+      id={@id}
+      class={["sidebar-child-item", @active && "sidebar-child-item--active"]}
+    >
+      <span class="sidebar-child-dot"></span> {@label}
     </.link>
     """
   end
@@ -242,9 +383,7 @@ defmodule CorporatePolicyWeb.Layouts do
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
-      <.flash kind={:info} flash={@flash} />
-      <.flash kind={:error} flash={@flash} />
-
+      <.flash kind={:info} flash={@flash} /> <.flash kind={:error} flash={@flash} />
       <.flash
         id="client-error"
         kind={:error}
@@ -287,7 +426,6 @@ defmodule CorporatePolicyWeb.Layouts do
     ~H"""
     <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
       <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
-
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}

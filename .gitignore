@@ -25,9 +25,6 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 corporate_policy-*.tar
 
-# Ignore assets that are produced by build tools.
-/priv/static/assets/
-
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
 
@@ -36,3 +33,6 @@ npm-debug.log
 /assets/node_modules/
 
 .env
+
+# Uploads data and files
+/priv/static/uploads

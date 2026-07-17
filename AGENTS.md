@@ -1,4 +1,4 @@
-This is a web application written using the Phoenix web framework.
+# This is a web application written using the Phoenix web framework.
 
 ## Project guidelines
 
@@ -43,6 +43,88 @@ custom classes must fully style the input
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
 
+### Project Stack & Style Guidelines
+
+#### 1. Color Palette & Themes
+The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide variables. It supports both light and dark themes using custom `oklch` definitions inside [app.css](file:///m:/BKlaravel%20projects/Elixir%20Project/corporate_policy/assets/css/app.css):
+*   **Light Theme (Default)**:
+    *   Primary: `oklch(70% 0.213 47.604)` (Warm brown/gold tone)
+    *   Secondary: `oklch(55% 0.027 264.364)` (Muted slate/indigo tone)
+    *   Base background: `oklch(98% 0 0)` (Soft off-white)
+*   **Dark Theme**:
+    *   Primary/Secondary: `oklch(58% 0.233 277.117)` (Purple/blue tone)
+    *   Base background: `oklch(30.33% 0.016 252.42)` (Deep dark slate)
+
+##### Admin Dashboard/Layout CSS Variables:
+*   `--sidebar-bg`: `#1e3a6e` (Deep navy blue)
+*   `--sidebar-bg-dark`: `#162d57`
+*   `--sidebar-active-bg`: `#2563eb` (Bright blue)
+*   `--sidebar-text`: `#c7d9f5` (Light blue/gray text)
+*   `--topbar-bg`: `#ffffff`
+*   `--content-bg`: `#f0f4f8` (Very light gray-blue background)
+*   `--card-bg`: `#ffffff`
+*   `--card-radius`: `12px`
+*   `--card-shadow`: `0 2px 12px rgba(0,0,0,0.07)`
+
+#### 2. Typography & Fonts
+*   **Primary Font Family**: `'Inter', 'Segoe UI', system-ui, sans-serif`
+*   **Code Badges & Monospaced**: `monospace` (used with `.corp-code-badge` helper class)
+
+#### 3. Core CSS Classes & Components
+*   **Layout Structure**:
+    *   `.admin-layout`: Flex wrapper for the sidebar and main body.
+    *   `.admin-sidebar`: Left sidebar menu.
+    *   `.admin-main`: Main content wrapper (includes topbar and main content).
+    *   `.admin-topbar`: Top navigation bar.
+    *   `.admin-content`: Main scrollable page workspace.
+*   **Buttons**:
+    *   `.btn-primary`: Blue gradient background (`linear-gradient(135deg, #3b82f6, #1d4ed8)`), hover shadows, and lift transform. Used for primary action buttons (e.g. Add, Save, Next).
+    *   `.btn-secondary`: Light gray background (`#f1f5f9`) with slate text. Used for secondary/cancel actions.
+    *   `button[type="submit"]` / `input[type="submit"]` (Submit Buttons): Always use the green color palette (green gradient background for solid buttons, green text/borders for outlined buttons) to distinguish submit actions.
+    *   `.corp-action-btn-text`: Standard inline action button class for list tables. Used with a modifier class:
+        *   `.corp-action-btn-text--edit`: Blue edit button (`#3b82f6` background).
+        *   `.corp-action-btn-text--delete`: Red delete button (`#ef4444` background).
+    *   **Button Icons**: Always include a descriptive icon (using the `<.icon>` component) inside buttons/links (e.g. `hero-pencil` for Edit, `hero-trash` for Delete, `hero-plus` for Add, `hero-arrow-up-tray` for Export) to maintain visual consistency.
+*   **Table Layout**:
+    *   **Overflow Scrolling**: Always wrap listing tables with `<div class="overflow-x-auto">` inside `.corp-table-card` containers to ensure tables with many columns remain scrollable on narrow viewports without clipping columns.
+    *   **Core CSS Classes**:
+        *   `.corp-table-card`: Table container card (white background, shadow, rounded corners).
+        *   `.corp-table`: Main table class (`width: 100%`, border collapse).
+        *   `.corp-th`: Header cells (capitalized, light gray background).
+        *   `.corp-tr`: Table rows with hover effect (`background: #f8fafc`).
+        *   `.corp-td`: Table data cells.
+        *   `.corp-td--name`: Styling for name columns (bold, dark text).
+*   **Form Design**:
+    *   `.corp-form-grid`: 3-column responsive grid layout for fields.
+    *   `.corp-input`: Standard text input with focus ring (`#3b82f6` border, soft blue shadow).
+    *   `.corp-input--readonly`: Disabled style with background `#f8fafc` and slate text.
+    *   `.form-tabs`: Step indicator layout for multi-step wizards.
+*   **Status & Badges**:
+    *   `.corp-code-badge`: Light blue monospace background for corporate identifiers/codes.
+    *   `.corp-status--active`: Light green badge (`#dcfce7`) with green text (`#16a34a`).
+    *   `.corp-status--inactive`: Light gray badge (`#f3f4f6`) with gray text (`#6b7280`).
+
+#### 4. Project Dependencies (Packages)
+The project relies on Elixir and Phoenix packages configured in [mix.exs](file:///m:/BKlaravel%20projects/Elixir%20Project/corporate_policy/mix.exs):
+*   **Web Framework & Real-Time**:
+    *   `phoenix` (~> 1.8.8) - Core web framework.
+    *   `phoenix_live_view` (~> 1.2.0) - Real-time client-server views.
+    *   `bandit` (~> 1.5) - Modern HTTP server.
+*   **Database & Ecto**:
+    *   `ecto_sql` (~> 3.13) - SQL query builder.
+    *   `phoenix_ecto` (~> 4.5) - Ecto integration helper.
+    *   `postgrex` (>= 0.0.0) - PostgreSQL driver.
+*   **Assets & Front-End**:
+    *   `tailwind` (~> 0.3) - Wrapper for Tailwind CSS integration.
+    *   `esbuild` (~> 0.10) - JS compilation and bundling.
+    *   `heroicons` (GitHub tag v2.2.0) - Optimized SVGs.
+*   **Utilities & Services**:
+    *   `req` (~> 0.5) - Standard HTTP client for API requests.
+    *   `swoosh` (~> 1.16) - Mail client support.
+    *   `jason` (~> 1.2) - Fast JSON parser.
+    *   `gettext` (~> 1.0) - Internationalization tool.
+*   **Testing**:
+    *   `lazy_html` (>= 0.1.0) - HTML testing utility.
 
 <!-- usage-rules-start -->
 
@@ -126,11 +208,13 @@ custom classes must fully style the input
 
 - **Always** preload Ecto associations in queries when they'll be accessed in templates, ie a message that needs to reference the `message.user.email`
 - Remember `import Ecto.Query` and other supporting modules when you write `seeds.exs`
+- **Always** create a separate seeder file for each table/seed dataset (e.g. inside `priv/repo/seeds/`) rather than cramming multiple seeds into a single `seeds.exs` file
 - `Ecto.Schema` fields always use the `:string` type, even for `:text`, columns, ie: `field :name, :string`
 - `Ecto.Changeset.validate_number/2` **DOES NOT SUPPORT the `:allow_nil` option**. By default, Ecto validations only run if a change for the given field exists and the change value is not nil, so such as option is never needed
 - You **must** use `Ecto.Changeset.get_field(changeset, :field)` to access changeset fields
 - Fields which are set programmatically, such as `user_id`, must not be listed in `cast` calls or similar for security purposes. Instead they must be explicitly set when creating the struct
 - **Always** invoke `mix ecto.gen.migration migration_name_using_underscores` when generating migration files, so the correct timestamp and conventions are applied
+- **Always** implement pagination with a limit of 15 records per page when creating workflows that fetch all data from a table
 <!-- phoenix:ecto-end -->
 
 <!-- phoenix:html-start -->
@@ -445,5 +529,10 @@ And **never** do this:
 - You are FORBIDDEN from accessing the changeset in the template as it will cause errors
 - **Never** use `<.form let={f} ...>` in the template, instead **always use `<.form for={@form} ...>`**, then drive all form references from the form assign as in `@form[:field]`. The UI should **always** be driven by a `to_form/2` assigned in the LiveView module that is derived from a changeset
 <!-- phoenix:liveview-end -->
+
+### Datatable and Action Confirmation guidelines
+
+- **Always ask confirmation** from the user using a modal popup before deleting any data or resource from a table or view (do not use default browser alert/confirm boxes unless explicitly requested).
+- **Always include an export option** (such as CSV/Excel) as a mandatory feature when building any data tables.
 
 <!-- usage-rules-end -->

@@ -31,18 +31,39 @@ defmodule CorporatePolicyWeb.Router do
   scope "/admin", CorporatePolicyWeb do
     pipe_through [:browser, :require_auth]
 
-    live "/dashboard", DashboardLive
-    live "/corporate", CorporateLive
-    live "/policy-details", PolicyDetailsLive
-    live "/cd-statements", CdStatementsLive
-    live "/roles-configuration", RolesConfigurationLive
-    live "/users", UsersLive
-    live "/corporate-employees", CorporateEmployeesLive
-    live "/cashless-hospitals", CashlessHospitalsLive
-    live "/escalation-matrix", EscalationMatrixLive
-    live "/total-claim-reported", TotalClaimReportedLive
-    live "/claims-intimation", ClaimsIntimationLive
-    live "/claims-submission", ClaimsSubmissionLive
+    live_session :admin_authenticated, on_mount: [{CorporatePolicyWeb.LiveAuth, :default}] do
+      live "/dashboard", DashboardLive
+      live "/corporate", CorporateLive
+      live "/corporate/new", CorporateNewLive
+      live "/corporate/:id/edit", CorporateEditLive
+      get "/corporate/export", CorporateExportController, :export
+      live "/policy-details", PolicyDetailsLive, :index
+      live "/policy-details/add", AddPolicyLive, :new
+      live "/policy-details/:id/edit", AddPolicyLive, :edit
+      live "/cd-statements", CdStatementsLive
+      live "/roles-configuration", RolesConfigurationLive
+
+      live "/users", UsersLive
+      live "/corporate-employees", CorporateEmployeesLive
+      live "/cashless-hospitals", CashlessHospitalsLive
+
+      live "/escalation-matrix", EscalationMatrixAddLive, :new
+      live "/escalation-matrix/add-user", EscalationMatrixAddLive, :new
+      live "/escalation-matrix/edit-user/:id", EscalationMatrixAddLive, :edit
+      live "/escalation-matrix/user-master", EscalationMatrixMasterLive, :index
+      get "/escalation-matrix/export", EscalationMatrixExportController, :export
+
+      live "/total-claim-reported", TotalClaimReportedLive
+      live "/claims-intimation", ClaimsIntimationLive
+      live "/claims-submission", ClaimsSubmissionLive
+    end
+  end
+
+  # ─── API routes ─────────────────────────────────────────────────────────────
+  scope "/api", CorporatePolicyWeb.Api, as: :api do
+    pipe_through :api
+
+    get "/get_visibility_role_id_tempalte", VisibilityRoleController, :index
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -16,6 +16,12 @@ if config_env() == :dev do
       end
     end)
   end
+
+  config :corporate_policy, CorporatePolicy.Repo,
+    username: System.get_env("DB_USER"),
+    password: System.get_env("DB_PASSWORD"),
+    hostname: System.get_env("DB_HOST", "localhost"),
+    database: System.get_env("DB_NAME", "corporate_policy")
 end
 
 # config/runtime.exs is executed for all environments, including

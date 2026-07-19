@@ -27,6 +27,15 @@ defmodule CorporatePolicyWeb.Router do
     delete "/logout", SessionController, :delete
   end
 
+  # ─── Corporate public routes ────────────────────────────────────────────────
+  scope "/corporate", CorporatePolicyWeb do
+    pipe_through :browser
+
+    get "/login", CorporateSessionController, :new
+    post "/login", CorporateSessionController, :create
+    delete "/logout", CorporateSessionController, :delete
+  end
+
   # ─── Authenticated admin routes ─────────────────────────────────────────────
   scope "/admin", CorporatePolicyWeb do
     pipe_through [:browser, :require_auth]

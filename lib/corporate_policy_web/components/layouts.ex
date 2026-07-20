@@ -31,12 +31,16 @@ defmodule CorporatePolicyWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
 
-  slot :inner_block, required: true
+  slot :inner_block
 
   def app(assigns) do
     ~H"""
     <main>
-      {render_slot(@inner_block)}
+      <%= if assigns[:inner_content] do %>
+        {@inner_content}
+      <% else %>
+        {render_slot(@inner_block)}
+      <% end %>
     </main>
     <.flash_group flash={@flash} />
     """
@@ -50,7 +54,7 @@ defmodule CorporatePolicyWeb.Layouts do
   attr :current_user, :map, default: nil
   attr :active_path, :string, default: "/admin/dashboard"
 
-  slot :inner_block, required: true
+  slot :inner_block
 
   def admin(assigns) do
     ~H"""
@@ -128,7 +132,7 @@ defmodule CorporatePolicyWeb.Layouts do
 
           <div class="user-actions">
             <.link
-              href={~p"/logout"}
+              href={~p"/admin/logout"}
               method="delete"
               id="logout-link"
               class="logout-btn"
@@ -273,7 +277,7 @@ defmodule CorporatePolicyWeb.Layouts do
               </span>
 
               <.link
-                href={~p"/logout"}
+                href={~p"/admin/logout"}
                 method="delete"
                 id="topbar-logout"
                 class="topbar-logout"
@@ -285,7 +289,11 @@ defmodule CorporatePolicyWeb.Layouts do
         </header>
         <%!-- Page content --%>
         <main class="admin-content">
-          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
+          <%= if assigns[:inner_content] do %>
+            {@inner_content}
+          <% else %>
+            {render_slot(@inner_block)}
+          <% end %>
         </main>
       </div>
     </div>

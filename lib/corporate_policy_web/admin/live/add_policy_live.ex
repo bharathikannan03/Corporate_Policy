@@ -125,7 +125,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                <span class={["text-sm", text_color]}>{step_name}</span>
+                 <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
@@ -185,7 +185,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-
+                  
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

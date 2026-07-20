@@ -28,10 +28,10 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
         <div class="corp-list-header" id="policy-list-header">
           <div>
             <h1 class="corp-list-title">Policy Details</h1>
-
+            
             <p class="corp-list-subtitle">Manage and view all corporate policies</p>
           </div>
-
+          
           <div class="header-actions">
             <.link
               navigate={~p"/admin/policy-details/add"}
@@ -42,28 +42,28 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
             </.link>
           </div>
         </div>
-        <%!-- Table card --%>
+         <%!-- Table card --%>
         <div class="corp-table-card" id="policy-table-card">
           <div class="overflow-x-auto">
             <table class="corp-table" id="policies-table">
               <thead>
                 <tr>
                   <th class="corp-th">Corporate</th>
-
+                  
                   <th class="corp-th">Policy No.</th>
-
+                  
                   <th class="corp-th">LOB</th>
-
+                  
                   <th class="corp-th">Type</th>
-
+                  
                   <th class="corp-th">Insurer</th>
-
+                  
                   <th class="corp-th">Start Date</th>
-
+                  
                   <th class="corp-th text-right">Actions</th>
                 </tr>
               </thead>
-
+              
               <tbody id="policies-tbody">
                 <%= if @policies == [] do %>
                   <tr class="corp-empty-row" id="policies-empty-row">
@@ -71,7 +71,7 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
                       <div class="corp-empty-state" id="corp-empty-state">
                         <.icon name="hero-document-text" class="w-12 h-12 text-gray-300 mb-3" />
                         <p class="corp-empty-text">No policies yet</p>
-
+                        
                         <.link
                           navigate={~p"/admin/policy-details/add"}
                           class="btn-primary mt-4"
@@ -88,7 +88,7 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
                       <td class="corp-td corp-td--name">
                         {if policy.corporate, do: policy.corporate.corporate_name, else: "-"}
                       </td>
-
+                      
                       <td class="corp-td">
                         <%= if policy.policy_number do %>
                           <.link
@@ -101,29 +101,29 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
                           -
                         <% end %>
                       </td>
-
+                      
                       <td class="corp-td">
                         {if policy.line_of_business_ref,
                           do: policy.line_of_business_ref.line_of_business_value,
                           else: "-"}
                       </td>
-
+                      
                       <td class="corp-td">
                         {if policy.policy_type_ref,
                           do: policy.policy_type_ref.policy_type_value,
                           else: "-"}
                       </td>
-
+                      
                       <td class="corp-td">
                         {if policy.insurer_ref, do: policy.insurer_ref.name, else: "-"}
                       </td>
-
+                      
                       <td class="corp-td whitespace-nowrap">
                         {if policy.policy_start_date,
                           do: Calendar.strftime(policy.policy_start_date, "%d %b %Y"),
                           else: "-"}
                       </td>
-
+                      
                       <td class="corp-td">
                         <div class="corp-actions justify-end">
                           <.link

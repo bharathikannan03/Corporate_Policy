@@ -112,7 +112,9 @@ defmodule CorporatePolicy.MixProject do
         [
           "-Command",
           "Get-NetTCPConnection -LocalPort 4000,4001,4002,4003 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
-        ], into: IO.stream())
+        ],
+        into: IO.stream()
+      )
     else
       System.cmd("sh", ["-c", "fuser -k 4000/tcp 4001/tcp 4002/tcp 4003/tcp"], into: IO.stream())
     end

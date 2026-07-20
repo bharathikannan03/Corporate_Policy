@@ -317,7 +317,7 @@ defmodule CorporatePolicyWeb.Layouts do
   attr :active_policy_number, :string, default: nil
   attr :active_path, :string, default: "/corporate/dashboard"
 
-  slot :inner_block, required: true
+  slot :inner_block
 
   def corporate(assigns) do
     ~H"""
@@ -547,7 +547,11 @@ defmodule CorporatePolicyWeb.Layouts do
         </div>
          <%!-- Page Specific Body --%>
         <main class="flex-1 p-6 overflow-y-auto">
-          <.flash_group flash={@flash} /> {render_slot(@inner_block)}
+          <%= if assigns[:inner_content] do %>
+            {@inner_content}
+          <% else %>
+            {render_slot(@inner_block)}
+          <% end %>
         </main>
       </div>
     </div>

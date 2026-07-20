@@ -71,6 +71,10 @@ defmodule CorporatePolicyWeb.Router do
     end
   end
 
+  pipeline :corp_require_auth do
+    plug CorporatePolicyWeb.Corporate.Plugs.AuthPlug
+  end
+
   # ─── 2. Corporate Portal Scope ───────────────────────────────────────────
   if @portal in ["corp", "all"] do
     scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
@@ -79,6 +83,16 @@ defmodule CorporatePolicyWeb.Router do
       get "/login", CorporateSessionController, :new
       post "/login", CorporateSessionController, :create
       delete "/logout", CorporateSessionController, :delete
+    end
+
+    scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
+      pipe_through [:browser, :corp_require_auth]
+
+      live_session :corporate_authenticated,
+        on_mount: [{CorporatePolicyWeb.Corporate.LiveAuth, :default}],
+        layout: {CorporatePolicyWeb.Layouts, :app} do
+        live "/dashboard", DashboardLive
+      end
     end
   end
 

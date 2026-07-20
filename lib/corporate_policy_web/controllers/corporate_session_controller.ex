@@ -20,7 +20,7 @@ defmodule CorporatePolicyWeb.CorporateSessionController do
           |> configure_session(renew: true)
           |> put_session(:current_user_id, user.id)
           |> put_flash(:info, "Welcome back!")
-          |> redirect(to: ~p"/admin/dashboard")
+          |> redirect(to: ~p"/corporate/dashboard")
         else
           conn
           |> put_flash(:error, "credentials are invalid for corporate")

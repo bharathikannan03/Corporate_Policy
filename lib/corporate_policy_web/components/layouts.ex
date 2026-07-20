@@ -38,7 +38,7 @@ defmodule CorporatePolicyWeb.Layouts do
     <main>
       {render_slot(@inner_block)}
     </main>
-     <.flash_group flash={@flash} />
+    <.flash_group flash={@flash} />
     """
   end
 
@@ -98,34 +98,34 @@ defmodule CorporatePolicyWeb.Layouts do
         }
         .admin-main { color: #1e293b !important; }
       </style>
-       <%!-- Sidebar --%>
+      <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
-          
+
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
         </div>
-         <%!-- User info --%>
+        <%!-- User info --%>
         <div class="sidebar-user">
           <div class="user-avatar">
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
-          
+
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
-            
+
             <p class="user-role">Vibe Admin</p>
           </div>
-          
+
           <div class="user-actions">
             <.link
               href={~p"/logout"}
@@ -137,7 +137,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-         <%!-- Navigation --%>
+        <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -163,7 +163,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-corporate"
             />
           </.sidebar_group>
-          
+
           <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
@@ -182,7 +182,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-policy"
             />
           </.sidebar_group>
-          
+
           <.sidebar_item
             icon="hero-banknotes"
             label="CD Statements"
@@ -234,7 +234,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-escalation-matrix-user-master"
             />
           </.sidebar_group>
-          
+
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -255,14 +255,14 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-       <%!-- Main content area --%>
+      <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
-          
+
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -271,7 +271,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
-              
+
               <.link
                 href={~p"/logout"}
                 method="delete"
@@ -283,12 +283,291 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-         <%!-- Page content --%>
+        <%!-- Page content --%>
         <main class="admin-content">
           <.flash_group flash={@flash} /> {render_slot(@inner_block)}
         </main>
       </div>
     </div>
+    """
+  end
+
+  @doc """
+  Renders the corporate portal layout with sidebar navigation, top bar,
+  and header for Corporate Name, Policy Types, and Policy Numbers.
+  Used by corporate LiveViews.
+  """
+  attr :flash, :map, required: true
+  attr :current_user, :map, default: nil
+  attr :corporate, :map, default: nil
+  attr :corporate_name, :string, default: "Corporate Portal"
+  attr :financial_years, :list, default: []
+  attr :current_fy_name, :string, default: "2025-2026"
+  attr :policy_types, :list, default: []
+  attr :active_policy_type, :string, default: nil
+  attr :policy_numbers, :list, default: []
+  attr :active_policy_number, :string, default: nil
+  attr :active_path, :string, default: "/corporate/dashboard"
+
+  slot :inner_block, required: true
+
+  def corporate(assigns) do
+    ~H"""
+    <div class="corp-portal-wrapper">
+      <%!-- Left Sidebar --%>
+      <aside class="corp-portal-sidebar">
+        <%!-- Brand Logo --%>
+        <div class="corp-sidebar-brand">
+          <div class="vibe-logo-text flex items-center">
+            <span class="vibe-v">V</span>
+            <span class="vibe-i">I</span>
+            <span class="vibe-b">B</span>
+            <span class="vibe-e">E</span>
+          </div>
+          <div class="vibe-tagline">
+            An Initiative By Intermedia
+          </div>
+        </div>
+
+        <%!-- Corporate Profile Card --%>
+        <div class="corp-sidebar-user">
+          <div class="corp-user-avatar">
+            <.icon name="hero-user" class="w-10 h-10" />
+          </div>
+          <h2 class="corp-user-name">
+            {@corporate_name}
+          </h2>
+          <span class="corp-user-role">Corporate</span>
+
+          <%!-- Action Icons --%>
+          <div class="corp-user-actions">
+            <button type="button" class="corp-action-circle">
+              <.icon name="hero-user" class="w-3.5 h-3.5" />
+            </button>
+            <.link
+              href={~p"/corporate/logout"}
+              method="delete"
+              class="corp-action-circle corp-action-circle--logout"
+            >
+              <.icon name="hero-power" class="w-3.5 h-3.5" />
+            </.link>
+            <button type="button" class="corp-action-circle">
+              <.icon name="hero-envelope" class="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        <%!-- Sidebar Menu --%>
+        <nav class="corp-sidebar-nav">
+          <.corp_nav_item
+            icon="hero-squares-2x2"
+            label="Dashboard"
+            href={~p"/corporate/dashboard"}
+            active={@active_path == "/corporate/dashboard"}
+          />
+          <.corp_nav_item
+            icon="hero-calendar"
+            label="Enrollment"
+            href="#"
+            active={@active_path == "/corporate/enrollment"}
+          />
+          <.corp_nav_item
+            icon="hero-clipboard-document-list"
+            label="Claims"
+            href="#"
+            active={@active_path == "/corporate/claims"}
+          />
+          <.corp_nav_item
+            icon="hero-building-office"
+            label="Cashless Hospitals"
+            href="#"
+            active={@active_path == "/corporate/cashless-hospitals"}
+          />
+          <.corp_nav_item
+            icon="hero-chart-bar"
+            label="Escalation Matrix"
+            href="#"
+            active={@active_path == "/corporate/escalation-matrix"}
+          />
+          <.corp_nav_item
+            icon="hero-document-text"
+            label="Policy Features"
+            href="#"
+            active={@active_path == "/corporate/policy-features"}
+          />
+          <.corp_nav_item
+            icon="hero-document-duplicate"
+            label="Documents"
+            href="#"
+            active={@active_path == "/corporate/documents"}
+          />
+          <.corp_nav_item
+            icon="hero-document-check"
+            label="CD & Endorsement"
+            href="#"
+            active={@active_path == "/corporate/cd-endorsement"}
+          />
+          <.corp_nav_item
+            icon="hero-user-group"
+            label="Employee"
+            href="#"
+            active={@active_path == "/corporate/employee"}
+          />
+          <.corp_nav_item
+            icon="hero-calculator"
+            label="Endorsement Calculation"
+            href="#"
+            active={@active_path == "/corporate/endorsement-calc"}
+          />
+          <.corp_nav_item
+            icon="hero-chart-pie"
+            label="Reports"
+            href="#"
+            active={@active_path == "/corporate/reports"}
+          />
+          <.corp_nav_item
+            icon="hero-document"
+            label="Summary"
+            href="#"
+            active={@active_path == "/corporate/summary"}
+          />
+        </nav>
+      </aside>
+
+      <%!-- Main Content Area --%>
+      <div class="flex-1 flex flex-col min-w-0">
+        <%!-- Top Header Bar --%>
+        <header class="corp-top-bar">
+          <div class="flex items-center space-x-3">
+            <form phx-change="change_fy" id="corp-fy-form">
+              <select name="fy_name" class="corp-select-sm">
+                <%= for fy <- @financial_years do %>
+                  <option value={fy.year_name} selected={fy.year_name == @current_fy_name}>
+                    {fy.year_name}
+                  </option>
+                <% end %>
+                <%= if @financial_years == [] do %>
+                  <option value={@current_fy_name} selected>{@current_fy_name}</option>
+                <% end %>
+              </select>
+            </form>
+
+            <select name="language" class="corp-select-sm">
+              <option value="en">Select Language</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <button type="button" class="text-white hover:opacity-80">
+              <.icon name="hero-bell" class="w-5 h-5" />
+            </button>
+            <div class="flex items-center space-x-2 text-xs font-semibold text-white">
+              <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                <.icon name="hero-user" class="w-4 h-4 text-white" />
+              </div>
+              <span>
+                {if @current_user,
+                  do: String.upcase("#{@current_user.first_name} #{@current_user.last_name}"),
+                  else: "RICHIE JOSEPH"}
+              </span>
+              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
+            </div>
+          </div>
+        </header>
+
+        <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
+        <div class="corp-welcome-banner">
+          <h1 class="corp-welcome-title">Hi, Welcome back!</h1>
+
+          <%!-- Corporate Name & Policy Types Card --%>
+          <div class="corp-header-card">
+            <div class="corp-title-text">
+              {@corporate_name}
+              <span class="corp-title-fy">(Financial Year: {@current_fy_name})</span>
+            </div>
+
+            <%!-- Policy Type Tabs --%>
+            <div class="corp-policy-types-row">
+              <%= for pt <- @policy_types do %>
+                <button
+                  type="button"
+                  phx-click="select_policy_type"
+                  phx-value-type={pt}
+                  class={[
+                    "corp-policy-type-tab",
+                    pt == @active_policy_type && "corp-policy-type-tab--active"
+                  ]}
+                >
+                  <span>{pt}</span>
+                  <.icon name="hero-sparkles" class="w-3.5 h-3.5 text-blue-500" />
+                </button>
+              <% end %>
+              <%= if @policy_types == [] do %>
+                <button type="button" class="corp-policy-type-tab corp-policy-type-tab--active">
+                  <span>GMC</span>
+                  <.icon name="hero-sparkles" class="w-3.5 h-3.5 text-blue-500" />
+                </button>
+                <button type="button" class="corp-policy-type-tab">
+                  <span>Parent Policy</span>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <%!-- Policy Number Pills Row --%>
+        <div class="corp-policy-numbers-bar">
+          <div class="flex items-center space-x-4 text-xs font-bold">
+            <%= for pn <- @policy_numbers do %>
+              <button
+                type="button"
+                phx-click="select_policy_number"
+                phx-value-number={pn}
+                class={[
+                  "corp-policy-number-tab",
+                  pn == @active_policy_number && "font-bold text-blue-600 border-blue-600",
+                  pn != @active_policy_number &&
+                    "text-gray-600 border-transparent hover:text-blue-500"
+                ]}
+              >
+                {pn}
+              </button>
+            <% end %>
+            <%= if @policy_numbers == [] do %>
+              <button type="button" class="corp-policy-number-tab">
+                2-81-25-00003017-000
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <%!-- Page Specific Body --%>
+        <main class="flex-1 p-6 overflow-y-auto">
+          <.flash_group flash={@flash} />
+          {render_slot(@inner_block)}
+        </main>
+      </div>
+    </div>
+    """
+  end
+
+  attr :icon, :string, required: true
+  attr :label, :string, required: true
+  attr :href, :string, required: true
+  attr :active, :boolean, default: false
+
+  defp corp_nav_item(assigns) do
+    ~H"""
+    <.link
+      navigate={@href}
+      class={[
+        "corp-nav-link",
+        @active && "corp-nav-link--active"
+      ]}
+    >
+      <.icon name={@icon} class="w-4 h-4" />
+      <span>{@label}</span>
+    </.link>
     """
   end
 
@@ -339,9 +618,9 @@ defmodule CorporatePolicyWeb.Layouts do
           <.icon name={@icon} class="sidebar-nav-icon" />
           <span class="sidebar-nav-label">{@label}</span>
         </span>
-         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
-      
+
       <div
         id={"group-children-#{@group_id}"}
         class="sidebar-group-children"
@@ -398,7 +677,7 @@ defmodule CorporatePolicyWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-      
+
       <.flash
         id="server-error"
         kind={:error}
@@ -433,7 +712,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      
+
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -441,7 +720,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      
+
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}

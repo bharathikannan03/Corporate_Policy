@@ -74,6 +74,47 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  def list_active_policies_by_corporate(corporate_id, fy_id \\ nil) do
+    corporate = Repo.get(Corporate, corporate_id)
+    corporate_name = corporate && corporate.corporate_name
+
+    query =
+      if is_binary(corporate_name) and corporate_name != "" do
+        from p in Policy,
+          where:
+            (p.ref_corporate_id == ^corporate_id or p.corporate_name == ^corporate_name) and
+              p.status == 1 and not is_nil(p.policy_number) and p.policy_number != ""
+      else
+        from p in Policy,
+          where:
+            p.ref_corporate_id == ^corporate_id and p.status == 1 and not is_nil(p.policy_number) and
+              p.policy_number != ""
+      end
+
+    query =
+      from p in query,
+        preload: [
+          :corporate,
+          :financial_year_ref,
+          :line_of_business_ref,
+          :policy_type_ref,
+          :insurer_ref,
+          :tpa_ref,
+          :family_definition_ref,
+          :intimate_claim_visibility_ref
+        ],
+        order_by: [desc: p.id]
+
+    query =
+      if fy_id && fy_id != 0 do
+        where(query, [p], p.ref_fy_year_id == ^fy_id)
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
   def list_inactive_policies do
     Repo.all(
       from p in Policy,

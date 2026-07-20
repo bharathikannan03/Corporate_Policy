@@ -36,6 +36,15 @@ defmodule CorporatePolicyWeb.Router do
     delete "/logout", CorporateSessionController, :delete
   end
 
+  # ─── Corporate authenticated routes ─────────────────────────────────────────
+  scope "/corporate", CorporatePolicyWeb do
+    pipe_through [:browser, :require_auth]
+
+    live_session :corporate_authenticated, on_mount: [{CorporatePolicyWeb.LiveAuth, :default}] do
+      live "/dashboard", CorporateDashboardLive
+    end
+  end
+
   # ─── Authenticated admin routes ─────────────────────────────────────────────
   scope "/admin", CorporatePolicyWeb do
     pipe_through [:browser, :require_auth]

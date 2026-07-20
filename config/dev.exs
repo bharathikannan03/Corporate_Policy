@@ -15,19 +15,9 @@ config :corporate_policy, CorporatePolicy.Repo,
 windows? = match?({:win32, _}, :os.type())
 
 dev_watchers = [
-  esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]}
+  esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]},
+  tailwind: {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
 ]
-
-dev_watchers =
-  if windows? do
-    dev_watchers
-  else
-    Keyword.put(
-      dev_watchers,
-      :tailwind,
-      {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
-    )
-  end
 
 config :corporate_policy, CorporatePolicyWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.

@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.CorporateSessionController do
+defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
   use CorporatePolicyWeb, :controller
 
   import Phoenix.Component, only: [to_form: 2]
@@ -42,7 +42,6 @@ defmodule CorporatePolicyWeb.CorporateSessionController do
   end
 
   defp corporate_user?(user) do
-    # A corporate user must have a non-nil ref_corporate_id and must not have a restricted department_id (1, 3, 9).
     not is_nil(user.ref_corporate_id) and user.department_id not in [1, 3, 9]
   end
 end

@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.ClaimsIntimationLive do
+defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
   use CorporatePolicyWeb, :live_view
 
   @impl true
@@ -11,22 +11,22 @@ defmodule CorporatePolicyWeb.ClaimsIntimationLive do
 
     {:ok,
      socket
-     |> assign(:page_title, "Claims Intimation")
+     |> assign(:page_title, "Cashless Hospitals")
      |> assign(:current_user, current_user)
-     |> assign(:active_path, "/admin/claims-intimation")}
+     |> assign(:active_path, "/admin/cashless-hospitals")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
-      <div class="coming-soon-wrapper" id="claims-intimation-coming-soon">
+      <div class="coming-soon-wrapper" id="cashless-hospitals-coming-soon">
         <div class="coming-soon-icon">
-          <.icon name="hero-bell-alert" class="w-16 h-16 text-blue-400" />
+          <.icon name="hero-building-office" class="w-16 h-16 text-blue-400" />
         </div>
-        
-        <h1 class="coming-soon-title">Claims Intimation</h1>
-        
+
+        <h1 class="coming-soon-title">Cashless Hospitals</h1>
+
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

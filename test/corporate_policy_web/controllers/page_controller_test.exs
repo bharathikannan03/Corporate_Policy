@@ -3,6 +3,6 @@ defmodule CorporatePolicyWeb.PageControllerTest do
 
   test "GET / renders login page", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Login to your account"
+    assert html_response(conn, 200) =~ "Sign in to Admin Portal"
   end
 end

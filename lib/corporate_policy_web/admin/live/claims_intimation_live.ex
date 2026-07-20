@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.ClaimsSubmissionLive do
+defmodule CorporatePolicyWeb.Admin.ClaimsIntimationLive do
   use CorporatePolicyWeb, :live_view
 
   @impl true
@@ -11,22 +11,22 @@ defmodule CorporatePolicyWeb.ClaimsSubmissionLive do
 
     {:ok,
      socket
-     |> assign(:page_title, "Claims Submission")
+     |> assign(:page_title, "Claims Intimation")
      |> assign(:current_user, current_user)
-     |> assign(:active_path, "/admin/claims-submission")}
+     |> assign(:active_path, "/admin/claims-intimation")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
-      <div class="coming-soon-wrapper" id="claims-submission-coming-soon">
+      <div class="coming-soon-wrapper" id="claims-intimation-coming-soon">
         <div class="coming-soon-icon">
-          <.icon name="hero-paper-airplane" class="w-16 h-16 text-blue-400" />
+          <.icon name="hero-bell-alert" class="w-16 h-16 text-blue-400" />
         </div>
-        
-        <h1 class="coming-soon-title">Claims Submission</h1>
-        
+
+        <h1 class="coming-soon-title">Claims Intimation</h1>
+
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

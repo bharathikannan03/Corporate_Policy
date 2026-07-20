@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.PolicyLive do
+defmodule CorporatePolicyWeb.Admin.PolicyLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.Policies
@@ -102,8 +102,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
 
   @impl true
   def handle_event("delete-policy", %{"id" => _id}, socket) do
-    # Soft delete by setting status to 0 or similar
-    # For now, just show confirmation
     {:noreply, socket}
   end
 
@@ -137,7 +135,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
       <.header>
         <:subtitle>Manage insurance policies for corporates</:subtitle>
-        
+
         <:actions>
           <div class="flex gap-2">
             <.button
@@ -146,12 +144,12 @@ defmodule CorporatePolicyWeb.PolicyLive do
             >
               <.icon name="hero-plus" class="mr-2" /> Add Policy
             </.button>
-            
+
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-sm">
                 <.icon name="hero-ellipsis-vertical" class="w-5 h-5" />
               </label>
-              
+
               <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box shadow w-52 p-2">
                 <li>
                   <.link
@@ -161,7 +159,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
                     <.icon name="hero-list-bullet" class="w-5 h-5" /> All Policies
                   </.link>
                 </li>
-                
+
                 <li>
                   <.link
                     navigate={~p"/admin/policy-details/add"}
@@ -190,7 +188,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
               class="w-48"
             />
           </div>
-          
+
           <div class="flex items-center gap-2">
             <label class="label">Filter</label>
             <.input
@@ -207,7 +205,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
               class="w-40"
             />
           </div>
-          
+
           <div class="flex items-center gap-2 ml-auto">
             <span class="badge badge-outline">Total: {@stats.total}</span>
             <span class="badge badge-success">Active: {@stats.active}</span>
@@ -223,39 +221,39 @@ defmodule CorporatePolicyWeb.PolicyLive do
             <:col :let={policy} label="Policy Name">
               <div>
                 <p class="font-medium">{policy.corporate_name}</p>
-                
+
                 <p class="text-sm text-base-content/60">
                   {policy.line_of_business} - {policy.policy_type}
                 </p>
               </div>
             </:col>
-            
+
             <:col :let={policy} label="Insurer">
               {policy.select_insurer}
             </:col>
-            
+
             <:col :let={policy} label="Policy Number">
               {if policy.have_policy_number == 1, do: policy.policy_number, else: "N/A"}
             </:col>
-            
+
             <:col :let={policy} label="Period">
               <div class="text-sm">
                 <p>{format_date(policy.policy_start_date)}</p>
-                
+
                 <p class="text-base-content/60">{format_date(policy.policy_end_date)}</p>
               </div>
             </:col>
-            
+
             <:col :let={policy} label="Financial Year">
               {if(policy.financial_year_ref, do: policy.financial_year_ref.year_name, else: "—")}
             </:col>
-            
+
             <:col :let={policy} label="Status">
               <span class={Policy.status_class(policy.status)}>
                 {Policy.status_label(policy.status)}
               </span>
             </:col>
-            
+
             <:action :let={policy}>
               <div class="flex gap-2">
                 <button
@@ -265,7 +263,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
                 >
                   <.icon name="hero-pencil" class="w-4 h-4" />
                 </button>
-                
+
                 <button
                   phx-click="update-status"
                   phx-value-id={policy.id}
@@ -283,7 +281,7 @@ defmodule CorporatePolicyWeb.PolicyLive do
       <div :if={@policies == []} class="text-center py-12">
         <.icon name="hero-document-text" class="mx-auto text-base-content/30 size-16" />
         <p class="mt-4 text-base-content/60">No policies found</p>
-        
+
         <.button phx-click="new-policy" class="mt-4" variant="primary">
           Create your first policy
         </.button>
@@ -305,12 +303,12 @@ defmodule CorporatePolicyWeb.PolicyLive do
               <h3 class="font-bold text-lg">
                 {if(@modal_action == :new, do: "Create New Policy", else: "Edit Policy")}
               </h3>
-              
+
               <button phx-click="close-modal" class="btn btn-sm btn-ghost btn-square">
                 <.icon name="hero-x-mark" class="w-5 h-5" />
               </button>
             </div>
-            
+
             <.form for={@form} id="policy-form" phx-submit="save-policy" phx-change="validate-field">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <.input field={@form[:corporate_name]} type="text" label="Corporate Name" required />
@@ -398,12 +396,12 @@ defmodule CorporatePolicyWeb.PolicyLive do
                   label="Additional Email for Claims"
                 />
               </div>
-              
+
               <div class="flex justify-end gap-4 mt-6 pt-4 border-t">
                 <button type="button" phx-click="close-modal" class="btn btn-primary btn-soft">
                   Cancel
                 </button>
-                
+
                 <.button variant="primary">
                   {if(@modal_action == :new, do: "Create Policy", else: "Update Policy")}
                 </.button>
@@ -415,8 +413,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
     </Layouts.admin>
     """
   end
-
-  # ─── Private helpers ────────────────────────────────────────────────
 
   defp parse_fy_id(nil), do: 0
   defp parse_fy_id("0"), do: 0
@@ -446,7 +442,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
           Policies.list_policies_by_fy(fy_id)
       end
 
-    # Apply corporate filtering for broker users
     policies = filter_policies_for_user(policies, socket.assigns.current_user)
 
     assign(socket, :policies, policies)
@@ -476,21 +471,15 @@ defmodule CorporatePolicyWeb.PolicyLive do
   end
 
   defp policy_click(_policy) do
-    # Navigate to policy detail or edit
-    # push_patch(socket, to: ~p"/admin/policy-details/#{policy.id}")
   end
 
   defp format_date(nil), do: "—"
   defp format_date(date) when is_binary(date), do: date
   defp format_date(%Date{} = date), do: Date.to_string(date)
 
-  # Draft -> Active
   defp next_status(0), do: 1
-  # Active -> Inactive
   defp next_status(1), do: 2
-  # Inactive -> Active
   defp next_status(2), do: 1
-  # Expired stays expired
   defp next_status(3), do: 3
 
   defp status_icon(0), do: "hero-play-circle"

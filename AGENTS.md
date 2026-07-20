@@ -2,7 +2,12 @@
 
 ## 1. Single Source of Truth & Portal Priority Rules
 
-- **Corporate Portal Priority Rule**: Whenever the user mentions **"Corporate Portal"**, all new features, pages, routes, components, contexts, LiveViews, APIs, and related functionality **MUST be implemented strictly within the Corporate Portal** (`lib/corporate_policy_web/corporate/` directory under the `CorporatePolicyWeb.Corporate` module namespace), unless the user explicitly specifies a different portal (Admin Portal or Employee Portal).
+- **Corporate Portal Priority Rule**: Whenever the user mentions **"Corporate Portal"**, all new web features, pages, routes, components, LiveViews, controllers, templates, and web APIs **MUST be implemented strictly within the Corporate Portal** (`lib/corporate_policy_web/corporate/` directory under the `CorporatePolicyWeb.Corporate` module namespace), unless explicitly specified otherwise.
+- **Employee Portal Priority Rule**: Whenever the user mentions **"Employee Portal"**, all new web features, pages, routes, components, LiveViews, controllers, templates, and web APIs **MUST be implemented strictly within the Employee Portal** (`lib/corporate_policy_web/employee/` directory under the `CorporatePolicyWeb.Employee` module namespace), unless explicitly specified otherwise.
+- **Admin Portal Priority Rule**: Whenever the user mentions **"Admin Portal"**, all new web features **MUST be implemented strictly within the Admin Portal** (`lib/corporate_policy_web/admin/` directory under the `CorporatePolicyWeb.Admin` module namespace).
+- **Backend vs. Web Layer Separation**:
+  - `lib/corporate_policy_web/<portal>/`: Web Presentation Layer (Frontend, LiveViews, Controllers, Components, Routes, Plugs) - strictly isolated per portal.
+  - `lib/corporate_policy/`: Shared Backend Domain Contexts (Ecto Schemas, Queries, Business Logic, Mailers) - shared across all three portals.
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues.
 - Use the already included `:req` (`Req`) library for HTTP requests. **Avoid** `:httpoison`, `:tesla`, and `:httpc`.
 

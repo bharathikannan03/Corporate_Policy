@@ -1,8 +1,8 @@
-defmodule CorporatePolicy.Policies.MasterEmployeeData do
+defmodule CorporatePolicy.Policies.TrnMappingLiveEmployee do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "master_employee_data" do
+  schema "trn_mapping_live_employees" do
     field :employee_code, :string
     field :employee_name, :string
     field :gender, :string
@@ -28,12 +28,16 @@ defmodule CorporatePolicy.Policies.MasterEmployeeData do
 
     belongs_to :policy, CorporatePolicy.Policies.Policy, foreign_key: :ref_policy_id
 
+    belongs_to :corporate, CorporatePolicy.Policies.Corporate,
+      foreign_key: :ref_corporate_id,
+      references: :corporate_id
+
     timestamps()
   end
 
   @doc false
-  def changeset(master_employee_data, attrs) do
-    master_employee_data
+  def changeset(trn_mapping_live_employee, attrs) do
+    trn_mapping_live_employee
     |> cast(attrs, [
       :employee_code,
       :employee_name,
@@ -56,7 +60,8 @@ defmodule CorporatePolicy.Policies.MasterEmployeeData do
       :created_by,
       :updated_by,
       :deleted_at,
-      :ref_policy_id
+      :ref_policy_id,
+      :ref_corporate_id
     ])
     |> validate_required([
       :ref_policy_id,

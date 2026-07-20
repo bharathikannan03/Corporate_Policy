@@ -1,9 +1,12 @@
-defmodule CorporatePolicy.Repo.Migrations.CreateMasterEmployeeData do
+defmodule CorporatePolicy.Repo.Migrations.CreateTrnMappingLiveEmployees do
   use Ecto.Migration
 
   def change do
-    create_if_not_exists table(:master_employee_data) do
+    drop_if_exists table(:master_employee_data)
+
+    create_if_not_exists table(:trn_mapping_live_employees) do
       add :ref_policy_id, references(:master_add_policies, on_delete: :nothing), null: false
+      add :ref_corporate_id, references(:master_corporates, column: :corporate_id, on_delete: :nothing)
       add :employee_code, :string
       add :employee_name, :string
       add :gender, :string
@@ -30,12 +33,13 @@ defmodule CorporatePolicy.Repo.Migrations.CreateMasterEmployeeData do
       timestamps()
     end
 
-    create_if_not_exists index(:master_employee_data, [:ref_policy_id])
+    create_if_not_exists index(:trn_mapping_live_employees, [:ref_policy_id])
+    create_if_not_exists index(:trn_mapping_live_employees, [:ref_corporate_id])
 
     create_if_not_exists unique_index(
-                           :master_employee_data,
+                           :trn_mapping_live_employees,
                            [:ref_policy_id, :employee_code, :relationship],
-                           name: :unique_policy_employee_relationship_index
+                           name: :unique_policy_live_employee_relationship_index
                          )
   end
 end

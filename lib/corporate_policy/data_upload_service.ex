@@ -7,7 +7,7 @@ defmodule CorporatePolicy.DataUploadService do
     MasterEndorsementDataUpload,
     MasterTotalClaimReport,
     MasterEcardsDataUpload,
-    MasterEmployeeData
+    TrnMappingLiveEmployee
   }
 
   require Logger
@@ -45,7 +45,6 @@ defmodule CorporatePolicy.DataUploadService do
   end
 
   defp process_file("Ecards", file_path, policy_id, original_file_name) do
-    # For ecards, record the uploaded PDF/ZIP as a single entry
     Repo.insert!(%MasterEcardsDataUpload{
       ref_policy_id: policy_id,
       ecards_data_url: file_path,
@@ -55,10 +54,7 @@ defmodule CorporatePolicy.DataUploadService do
   end
 
   defp process_file(data_type, file_path, policy_id, _original_file_name) do
-    # For CSV types (Inception Data, Endorsement Data, Claim Dumps)
     content = File.read!(file_path)
-
-    # Parse without headers
     rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
 
     case data_type do
@@ -93,7 +89,7 @@ defmodule CorporatePolicy.DataUploadService do
       })
     end)
 
-    save_master_employee_data(rows, policy_id, "Inception")
+    save_trn_mapping_live_employees(rows, policy_id, "Inception")
   end
 
   defp process_endorsement(rows, policy_id) do
@@ -116,7 +112,7 @@ defmodule CorporatePolicy.DataUploadService do
       })
     end)
 
-    save_master_employee_data(rows, policy_id, "Endorsement")
+    save_trn_mapping_live_employees(rows, policy_id, "Endorsement")
   end
 
   defp process_claim_dumps(rows, policy_id) do
@@ -152,8 +148,11 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp save_master_employee_data(rows, policy_id, source_type) do
+  defp save_trn_mapping_live_employees(rows, policy_id, source_type) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    policy = Repo.get(CorporatePolicy.Policies.Policy, policy_id)
+    corporate_id = policy && policy.ref_corporate_id
 
     Enum.each(rows, fn row ->
       padded = pad_row(row, 16)
@@ -180,6 +179,7 @@ defmodule CorporatePolicy.DataUploadService do
       if emp_code != "" do
         attrs = %{
           ref_policy_id: policy_id,
+          ref_corporate_id: corporate_id,
           employee_code: emp_code,
           employee_name: emp_name,
           gender: gender,
@@ -205,7 +205,7 @@ defmodule CorporatePolicy.DataUploadService do
         }
 
         Repo.insert!(
-          struct(MasterEmployeeData, attrs),
+          struct(TrnMappingLiveEmployee, attrs),
           on_conflict: {:replace_all_except, [:id, :inserted_at, :created_by]},
           conflict_target: [:ref_policy_id, :employee_code, :relationship]
         )

@@ -7,7 +7,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
   alias CorporatePolicy.Policies.{
     MasterInceptionDataUpload,
     MasterEndorsementDataUpload,
-    MasterEmployeeData,
+    TrnMappingLiveEmployee,
     Policy
   }
 
@@ -80,7 +80,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     {:ok, policy: policy, user: user}
   end
 
-  test "process_upload for Inception Data saves to inception and master_employee_data", %{
+  test "process_upload for Inception Data saves to inception and trn_mapping_live_employees", %{
     policy: policy
   } do
     csv_content = """
@@ -104,15 +104,16 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert length(inception_records) == 1
     assert Enum.at(inception_records, 0).employee_code == "EMP001"
 
-    employee_records = Repo.all(MasterEmployeeData)
+    employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1
     emp = Enum.at(employee_records, 0)
     assert emp.employee_code == "EMP001"
     assert emp.employee_name == "John Doe"
+    assert emp.ref_corporate_id == policy.ref_corporate_id
     assert emp.source_type == "Inception"
   end
 
-  test "process_upload for Endorsement Data updates existing employee record in master_employee_data",
+  test "process_upload for Endorsement Data updates existing employee record in trn_mapping_live_employees",
        %{policy: policy} do
     inception_csv = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
@@ -148,7 +149,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert length(Repo.all(MasterInceptionDataUpload)) == 1
     assert length(Repo.all(MasterEndorsementDataUpload)) == 1
 
-    employee_records = Repo.all(MasterEmployeeData)
+    employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1
     emp = Enum.at(employee_records, 0)
     assert emp.employee_code == "EMP002"
@@ -179,7 +180,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
                "trim.csv"
              )
 
-    emp = Repo.get_by!(MasterEmployeeData, employee_code: "EMP003")
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP003")
     assert emp.employee_name == "Bob White"
     assert emp.relationship == "Self"
   end

@@ -1,40 +1,52 @@
-defmodule CorporatePolicyWeb.CorporateNewLive do
+defmodule CorporatePolicyWeb.Admin.CorporateEditLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.Corporates
   alias CorporatePolicy.Accounts
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(%{"id" => id}, session, socket) do
     current_user =
       case session["current_user_id"] do
         nil -> nil
         id -> Accounts.get_user(id)
       end
 
-    group_code = Corporates.generate_group_code()
+    corporate = Corporates.get_corporate_with_logo!(id)
+    contacts_db = Corporates.list_contacts_for_corporate(corporate.corporate_id)
 
-    changeset =
-      Corporates.change_corporate(%CorporatePolicy.Corporates.Corporate{}, %{
-        corporate_group_code: group_code,
-        corporate_status: 1
-      })
+    contacts =
+      if contacts_db == [] do
+        [%{id: Ecto.UUID.generate()}]
+      else
+        Enum.map(contacts_db, fn c ->
+          %{
+            id: c.id,
+            full_name: c.full_name,
+            mobile_number: c.mobile_no,
+            email_address: c.email_address,
+            corporate_username: c.corporate_username,
+            department: c.department_id || Corporates.get_role_id_by_name(c.department_name),
+            location: c.location
+          }
+        end)
+      end
 
+    changeset = Corporates.change_corporate(corporate)
     department_options = Corporates.list_departments_for_dropdown()
 
     socket =
       socket
-      |> assign(:page_title, "Add Corporate")
+      |> assign(:page_title, "Edit Corporate")
       |> assign(:current_user, current_user)
-      |> assign(:active_path, "/admin/corporate/new")
+      |> assign(:active_path, "/admin/corporate")
+      |> assign(:corporate, corporate)
       |> assign(:tab, :details)
-      |> assign(:group_code, group_code)
+      |> assign(:group_code, corporate.corporate_group_code)
       |> assign(:form, Phoenix.Component.to_form(changeset, as: :corporate))
-      |> assign(:contacts, [%{id: Ecto.UUID.generate()}])
+      |> assign(:contacts, contacts)
       |> assign(:department_options, department_options)
-      |> assign(:saved_corporate_id, nil)
-      |> assign(:details_params, %{})
-      |> assign(:last_pincode, nil)
+      |> assign(:last_pincode, corporate.pincode)
       |> allow_upload(:logo,
         accept: ~w(.jpg .jpeg .png .gif .webp),
         max_entries: 1,
@@ -50,9 +62,9 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
       <div class="corp-form-page" id="corp-form-page">
         <div class="corp-form-header">
-          <h1 class="corp-form-title">Corporate Details</h1>
+          <h1 class="corp-form-title">Edit Corporate</h1>
         </div>
-         <%!-- Tab Steps --%> <%!-- Tab Steps --%>
+         <%!-- Tab Steps --%>
         <div class="form-tabs" id="form-tabs">
           <div class={["tab-step", @tab == :details && "tab-step--active"]} id="tab-step-details">
             <div class="tab-step-number">1</div>
@@ -249,10 +261,20 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
                  <%!-- Logo Upload — spans full row --%>
                 <div class="corp-field-group corp-field-group--full" id="logo-upload-group">
                   <label class="corp-label">Corporate Logo</label>
+                  <%= if @corporate.logo do %>
+                    <div class="current-logo-preview mb-4 flex items-center gap-3">
+                      <span class="text-sm font-medium text-gray-500">Current Logo:</span>
+                      <img
+                        src={@corporate.logo.logo}
+                        class="h-12 w-auto object-contain border rounded p-1 bg-gray-50"
+                      />
+                    </div>
+                  <% end %>
+                  
                   <div class="upload-area" id="logo-upload-area" phx-drop-target={@uploads.logo.ref}>
                     <.live_file_input upload={@uploads.logo} class="upload-file-input" />
                     <label for={@uploads.logo.ref} class="upload-btn" id="logo-upload-btn">
-                      <.icon name="hero-arrow-up-tray" class="w-4 h-4" /> Click to Upload
+                      <.icon name="hero-arrow-up-tray" class="w-4 h-4" /> Click to Upload New
                     </label>
                     
                     <p class="upload-hint">(Max file size: 2MB)</p>
@@ -281,6 +303,10 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
               </div>
               
               <div class="corp-form-footer" id="corp-footer-details">
+                <.link navigate={~p"/admin/corporate"} class="btn-secondary" id="btn-cancel">
+                  Cancel
+                </.link>
+                
                 <button type="submit" name="action" value="next" class="btn-primary" id="btn-next">
                   Next
                 </button>
@@ -405,7 +431,6 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
 
   @impl true
   def handle_event("validate", %{"corporate" => params}, socket) do
-    # Contacts are managed separately; only validate corporate fields
     corporate_params = Map.drop(params, ["contacts"])
     pincode = Map.get(corporate_params, "pincode", "") |> String.trim()
     last_pincode = socket.assigns[:last_pincode]
@@ -433,8 +458,8 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
       end
 
     changeset =
-      %CorporatePolicy.Corporates.Corporate{}
-      |> CorporatePolicy.Corporates.Corporate.changeset(corporate_params)
+      socket.assigns.corporate
+      |> Corporates.change_corporate(corporate_params)
       |> Map.put(:action, :validate)
 
     contacts_params = Map.get(params, "contacts", %{})
@@ -494,13 +519,12 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
     {:noreply, cancel_upload(socket, :logo, ref)}
   end
 
-  # ─── Save: handles both Next (save corporate) and Submit (save contacts) ─────
-
   def handle_event("save", %{"action" => "next", "corporate" => params}, socket) do
     corporate_params = Map.drop(params, ["contacts"])
+    corporate = socket.assigns.corporate
 
     changeset =
-      %CorporatePolicy.Corporates.Corporate{}
+      corporate
       |> Corporates.change_corporate(corporate_params)
 
     if changeset.valid? do
@@ -527,12 +551,10 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
                   ext = Path.extname(entry.client_name)
                   filename = "#{Ecto.UUID.generate()}#{ext}"
 
-                  # Save locally in project root
                   dest_source = Path.join(["priv", "static", "uploads", "logos", filename])
                   File.mkdir_p!(Path.dirname(dest_source))
                   File.cp!(path, dest_source)
 
-                  # Save to build output
                   dest_compiled =
                     Path.join([
                       :code.priv_dir(:corporate_policy),
@@ -552,11 +574,11 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
                 nil
               end
 
-            case Corporates.create_corporate(corporate_params, logo_path) do
-              {:ok, corporate} ->
+            case Corporates.update_corporate(corporate, corporate_params, logo_path) do
+              {:ok, updated_corporate} ->
                 {:noreply,
                  socket
-                 |> assign(:saved_corporate_id, corporate.corporate_id)
+                 |> assign(:corporate, updated_corporate)
                  |> assign(:tab, :contacts)}
 
               {:error, failed_changeset} ->
@@ -584,34 +606,28 @@ defmodule CorporatePolicyWeb.CorporateNewLive do
   end
 
   def handle_event("save", %{"action" => "submit", "corporate" => params}, socket) do
-    case socket.assigns.saved_corporate_id do
-      nil ->
+    corporate = socket.assigns.corporate
+    corporate_id = corporate.corporate_id
+
+    contacts_params =
+      params
+      |> Map.get("contacts", %{})
+      |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
+      |> Enum.map(fn {_idx, c} -> c end)
+
+    case Corporates.update_contacts(corporate_id, contacts_params) do
+      {:ok, _success} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Please complete corporate details first.")
-         |> assign(:tab, :details)}
+         |> put_flash(:info, "Corporate updated successfully!")
+         |> push_navigate(to: ~p"/admin/corporate")}
 
-      corporate_id ->
-        contacts_params =
-          params
-          |> Map.get("contacts", %{})
-          |> Enum.sort_by(fn {idx, _} -> String.to_integer(idx) end)
-          |> Enum.map(fn {_idx, c} -> c end)
+      {:error, failed_changeset} ->
+        error_msg = translate_errors(failed_changeset)
 
-        case Corporates.save_contacts(corporate_id, contacts_params) do
-          {:ok, _users} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "Corporate created successfully!")
-             |> push_navigate(to: ~p"/admin/corporate")}
-
-          {:error, failed_changeset} ->
-            error_msg = translate_errors(failed_changeset)
-
-            {:noreply,
-             socket
-             |> put_flash(:error, "Please fix the contact errors: #{error_msg}")}
-        end
+        {:noreply,
+         socket
+         |> put_flash(:error, "Please fix the contact errors: #{error_msg}")}
     end
   end
 

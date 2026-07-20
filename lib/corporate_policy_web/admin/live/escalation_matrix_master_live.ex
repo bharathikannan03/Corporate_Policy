@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
+defmodule CorporatePolicyWeb.Admin.EscalationMatrixMasterLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.EscalationMatrices
@@ -76,7 +76,6 @@ defmodule CorporatePolicyWeb.EscalationMatrixMasterLive do
   defp fetch_page(socket, page) do
     pagination = EscalationMatrices.list_escalation_matrices_paginated(page: page, limit: 10)
 
-    # Adjust page if it exceeds total pages and total pages is greater than 0
     {page, pagination} =
       if page > pagination.total_pages and pagination.total_pages > 0 do
         p = pagination.total_pages

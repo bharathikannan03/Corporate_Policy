@@ -6,7 +6,7 @@ defmodule CorporatePolicyWeb.SessionControllerTest do
   test "renders the login page", %{conn: conn} do
     conn = get(conn, ~p"/")
 
-    assert html_response(conn, 200) =~ "Login to your account"
+    assert html_response(conn, 200) =~ "Sign in to Admin Portal"
   end
 
   test "logs in with valid credentials", %{conn: conn} do
@@ -19,7 +19,7 @@ defmodule CorporatePolicyWeb.SessionControllerTest do
       })
 
     conn =
-      post(conn, ~p"/login", %{
+      post(conn, ~p"/admin/login", %{
         "user" => %{"email_address" => user.email_address, "password" => "secret123"}
       })
 

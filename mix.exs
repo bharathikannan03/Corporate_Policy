@@ -90,7 +90,33 @@ defmodule CorporatePolicy.MixProject do
         "esbuild corporate_policy --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
+      "phx.server.admin": [fn _ -> run_portal("admin", "4001") end],
+      "phx.server.corp": [fn _ -> run_portal("corp", "4002") end],
+      "phx.server.emp": [fn _ -> run_portal("emp", "4003") end],
+      "phx.server.all": ["phx.server"],
+      "phx.server.end": [fn _ -> end_servers() end]
     ]
+  end
+
+  defp run_portal(portal, port) do
+    System.put_env("PORTAL", portal)
+    System.put_env("PORT", port)
+    Mix.Task.run("phx.server")
+  end
+
+  defp end_servers do
+    if match?({:win32, _}, :os.type()) do
+      System.cmd(
+        "powershell",
+        [
+          "-Command",
+          "Get-NetTCPConnection -LocalPort 4000,4001,4002,4003 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
+        ],
+        into: IO.stream()
+      )
+    else
+      System.cmd("sh", ["-c", "fuser -k 4000/tcp 4001/tcp 4002/tcp 4003/tcp"], into: IO.stream())
+    end
   end
 end

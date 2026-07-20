@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.EscalationMatrixAddLive do
+defmodule CorporatePolicyWeb.Admin.EscalationMatrixAddLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.EscalationMatrices

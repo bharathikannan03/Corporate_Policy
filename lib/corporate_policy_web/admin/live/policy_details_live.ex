@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.PolicyDetailsLive do
+defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
   use CorporatePolicyWeb, :live_view
 
   @impl true

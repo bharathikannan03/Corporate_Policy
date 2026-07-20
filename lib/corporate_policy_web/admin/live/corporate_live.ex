@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.CorporateLive do
+defmodule CorporatePolicyWeb.Admin.CorporateLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.Corporates

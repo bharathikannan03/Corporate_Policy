@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.PolicyLive do
+defmodule CorporatePolicyWeb.Admin.PolicyLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.Policies
@@ -102,8 +102,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
 
   @impl true
   def handle_event("delete-policy", %{"id" => _id}, socket) do
-    # Soft delete by setting status to 0 or similar
-    # For now, just show confirmation
     {:noreply, socket}
   end
 
@@ -416,8 +414,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
     """
   end
 
-  # ─── Private helpers ────────────────────────────────────────────────
-
   defp parse_fy_id(nil), do: 0
   defp parse_fy_id("0"), do: 0
   defp parse_fy_id(id) when is_binary(id), do: String.to_integer(id)
@@ -446,7 +442,6 @@ defmodule CorporatePolicyWeb.PolicyLive do
           Policies.list_policies_by_fy(fy_id)
       end
 
-    # Apply corporate filtering for broker users
     policies = filter_policies_for_user(policies, socket.assigns.current_user)
 
     assign(socket, :policies, policies)
@@ -476,21 +471,15 @@ defmodule CorporatePolicyWeb.PolicyLive do
   end
 
   defp policy_click(_policy) do
-    # Navigate to policy detail or edit
-    # push_patch(socket, to: ~p"/admin/policy-details/#{policy.id}")
   end
 
   defp format_date(nil), do: "—"
   defp format_date(date) when is_binary(date), do: date
   defp format_date(%Date{} = date), do: Date.to_string(date)
 
-  # Draft -> Active
   defp next_status(0), do: 1
-  # Active -> Inactive
   defp next_status(1), do: 2
-  # Inactive -> Active
   defp next_status(2), do: 1
-  # Expired stays expired
   defp next_status(3), do: 3
 
   defp status_icon(0), do: "hero-play-circle"

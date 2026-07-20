@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.DashboardLive do
+defmodule CorporatePolicyWeb.Admin.DashboardLive do
   use CorporatePolicyWeb, :live_view
 
   @impl true

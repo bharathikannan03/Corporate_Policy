@@ -45,7 +45,7 @@ defmodule CorporatePolicyWeb.CorporateExportControllerTest do
 
   test "export requires authentication", %{conn: conn} do
     conn = get(conn, ~p"/admin/corporate/export")
-    assert redirected_to(conn) == "/"
+    assert redirected_to(conn) == "/admin/login"
   end
 
   test "exports all corporates when status is all or unspecified", %{conn: conn, user: user} do

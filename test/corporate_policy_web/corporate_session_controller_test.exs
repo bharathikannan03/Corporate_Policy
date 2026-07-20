@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.CorporateSessionControllerTest do
+defmodule CorporatePolicyWeb.Corporate.CorporateSessionControllerTest do
   use CorporatePolicyWeb.ConnCase, async: false
 
   alias CorporatePolicy.Accounts
@@ -26,7 +26,7 @@ defmodule CorporatePolicyWeb.CorporateSessionControllerTest do
         "user" => %{"email_address" => user.email_address, "password" => "secret123"}
       })
 
-    assert redirected_to(conn) == "/admin/dashboard"
+    assert redirected_to(conn) == "/corporate/dashboard"
     assert get_session(conn, :current_user_id) == user.id
   end
 

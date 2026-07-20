@@ -6,7 +6,10 @@ defmodule CorporatePolicy.Repo.Migrations.CreateTrnMappingLiveEmployees do
 
     create_if_not_exists table(:trn_mapping_live_employees) do
       add :ref_policy_id, references(:master_add_policies, on_delete: :nothing), null: false
-      add :ref_corporate_id, references(:master_corporates, column: :corporate_id, on_delete: :nothing)
+
+      add :ref_corporate_id,
+          references(:master_corporates, column: :corporate_id, on_delete: :nothing)
+
       add :employee_code, :string
       add :employee_name, :string
       add :gender, :string

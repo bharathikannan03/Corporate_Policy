@@ -7,7 +7,8 @@ defmodule CorporatePolicy.DataUploadService do
     MasterEndorsementDataUpload,
     MasterTotalClaimReport,
     MasterEcardsDataUpload,
-    TrnMappingLiveEmployee
+    TrnMappingLiveEmployee,
+    TrnEndorsementDeletionLog
   }
 
   require Logger
@@ -35,7 +36,7 @@ defmodule CorporatePolicy.DataUploadService do
     Repo.transaction(fn ->
       case Repo.insert(MasterPolicyDataUpload.changeset(%MasterPolicyDataUpload{}, upload_attrs)) do
         {:ok, upload} ->
-          process_file(data_type, file_path, policy_id, original_file_name)
+          process_file(data_type, file_path, policy_id, original_file_name, effective_user_id)
           upload
 
         {:error, changeset} ->
@@ -44,7 +45,7 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp process_file("Ecards", file_path, policy_id, original_file_name) do
+  defp process_file("Ecards", file_path, policy_id, original_file_name, _user_id) do
     Repo.insert!(%MasterEcardsDataUpload{
       ref_policy_id: policy_id,
       ecards_data_url: file_path,
@@ -53,13 +54,13 @@ defmodule CorporatePolicy.DataUploadService do
     })
   end
 
-  defp process_file(data_type, file_path, policy_id, _original_file_name) do
+  defp process_file(data_type, file_path, policy_id, _original_file_name, user_id) do
     content = File.read!(file_path)
     rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
 
     case data_type do
-      "Inception Data" -> process_inception(rows, policy_id)
-      "Endorsement Data" -> process_endorsement(rows, policy_id)
+      "Inception Data" -> process_inception(rows, policy_id, user_id)
+      "Endorsement Data" -> process_endorsement(rows, policy_id, user_id)
       "Claim Dumps" -> process_claim_dumps(rows, policy_id)
       _ -> Logger.warning("Unknown data type #{data_type}")
     end
@@ -69,7 +70,7 @@ defmodule CorporatePolicy.DataUploadService do
     filename |> String.split(".") |> List.first() |> String.upcase()
   end
 
-  defp process_inception(rows, policy_id) do
+  defp process_inception(rows, policy_id, user_id) do
     Enum.each(rows, fn row ->
       [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
         pad_row(row, 10)
@@ -89,10 +90,10 @@ defmodule CorporatePolicy.DataUploadService do
       })
     end)
 
-    save_trn_mapping_live_employees(rows, policy_id, "Inception")
+    save_trn_mapping_live_employees(rows, policy_id, "Inception", user_id)
   end
 
-  defp process_endorsement(rows, policy_id) do
+  defp process_endorsement(rows, policy_id, user_id) do
     Enum.each(rows, fn row ->
       [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
         pad_row(row, 10)
@@ -112,7 +113,7 @@ defmodule CorporatePolicy.DataUploadService do
       })
     end)
 
-    save_trn_mapping_live_employees(rows, policy_id, "Endorsement")
+    save_trn_mapping_live_employees(rows, policy_id, "Endorsement", user_id)
   end
 
   defp process_claim_dumps(rows, policy_id) do
@@ -148,11 +149,13 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp save_trn_mapping_live_employees(rows, policy_id, source_type) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+  defp save_trn_mapping_live_employees(rows, policy_id, source_type, user_id) do
+    now_naive = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    now_utc = DateTime.utc_now() |> DateTime.truncate(:second)
 
     policy = Repo.get(CorporatePolicy.Policies.Policy, policy_id)
     corporate_id = policy && policy.ref_corporate_id
+    effective_user = user_id || (policy && policy.created_by) || 1
 
     Enum.each(rows, fn row ->
       padded = pad_row(row, 16)
@@ -177,41 +180,91 @@ defmodule CorporatePolicy.DataUploadService do
       relationship_value = if(rel != "", do: rel, else: "Self")
 
       if emp_code != "" do
-        attrs = %{
-          ref_policy_id: policy_id,
-          ref_corporate_id: corporate_id,
-          employee_code: emp_code,
-          employee_name: emp_name,
-          gender: gender,
-          relationship: relationship_value,
-          dob: dob,
-          age: parse_int(age),
-          mobile_number: mobile,
-          email: email,
-          sum_insured: parse_float(sum_insured),
-          doj: doj,
-          endorsement_number: end_no,
-          endorsement_date: end_date,
-          endorsement_type: end_type,
-          dol: dol,
-          member_card_number: card_no,
-          designation: designation,
-          status: "active",
-          source_type: source_type,
-          created_by: 1,
-          updated_by: 1,
-          inserted_at: now,
-          updated_at: now
-        }
+        if source_type == "Endorsement" and deletion_type?(end_type) do
+          # Deletion processing rule:
+          # If relationship == "Self", throw invalid data error, do NOT save, do NOT log!
+          if String.downcase(relationship_value) == "self" do
+            raise "Invalid data: Deletion requested for employee relationship 'Self' (Employee Code: #{emp_code}). Upload aborted."
+          else
+            # Valid dependant deletion (relationship != "Self")
+            member =
+              Repo.get_by(TrnMappingLiveEmployee,
+                ref_policy_id: policy_id,
+                employee_code: emp_code,
+                relationship: relationship_value
+              )
 
-        Repo.insert!(
-          struct(TrnMappingLiveEmployee, attrs),
-          on_conflict: {:replace_all_except, [:id, :inserted_at, :created_by]},
-          conflict_target: [:ref_policy_id, :employee_code, :relationship]
-        )
+            if member do
+              # Soft delete member
+              member
+              |> Ecto.Changeset.change(status: "inactive", deleted_at: now_utc)
+              |> Repo.update!()
+
+              # Create audit log entry
+              Repo.insert!(%TrnEndorsementDeletionLog{
+                ref_policy_id: policy_id,
+                ref_corporate_id: corporate_id,
+                employee_code: emp_code,
+                employee_name: emp_name,
+                relationship: relationship_value,
+                endorsement_number: end_no,
+                endorsement_date: end_date,
+                endorsement_type: end_type,
+                deletion_category: "Dependant Deletion",
+                deleted_at: now_utc,
+                created_by: effective_user,
+                updated_by: effective_user
+              })
+            end
+          end
+        else
+          # Standard Addition / Upsert
+          attrs = %{
+            ref_policy_id: policy_id,
+            ref_corporate_id: corporate_id,
+            employee_code: emp_code,
+            employee_name: emp_name,
+            gender: gender,
+            relationship: relationship_value,
+            dob: dob,
+            age: parse_int(age),
+            mobile_number: mobile,
+            email: email,
+            sum_insured: parse_float(sum_insured),
+            doj: doj,
+            endorsement_number: end_no,
+            endorsement_date: end_date,
+            endorsement_type: end_type,
+            dol: dol,
+            member_card_number: card_no,
+            designation: designation,
+            status: "active",
+            source_type: source_type,
+            created_by: effective_user,
+            updated_by: effective_user,
+            inserted_at: now_naive,
+            updated_at: now_naive,
+            deleted_at: nil
+          }
+
+          Repo.insert!(
+            struct(TrnMappingLiveEmployee, attrs),
+            on_conflict: {:replace_all_except, [:id, :inserted_at, :created_by]},
+            conflict_target: [:ref_policy_id, :employee_code, :relationship]
+          )
+        end
       end
     end)
   end
+
+  defp deletion_type?(end_type) when is_binary(end_type) do
+    down = String.downcase(end_type)
+
+    String.contains?(down, "deletion") or String.contains?(down, "resignation") or
+      String.contains?(down, "termination")
+  end
+
+  defp deletion_type?(_), do: false
 
   defp clean_string(nil), do: ""
   defp clean_string(val) when is_binary(val), do: String.trim(val)

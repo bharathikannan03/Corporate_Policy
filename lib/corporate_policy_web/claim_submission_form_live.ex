@@ -1,0 +1,412 @@
+defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
+  alias CorporatePolicy.Claims
+  alias CorporatePolicy.Claims.MasterClaimSubmission
+
+  defmacro __using__(opts) do
+    portal = Keyword.fetch!(opts, :portal)
+
+    quote do
+      use CorporatePolicyWeb, :live_view
+
+      import CorporatePolicyWeb.ClaimSubmissionComponents
+
+      @portal unquote(portal)
+
+      @impl true
+      def mount(params, session, socket) do
+        current_user =
+          case session["current_user_id"] do
+            nil -> socket.assigns[:current_user]
+            id -> CorporatePolicy.Accounts.get_user(id)
+          end
+
+        claim =
+          case socket.assigns.live_action do
+            :edit -> Claims.get_claim_with_details!(params["id"])
+            _ -> nil
+          end
+
+        form_params =
+          if claim, do: claim_to_params(claim), else: default_claim_params(current_user)
+
+        document_form = to_form(%{"document_name" => ""}, as: :document)
+
+        socket =
+          socket
+          |> assign(:portal, @portal)
+          |> assign(:current_user, current_user)
+          |> assign(
+            :page_title,
+            if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
+          )
+          |> assign(:active_path, portal_path(@portal, "/claims-submission/add"))
+          |> assign(:claim, claim)
+          |> assign(
+            :current_step,
+            if(claim && params["step"] == "documents", do: "documents", else: "details")
+          )
+          |> assign(:claim_statuses, Claims.claim_statuses())
+          |> assign(:document_requirements, Claims.document_requirements())
+          |> assign(:show_upload_modal, false)
+          |> assign(:minimum_documents, Claims.min_documents())
+          |> assign(:document_form, document_form)
+          |> assign(:form_params, form_params)
+          |> assign(:documents, if(claim, do: Claims.list_claim_documents(claim.id), else: []))
+          |> allow_upload(:claim_document,
+            accept: Claims.allowed_extensions(),
+            max_entries: 1,
+            max_file_size: Claims.max_upload_size()
+          )
+          |> load_reference_data()
+          |> sync_form()
+
+        {:ok, socket}
+      end
+
+      @impl true
+      def handle_event("validate", %{"claim" => claim_params}, socket) do
+        socket =
+          socket
+          |> assign(:form_params, merge_and_derive(socket.assigns.form_params, claim_params))
+          |> load_reference_data()
+          |> sync_form()
+
+        {:noreply, socket}
+      end
+
+      def handle_event("save", %{"claim" => claim_params}, socket) do
+        attrs = merge_and_derive(socket.assigns.form_params, claim_params)
+
+        case save_claim(socket.assigns.claim, attrs, socket.assigns.current_user) do
+          {:ok, claim} ->
+            next_path =
+              case socket.assigns.claim do
+                nil ->
+                  portal_path(@portal, "/claims-submission/#{claim.id}/edit?step=documents")
+
+                _ ->
+                  portal_path(
+                    @portal,
+                    "/claims-submission/#{claim.id}/edit?step=#{socket.assigns.current_step}"
+                  )
+              end
+
+            {:noreply,
+             socket
+             |> put_flash(
+               :info,
+               if(socket.assigns.claim,
+                 do: "Claim updated successfully.",
+                 else: "Claim saved successfully."
+               )
+             )
+             |> push_navigate(to: next_path)}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, assign(socket, :form, to_form(changeset, as: :claim))}
+        end
+      end
+
+      def handle_event("open_upload_modal", _params, socket) do
+        {:noreply, assign(socket, :show_upload_modal, true)}
+      end
+
+      def handle_event("close_upload_modal", _params, socket) do
+        {:noreply, assign(socket, :show_upload_modal, false)}
+      end
+
+      def handle_event("remove_upload_entry", %{"ref" => ref}, socket) do
+        {:noreply, cancel_upload(socket, :claim_document, ref)}
+      end
+
+      def handle_event("save_document", %{"document" => %{"document_name" => ""}}, socket) do
+        {:noreply, put_flash(socket, :error, "Please select a document type.")}
+      end
+
+      def handle_event(
+            "save_document",
+            %{"document" => %{"document_name" => document_name}},
+            socket
+          ) do
+        claim = socket.assigns.claim
+
+        uploaded_files =
+          consume_uploaded_entries(socket, :claim_document, fn %{path: path}, entry ->
+            relative_path =
+              Path.join(["uploads", "claims", to_string(claim.id), upload_filename(entry)])
+
+            destination = Path.join(["priv", "static", relative_path])
+            File.mkdir_p!(Path.dirname(destination))
+            File.cp!(path, destination)
+
+            {:ok,
+             %{
+               "document_name" => document_name,
+               "original_file_name" => entry.client_name,
+               "file_path" => relative_path,
+               "mime_type" => entry.client_type,
+               "file_size" => entry.client_size
+             }}
+          end)
+
+        case uploaded_files do
+          [attrs] ->
+            case Claims.create_claim_document(claim, attrs, socket.assigns.current_user, @portal) do
+              {:ok, _document} ->
+                {:noreply,
+                 socket
+                 |> assign(:documents, Claims.list_claim_documents(claim.id))
+                 |> assign(:document_form, to_form(%{"document_name" => ""}, as: :document))
+                 |> assign(:show_upload_modal, false)
+                 |> put_flash(:info, "Document uploaded successfully.")}
+
+              {:error, %Ecto.Changeset{} = changeset} ->
+                {:noreply, put_flash(socket, :error, format_changeset_errors(changeset))}
+            end
+
+          _ ->
+            {:noreply, put_flash(socket, :error, "Please attach a valid document file.")}
+        end
+      end
+
+      def handle_event("confirm_delete_document", %{"id" => id}, socket) do
+        document = Enum.find(socket.assigns.documents, &(to_string(&1.id) == id))
+
+        if document do
+          case Claims.delete_claim_document(
+                 document,
+                 socket.assigns.claim,
+                 socket.assigns.current_user,
+                 @portal
+               ) do
+            {:ok, _deleted} ->
+              {:noreply,
+               socket
+               |> assign(:documents, Claims.list_claim_documents(socket.assigns.claim.id))
+               |> put_flash(:info, "Document deleted successfully.")}
+
+            {:error, _reason} ->
+              {:noreply, put_flash(socket, :error, "Unable to delete the selected document.")}
+          end
+        else
+          {:noreply, socket}
+        end
+      end
+
+      def handle_event("submit_claim", _params, socket) do
+        case Claims.submit_claim(socket.assigns.claim, socket.assigns.current_user, @portal) do
+          {:ok, claim} ->
+            {:noreply,
+             socket
+             |> assign(:claim, claim)
+             |> put_flash(:info, "Claim submitted successfully.")
+             |> push_navigate(to: portal_path(@portal, "/claims-submission"))}
+
+          {:error, :minimum_documents_not_met} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               "Upload at least #{Claims.min_documents()} documents before submitting the claim."
+             )}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:noreply, put_flash(socket, :error, format_changeset_errors(changeset))}
+        end
+      end
+
+      def handle_event("back_to_details", _params, socket) do
+        {:noreply, assign(socket, :current_step, "details")}
+      end
+
+      @impl true
+      def render(var!(assigns)) do
+        ~H"""
+        <%= if @portal == :admin do %>
+          <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
+            <.portal_shell
+              portal={@portal}
+              current_user={@current_user}
+              page_title={@page_title}
+              active_path={@active_path}
+            >
+              <.claim_form
+                portal={@portal}
+                claim={@claim}
+                form={@form}
+                corporates={@corporates}
+                policies={@policies}
+                employees={@employees}
+                patient_options={@patient_options}
+                document_form={@document_form}
+                documents={@documents}
+                uploads={@uploads}
+                show_upload_modal={@show_upload_modal}
+                document_requirements={@document_requirements}
+                claim_statuses={@claim_statuses}
+                current_step={@current_step}
+                edit_mode={@claim != nil}
+                minimum_documents={@minimum_documents}
+              />
+            </.portal_shell>
+          </Layouts.admin>
+        <% else %>
+          <Layouts.app flash={@flash}>
+            <div class="p-6">
+              <.portal_shell
+                portal={@portal}
+                current_user={@current_user}
+                page_title={@page_title}
+                active_path={@active_path}
+              >
+                <.claim_form
+                  portal={@portal}
+                  claim={@claim}
+                  form={@form}
+                  corporates={@corporates}
+                  policies={@policies}
+                  employees={@employees}
+                  patient_options={@patient_options}
+                  document_form={@document_form}
+                  documents={@documents}
+                  uploads={@uploads}
+                  show_upload_modal={@show_upload_modal}
+                  document_requirements={@document_requirements}
+                  claim_statuses={@claim_statuses}
+                  current_step={@current_step}
+                  edit_mode={@claim != nil}
+                  minimum_documents={@minimum_documents}
+                />
+              </.portal_shell>
+            </div>
+          </Layouts.app>
+        <% end %>
+        """
+      end
+
+      defp save_claim(nil, attrs, current_user),
+        do: Claims.create_claim(attrs, current_user, @portal)
+
+      defp save_claim(claim, attrs, current_user),
+        do: Claims.update_claim(claim, attrs, current_user, @portal)
+
+      defp load_reference_data(socket) do
+        user = socket.assigns.current_user
+        claim_params = socket.assigns.form_params
+        corporates = Claims.list_accessible_corporates(user, @portal)
+        policies = Claims.list_accessible_policies(user, @portal)
+        selected_corporate_id = parse_int(claim_params["ref_corporate_id"])
+        selected_policy_id = parse_int(claim_params["ref_policy_id"])
+
+        policies =
+          if selected_corporate_id,
+            do: Enum.filter(policies, &(&1.ref_corporate_id == selected_corporate_id)),
+            else: policies
+
+        employees =
+          if selected_policy_id, do: Claims.list_policy_employees(selected_policy_id), else: []
+
+        selected_employee_code = claim_params["employee_code"]
+
+        patient_options =
+          if selected_employee_code,
+            do: Enum.filter(employees, &(&1.employee_code == selected_employee_code)),
+            else: []
+
+        socket
+        |> assign(:corporates, corporates)
+        |> assign(:policies, policies)
+        |> assign(:employees, employees)
+        |> assign(:patient_options, patient_options)
+      end
+
+      defp sync_form(socket) do
+        params = socket.assigns.form_params
+        changeset = Claims.change_claim(socket.assigns.claim || %MasterClaimSubmission{}, params)
+        assign(socket, :form, to_form(changeset, as: :claim))
+      end
+
+      defp claim_to_params(claim) do
+        claim
+        |> Map.from_struct()
+        |> Map.take([
+          :ref_corporate_id,
+          :ref_policy_id,
+          :employee_code,
+          :patient_name,
+          :estimated_amount,
+          :claim_reason,
+          :hospitalization_date,
+          :discharge_date,
+          :hospital_name,
+          :hospital_address,
+          :city,
+          :state,
+          :pincode,
+          :claim_type,
+          :claim_status,
+          :treatment_details,
+          :remarks
+        ])
+        |> Enum.into(%{}, fn {key, value} ->
+          value =
+            case value do
+              %Date{} = date -> Date.to_iso8601(date)
+              %Decimal{} = decimal -> Decimal.to_string(decimal)
+              _ -> value
+            end
+
+          {to_string(key), value}
+        end)
+      end
+
+      defp default_claim_params(current_user) do
+        base = %{"claim_status" => "Draft"}
+
+        if (@portal in [:corporate, :employee] and current_user) && current_user.ref_corporate_id do
+          Map.put(base, "ref_corporate_id", current_user.ref_corporate_id)
+        else
+          base
+        end
+      end
+
+      defp merge_and_derive(existing, incoming) do
+        merged = Map.merge(existing, incoming)
+        selected_policy_id = parse_int(merged["ref_policy_id"])
+        employee_code = merged["employee_code"]
+        patient_name = merged["patient_name"]
+
+        employee =
+          if selected_policy_id && employee_code && patient_name do
+            Claims.get_policy_employee(selected_policy_id, employee_code, patient_name)
+          end
+
+        if employee do
+          merged
+          |> Map.put("employee_name", employee.employee_name)
+          |> Map.put("relationship", employee.relationship)
+          |> Map.put_new("city", merged["city"])
+        else
+          merged
+        end
+      end
+
+      defp parse_int(value) when is_integer(value), do: value
+      defp parse_int(value) when is_binary(value) and value != "", do: String.to_integer(value)
+      defp parse_int(_value), do: nil
+
+      defp upload_filename(entry) do
+        ext = Path.extname(entry.client_name)
+        "#{entry.uuid}#{ext}"
+      end
+
+      defp format_changeset_errors(changeset) do
+        changeset.errors
+        |> Enum.map(fn {field, {message, _}} ->
+          "#{Phoenix.Naming.humanize(field)} #{message}"
+        end)
+        |> Enum.join(", ")
+      end
+    end
+  end
+end

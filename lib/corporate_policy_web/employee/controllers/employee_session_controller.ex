@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
+defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
   use CorporatePolicyWeb, :controller
 
   import Phoenix.Component, only: [to_form: 2]
@@ -7,7 +7,7 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
 
   def new(conn, _params) do
     form = to_form(%{}, as: :user)
-    render(conn, :new, page_title: "Corporate Login", form: form)
+    render(conn, :new, page_title: "Employee Login", form: form)
   end
 
   def create(conn, %{"user" => %{"email_address" => email, "password" => password}}) do
@@ -15,22 +15,22 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
 
     case Accounts.authenticate_user(email, password) do
       {:ok, user} ->
-        if corporate_user?(user) do
+        if employee_user?(user) do
           conn
           |> configure_session(renew: true)
           |> put_session(:current_user_id, user.id)
           |> put_flash(:info, "Welcome back!")
-          |> redirect(to: ~p"/corporate/claims-submission")
+          |> redirect(to: ~p"/employee/claims-submission")
         else
           conn
-          |> put_flash(:error, "credentials are invalid for corporate")
-          |> render(:new, page_title: "Corporate Login", form: form)
+          |> put_flash(:error, "credentials are invalid for employee")
+          |> render(:new, page_title: "Employee Login", form: form)
         end
 
       {:error, :invalid_credentials} ->
         conn
-        |> put_flash(:error, "credentials are invalid for corporate")
-        |> render(:new, page_title: "Corporate Login", form: form)
+        |> put_flash(:error, "credentials are invalid for employee")
+        |> render(:new, page_title: "Employee Login", form: form)
     end
   end
 
@@ -38,10 +38,10 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
     conn
     |> clear_session()
     |> put_flash(:info, "Signed out")
-    |> redirect(to: ~p"/corporate/login")
+    |> redirect(to: ~p"/employee/login")
   end
 
-  defp corporate_user?(user) do
-    not is_nil(user.ref_corporate_id) and user.department_id not in [1, 3, 9]
+  defp employee_user?(user) do
+    not is_nil(user.ref_corporate_id) and user.department_id in [1, 3, 9]
   end
 end

@@ -26,7 +26,7 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionControllerTest do
         "user" => %{"email_address" => user.email_address, "password" => "secret123"}
       })
 
-    assert redirected_to(conn) == "/admin/dashboard"
+    assert redirected_to(conn) == "/corporate/claims-submission"
     assert get_session(conn, :current_user_id) == user.id
   end
 

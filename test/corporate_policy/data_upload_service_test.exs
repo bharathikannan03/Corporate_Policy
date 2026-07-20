@@ -8,6 +8,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     MasterInceptionDataUpload,
     MasterEndorsementDataUpload,
     TrnMappingLiveEmployee,
+    TrnEndorsementDeletionLog,
     Policy
   }
 
@@ -158,6 +159,100 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert emp.sum_insured == 500_000.0
     assert emp.endorsement_number == "END01"
     assert emp.source_type == "Endorsement"
+  end
+
+  test "process_upload handles dependant deletion in Endorsement Data", %{policy: policy} do
+    inception_csv = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
+    EMP004,Alice Green,Female,Self,1985-04-12,39,9876500001,alice@example.com,500000,2018-01-01
+    EMP004,Tommy Green,Male,Spouse,1984-06-20,40,9876500002,tommy@example.com,500000,2018-01-01
+    """
+
+    endorsement_deletion_csv = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,EndNo,EndDate,EndType
+    EMP004,Tommy Green,Male,Spouse,1984-06-20,40,9876500002,tommy@example.com,500000,2018-01-01,END02,2024-02-01,Dependant Deletion
+    """
+
+    inc_path = Path.join(System.tmp_dir!(), "inc_del_#{policy.id}.csv")
+    del_path = Path.join(System.tmp_dir!(), "end_del_#{policy.id}.csv")
+    File.write!(inc_path, inception_csv)
+    File.write!(del_path, endorsement_deletion_csv)
+
+    DataUploadService.process_upload(
+      policy.id,
+      "Inception Data",
+      "Inception",
+      inc_path,
+      "inc.csv"
+    )
+
+    DataUploadService.process_upload(
+      policy.id,
+      "Endorsement Data",
+      "Deletion",
+      del_path,
+      "del.csv"
+    )
+
+    spouse = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP004", relationship: "Spouse")
+    assert spouse.status == "inactive"
+    refute is_nil(spouse.deleted_at)
+
+    employee = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP004", relationship: "Self")
+    assert employee.status == "active"
+    assert is_nil(employee.deleted_at)
+
+    deletion_logs = Repo.all(TrnEndorsementDeletionLog)
+    assert length(deletion_logs) == 1
+    log = Enum.at(deletion_logs, 0)
+    assert log.employee_code == "EMP004"
+    assert log.relationship == "Spouse"
+    assert log.deletion_category == "Dependant Deletion"
+  end
+
+  test "process_upload throws error on deletion record with relationship = Self", %{
+    policy: policy
+  } do
+    inception_csv = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
+    EMP005,Charlie Brown,Male,Self,1995-09-09,28,9876500003,charlie@example.com,400000,2022-05-01
+    """
+
+    invalid_deletion_csv = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,EndNo,EndDate,EndType
+    EMP005,Charlie Brown,Male,Self,1995-09-09,28,9876500003,charlie@example.com,400000,2022-05-01,END03,2024-03-01,Employee Deletion
+    """
+
+    inc_path = Path.join(System.tmp_dir!(), "inc_invalid_#{policy.id}.csv")
+    invalid_path = Path.join(System.tmp_dir!(), "invalid_del_#{policy.id}.csv")
+    File.write!(inc_path, inception_csv)
+    File.write!(invalid_path, invalid_deletion_csv)
+
+    DataUploadService.process_upload(
+      policy.id,
+      "Inception Data",
+      "Inception",
+      inc_path,
+      "inc.csv"
+    )
+
+    assert_raise RuntimeError,
+                 ~r/Invalid data: Deletion requested for employee relationship 'Self'/,
+                 fn ->
+                   DataUploadService.process_upload(
+                     policy.id,
+                     "Endorsement Data",
+                     "Invalid Deletion",
+                     invalid_path,
+                     "invalid.csv"
+                   )
+                 end
+
+    # Confirm employee is still active and no deletion log was recorded
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP005")
+    assert emp.status == "active"
+    assert is_nil(emp.deleted_at)
+    assert length(Repo.all(TrnEndorsementDeletionLog)) == 0
   end
 
   test "process_upload handles whitespaces and defaults blank relationship to Self", %{

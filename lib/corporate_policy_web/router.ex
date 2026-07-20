@@ -71,12 +71,14 @@ defmodule CorporatePolicyWeb.Router do
     end
   end
 
-  # ─── 2. Corporate Portal Scope (Placeholder) ──────────────────────────────
+  # ─── 2. Corporate Portal Scope ───────────────────────────────────────────
   if @portal in ["corp", "all"] do
     scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
       pipe_through :browser
 
-      # Future Corporate Portal routes go here
+      get "/login", CorporateSessionController, :new
+      post "/login", CorporateSessionController, :create
+      delete "/logout", CorporateSessionController, :delete
     end
   end
 

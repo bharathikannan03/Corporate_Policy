@@ -1,4 +1,4 @@
-defmodule CorporatePolicyWeb.CorporateSessionControllerTest do
+defmodule CorporatePolicyWeb.Corporate.CorporateSessionControllerTest do
   use CorporatePolicyWeb.ConnCase, async: false
 
   alias CorporatePolicy.Accounts

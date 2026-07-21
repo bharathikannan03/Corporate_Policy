@@ -106,6 +106,7 @@ defmodule CorporatePolicyWeb.Router do
         live "/enrollment-details", EnrollmentDetailsLive
         live "/employee", EnrollmentDetailsLive
         live "/claims", ClaimsLive
+        live "/escalation-matrix", EscalationMatrixLive
         live "/claims-submission", ClaimsSubmissionIndexLive, :index
         live "/claims-submission/add", ClaimSubmissionFormLive, :new
         live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit

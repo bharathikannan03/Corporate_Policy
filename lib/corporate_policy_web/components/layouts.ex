@@ -404,7 +404,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-chart-bar"
             label="Escalation Matrix"
-            href="#"
+            href={~p"/corporate/escalation-matrix"}
             active={@active_path == "/corporate/escalation-matrix"}
           />
           <.corp_nav_item

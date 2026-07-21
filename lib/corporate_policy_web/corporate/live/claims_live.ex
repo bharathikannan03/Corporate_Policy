@@ -260,7 +260,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
       active_policy_number={@active_policy_number}
       active_path={@active_path}
     >
-      <div class="space-y-6">
+      <div class="space-y-4 my-4">
         <%!-- Title Bar with Action Buttons --%>
         <div class="bg-white rounded-lg p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Claim Details</h2>
@@ -282,59 +282,6 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
           </div>
         </div>
 
-        <%!-- Corporate Name & Financial Year Heading --%>
-        <div class="text-center bg-white py-3 rounded-lg border border-gray-100 shadow-2xs">
-          <span class="text-base font-bold text-gray-900">{@corporate_name}</span>
-          <span class="text-xs text-gray-500 font-normal ml-2">
-            (Financial Year: {@current_fy_name})
-          </span>
-        </div>
-
-        <%!-- Line of Business / Policy Type Tabs --%>
-        <div class="bg-white rounded-lg border-b border-gray-200 px-4 pt-2 shadow-2xs">
-          <div class="flex space-x-6">
-            <%= for pt <- @policy_types do %>
-              <button
-                type="button"
-                phx-click="select_policy_type"
-                phx-value-type={pt}
-                class={
-                  "pb-2 text-xs font-bold uppercase transition-colors flex items-center space-x-1 border-b-2 " <>
-                    if(pt == @active_policy_type,
-                      do: "border-[#0070ba] text-[#0070ba]",
-                      else: "border-transparent text-gray-500 hover:text-gray-700"
-                    )
-                }
-              >
-                <span>{pt}</span>
-                <.icon name="hero-user" class="w-3.5 h-3.5 text-gray-400" />
-              </button>
-            <% end %>
-          </div>
-        </div>
-
-        <%!-- Policy Number Selector Pills --%>
-        <div class="bg-white rounded-lg border border-gray-200 p-2 shadow-2xs">
-          <div class="flex space-x-2 overflow-x-auto">
-            <%= for pn <- @policy_numbers do %>
-              <button
-                type="button"
-                phx-click="select_policy_number"
-                phx-value-number={pn}
-                class={
-                  "px-3 py-1 text-xs font-semibold rounded-md transition-colors border " <>
-                    if(pn == @active_policy_number,
-                      do: "border-[#0070ba] text-[#0070ba] bg-blue-50/50 underline",
-                      else: "border-gray-200 text-gray-600 hover:bg-gray-50"
-                    )
-                }
-              >
-                {pn}
-              </button>
-            <% end %>
-          </div>
-        </div>
-
         <%!-- Collapsible Policy Details Accordion --%>
         <PolicyDetailsComponent.policy_details
           selected_policy={@selected_policy}
@@ -343,83 +290,72 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
         />
 
         <%!-- 4 Summary Statistics Cards Row --%>
-        <div class="p-4 bg-[#0070ba] rounded-lg shadow-xs">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <%!-- Claims Paid --%>
-            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-                <.icon name="hero-user" class="w-6 h-6" />
-              </div>
-              <div class="text-xs">
-                <p class="font-bold text-gray-900 mb-1">Claims paid</p>
-                <p class="text-gray-600">
-                  Amount -
-                  <span class="font-semibold text-gray-900">{format_amount(@claim_summary.paid_amount)}</span>
-                </p>
-                <p class="text-gray-600">
-                  Count - <span class="font-semibold text-gray-900">{@claim_summary.paid_count}</span>
-                </p>
-              </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <%!-- Claims Paid --%>
+          <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
+            <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
+              <.icon name="hero-user" class="w-6 h-6" />
             </div>
-
-            <%!-- Claims Under Process --%>
-            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-                <.icon name="hero-user" class="w-6 h-6" />
-              </div>
-              <div class="text-xs">
-                <p class="font-bold text-gray-900 mb-1">Claims under process</p>
-                <p class="text-gray-600">
-                  Amount -
-                  <span class="font-semibold text-gray-900">{format_amount(
-                    @claim_summary.process_amount
-                  )}</span>
-                </p>
-                <p class="text-gray-600">
-                  Count -
-                  <span class="font-semibold text-gray-900">{@claim_summary.process_count}</span>
-                </p>
-              </div>
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-gray-800 text-sm">Claims paid</p>
+              <p class="text-gray-600 font-medium">
+                Amount -
+                <span class="font-bold text-gray-900">{format_amount(@claim_summary.paid_amount)}</span>
+              </p>
+              <p class="text-gray-600 font-medium">
+                Count - <span class="font-bold text-gray-900">{@claim_summary.paid_count}</span>
+              </p>
             </div>
+          </div>
 
-            <%!-- Claims Closed / Rejected --%>
-            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-                <.icon name="hero-user" class="w-6 h-6" />
-              </div>
-              <div class="text-xs">
-                <p class="font-bold text-gray-900 mb-1">Claims closed / Rejected</p>
-                <p class="text-gray-600">
-                  Amount -
-                  <span class="font-semibold text-gray-900">{format_amount(
-                    @claim_summary.rejected_amount
-                  )}</span>
-                </p>
-                <p class="text-gray-600">
-                  Count -
-                  <span class="font-semibold text-gray-900">{@claim_summary.rejected_count}</span>
-                </p>
-              </div>
+          <%!-- Claims Under Process --%>
+          <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
+            <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
+              <.icon name="hero-user" class="w-6 h-6" />
             </div>
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-gray-800 text-sm">Claims under process</p>
+              <p class="text-gray-600 font-medium">
+                Amount -
+                <span class="font-bold text-gray-900">{format_amount(@claim_summary.process_amount)}</span>
+              </p>
+              <p class="text-gray-600 font-medium">
+                Count - <span class="font-bold text-gray-900">{@claim_summary.process_count}</span>
+              </p>
+            </div>
+          </div>
 
-            <%!-- Reported Claims --%>
-            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-                <.icon name="hero-user" class="w-6 h-6" />
-              </div>
-              <div class="text-xs">
-                <p class="font-bold text-gray-900 mb-1">Reported Claims</p>
-                <p class="text-gray-600">
-                  Amount -
-                  <span class="font-semibold text-gray-900">{format_amount(
-                    @claim_summary.reported_amount
-                  )}</span>
-                </p>
-                <p class="text-gray-600">
-                  Count -
-                  <span class="font-semibold text-gray-900">{@claim_summary.reported_count}</span>
-                </p>
-              </div>
+          <%!-- Claims Closed / Rejected --%>
+          <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
+            <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
+              <.icon name="hero-user" class="w-6 h-6" />
+            </div>
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-gray-800 text-sm">Claims closed / Rejected</p>
+              <p class="text-gray-600 font-medium">
+                Amount -
+                <span class="font-bold text-gray-900">{format_amount(@claim_summary.rejected_amount)}</span>
+              </p>
+              <p class="text-gray-600 font-medium">
+                Count - <span class="font-bold text-gray-900">{@claim_summary.rejected_count}</span>
+              </p>
+            </div>
+          </div>
+
+          <%!-- Reported Claims --%>
+          <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
+            <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
+              <.icon name="hero-user" class="w-6 h-6" />
+            </div>
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-gray-800 text-sm">Reported Claims</p>
+              <p class="text-gray-600 font-medium">
+                Amount -
+                <span class="font-bold text-gray-900">{format_amount(@claim_summary.reported_amount)}</span>
+              </p>
+              <p class="text-gray-600 font-medium">
+                Count - <span class="font-bold text-gray-900">{@claim_summary.reported_count}</span>
+              </p>
             </div>
           </div>
         </div>

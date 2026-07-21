@@ -50,6 +50,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           |> assign(:show_upload_modal, false)
           |> assign(:minimum_documents, Claims.min_documents())
           |> assign(:document_form, document_form)
+          |> assign(:last_pincode, form_params["pincode"])
           |> assign(:form_params, form_params)
           |> assign(:documents, if(claim, do: Claims.list_claim_documents(claim.id), else: []))
           |> allow_upload(:claim_document,
@@ -66,9 +67,17 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
 
       @impl true
       def handle_event("validate", %{"claim" => claim_params}, socket) do
+        {merged_params, last_pincode} =
+          merge_and_derive(
+            socket.assigns.form_params,
+            claim_params,
+            socket.assigns[:last_pincode]
+          )
+
         socket =
           socket
-          |> assign(:form_params, merge_and_derive(socket.assigns.form_params, claim_params))
+          |> assign(:form_params, merged_params)
+          |> assign(:last_pincode, last_pincode)
           |> load_reference_data()
           |> sync_form()
 
@@ -76,7 +85,12 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       end
 
       def handle_event("save", %{"claim" => claim_params}, socket) do
-        attrs = merge_and_derive(socket.assigns.form_params, claim_params)
+        {attrs, _last_pincode} =
+          merge_and_derive(
+            socket.assigns.form_params,
+            claim_params,
+            socket.assigns[:last_pincode]
+          )
 
         case save_claim(socket.assigns.claim, attrs, socket.assigns.current_user) do
           {:ok, claim} ->
@@ -316,8 +330,8 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         selected_employee_code = claim_params["employee_code"]
 
         patient_options =
-          if selected_employee_code,
-            do: Enum.filter(employees, &(&1.employee_code == selected_employee_code)),
+          if selected_policy_id && selected_employee_code,
+            do: Claims.list_patient_options(selected_policy_id, selected_employee_code),
             else: []
 
         socket
@@ -389,14 +403,111 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         end
       end
 
-      defp merge_and_derive(existing, incoming) do
-        merged = Map.merge(existing, incoming)
+      defp merge_and_derive(existing, incoming, last_pincode) do
+        merged =
+          existing
+          |> Map.merge(incoming)
+          |> reset_dependent_fields(existing)
+
         selected_policy_id = parse_int(merged["ref_policy_id"])
         employee_code = merged["employee_code"]
         patient_name = merged["patient_name"]
+        pincode = Map.get(merged, "pincode", "") |> String.trim()
+
+        patient_options =
+          if selected_policy_id && employee_code != "" do
+            Claims.list_patient_options(selected_policy_id, employee_code)
+          else
+            []
+          end
+
+        merged =
+          merged
+          |> maybe_autoselect_patient(patient_options)
+          |> maybe_apply_employee_details(selected_policy_id)
+          |> enforce_discharge_date_rule()
+
+        {merged, apply_pincode_lookup(merged, pincode, last_pincode)}
+        |> then(fn {params, new_last_pincode} ->
+          {maybe_apply_location(params, pincode, last_pincode), new_last_pincode}
+        end)
+      end
+
+      defp reset_dependent_fields(merged, existing) do
+        corporate_changed? =
+          Map.get(existing, "ref_corporate_id", "") != Map.get(merged, "ref_corporate_id", "")
+
+        policy_changed? =
+          Map.get(existing, "ref_policy_id", "") != Map.get(merged, "ref_policy_id", "")
+
+        employee_changed? =
+          Map.get(existing, "employee_code", "") != Map.get(merged, "employee_code", "")
+
+        merged =
+          if corporate_changed? do
+            merged
+            |> Map.put("ref_policy_id", "")
+            |> Map.put("employee_code", "")
+            |> Map.put("patient_name", "")
+          else
+            merged
+          end
+
+        merged =
+          if policy_changed? do
+            merged
+            |> Map.put("employee_code", "")
+            |> Map.put("patient_name", "")
+          else
+            merged
+          end
+
+        if employee_changed? do
+          merged
+          |> Map.put("patient_name", "")
+          |> Map.put("employee_name", nil)
+          |> Map.put("relationship", nil)
+        else
+          merged
+        end
+      end
+
+      defp maybe_autoselect_patient(merged, []), do: merged
+
+      defp maybe_autoselect_patient(merged, patient_options) do
+        current_patient_name = Map.get(merged, "patient_name", "")
+
+        selected_patient =
+          cond do
+            current_patient_name != "" and
+                Enum.any?(patient_options, &(&1.employee_name == current_patient_name)) ->
+              Enum.find(patient_options, &(&1.employee_name == current_patient_name))
+
+            self_patient = Enum.find(patient_options, &(&1.relationship == "Self")) ->
+              self_patient
+
+            length(patient_options) == 1 ->
+              hd(patient_options)
+
+            true ->
+              nil
+          end
+
+        if selected_patient do
+          Map.put(merged, "patient_name", selected_patient.employee_name)
+        else
+          merged
+        end
+      end
+
+      defp maybe_apply_employee_details(merged, nil), do: merged
+
+      defp maybe_apply_employee_details(merged, selected_policy_id) do
+        employee_code = Map.get(merged, "employee_code", "")
+        patient_name = Map.get(merged, "patient_name", "")
 
         employee =
-          if selected_policy_id && employee_code && patient_name do
+          if employee_code != "" && patient_name != "" do
             Claims.get_policy_employee(selected_policy_id, employee_code, patient_name)
           end
 
@@ -404,9 +515,53 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           merged
           |> Map.put("employee_name", employee.employee_name)
           |> Map.put("relationship", employee.relationship)
-          |> Map.put_new("city", merged["city"])
         else
           merged
+        end
+      end
+
+      defp maybe_apply_location(params, "", _last_pincode) do
+        params
+        |> Map.put("city", "")
+        |> Map.put("state", "")
+      end
+
+      defp maybe_apply_location(params, pincode, last_pincode) when pincode == last_pincode,
+        do: params
+
+      defp maybe_apply_location(params, pincode, _last_pincode) do
+        if String.length(pincode) == 6 do
+          case Claims.get_location_by_pincode(pincode) do
+            %{city: city, state: state} ->
+              params
+              |> Map.put("city", city)
+              |> Map.put("state", state)
+
+            _ ->
+              params
+              |> Map.put("city", "")
+              |> Map.put("state", "")
+          end
+        else
+          params
+          |> Map.put("city", "")
+          |> Map.put("state", "")
+        end
+      end
+
+      defp apply_pincode_lookup(_params, "", _last_pincode), do: ""
+      defp apply_pincode_lookup(_params, pincode, _last_pincode), do: pincode
+
+      defp enforce_discharge_date_rule(params) do
+        hospitalization_date = Map.get(params, "hospitalization_date", "")
+        discharge_date = Map.get(params, "discharge_date", "")
+
+        with {:ok, hospitalization_date} <- Date.from_iso8601(hospitalization_date),
+             {:ok, discharge_date} <- Date.from_iso8601(discharge_date),
+             true <- Date.compare(discharge_date, hospitalization_date) != :gt do
+          Map.put(params, "discharge_date", "")
+        else
+          _ -> params
         end
       end
 

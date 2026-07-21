@@ -285,7 +285,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[ref_policy_id]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :ref_policy_id)}
+              disabled={
+                readonly_field?(@claim, :ref_policy_id) or @form[:ref_corporate_id].value in [nil, ""]
+              }
             >
               <option value="">Select Policy Number</option>
               <%= for policy <- @policies do %>
@@ -305,7 +307,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[employee_code]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :employee_code)}
+              disabled={
+                readonly_field?(@claim, :employee_code) or @form[:ref_policy_id].value in [nil, ""]
+              }
             >
               <option value="">Select Employee Code</option>
               <%= for employee <- @employees do %>
@@ -313,7 +317,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   value={employee.employee_code}
                   selected={to_string(@form[:employee_code].value || "") == employee.employee_code}
                 >
-                  {employee.employee_code} - {employee.employee_name}
+                  {employee.employee_code}
                 </option>
               <% end %>
             </select>
@@ -325,7 +329,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[patient_name]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :patient_name)}
+              disabled={
+                readonly_field?(@claim, :patient_name) or @form[:employee_code].value in [nil, ""]
+              }
             >
               <option value="">Select Patient Name</option>
               <%= for patient <- @patient_options do %>
@@ -369,24 +375,51 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
 
           <div class="corp-field-group">
             <label class="corp-label">Hospitalization Date <span class="corp-required">*</span></label>
-            <input
-              type="date"
-              name="claim[hospitalization_date]"
-              value={@form[:hospitalization_date].value || ""}
-              class="corp-input"
-              required
-            />
+            <div class="corp-input-with-icon">
+              <input
+                id={"#{@portal}-hospitalization-date"}
+                type="date"
+                name="claim[hospitalization_date]"
+                value={@form[:hospitalization_date].value || ""}
+                class="corp-input"
+                required
+              />
+              <button
+                type="button"
+                id={"#{@portal}-hospitalization-date-trigger"}
+                class="corp-date-trigger"
+                phx-hook="DatePickerTrigger"
+                data-input-id={"#{@portal}-hospitalization-date"}
+                aria-label="Open hospitalization date picker"
+              >
+                <.icon name="hero-calendar-days" class="corp-date-trigger-icon" />
+              </button>
+            </div>
           </div>
 
           <div class="corp-field-group">
             <label class="corp-label">Discharge Date <span class="corp-required">*</span></label>
-            <input
-              type="date"
-              name="claim[discharge_date]"
-              value={@form[:discharge_date].value || ""}
-              class="corp-input"
-              required
-            />
+            <div class="corp-input-with-icon">
+              <input
+                id={"#{@portal}-discharge-date"}
+                type="date"
+                name="claim[discharge_date]"
+                value={@form[:discharge_date].value || ""}
+                min={next_discharge_date(@form[:hospitalization_date].value)}
+                class="corp-input"
+                required
+              />
+              <button
+                type="button"
+                id={"#{@portal}-discharge-date-trigger"}
+                class="corp-date-trigger"
+                phx-hook="DatePickerTrigger"
+                data-input-id={"#{@portal}-discharge-date"}
+                aria-label="Open discharge date picker"
+              >
+                <.icon name="hero-calendar-days" class="corp-date-trigger-icon" />
+              </button>
+            </div>
           </div>
 
           <div class="corp-field-group">
@@ -422,6 +455,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="City"
               required
+              readonly
             />
           </div>
 
@@ -434,6 +468,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="State"
               required
+              readonly
             />
           </div>
 
@@ -446,6 +481,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="Pincode"
               required
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              maxlength="6"
             />
           </div>
 
@@ -752,5 +790,21 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
       <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
     </button>
     """
+  end
+
+  defp next_discharge_date(nil), do: nil
+  defp next_discharge_date(""), do: nil
+
+  defp next_discharge_date(%Date{} = hospitalization_date) do
+    hospitalization_date
+    |> Date.add(1)
+    |> Date.to_iso8601()
+  end
+
+  defp next_discharge_date(hospitalization_date) when is_binary(hospitalization_date) do
+    case Date.from_iso8601(hospitalization_date) do
+      {:ok, date} -> next_discharge_date(date)
+      _ -> nil
+    end
   end
 end

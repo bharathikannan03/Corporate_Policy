@@ -4,9 +4,10 @@ defmodule CorporatePolicy.Claims.ClaimLog do
 
   alias CorporatePolicy.Claims.MasterClaimSubmission
 
-  schema "master_claim_logs" do
+  schema "trp_claim_submission_logs" do
     field :policy_id, :integer
     field :portal_id, :integer
+    field :submitted_by, :integer
     field :action, :string
     field :remarks, :string
 
@@ -18,7 +19,7 @@ defmodule CorporatePolicy.Claims.ClaimLog do
 
   def changeset(log, attrs) do
     log
-    |> cast(attrs, [:claim_id, :policy_id, :portal_id, :action, :remarks, :user_id])
+    |> cast(attrs, [:claim_id, :policy_id, :portal_id, :submitted_by, :action, :remarks, :user_id])
     |> validate_required([:claim_id, :policy_id, :portal_id, :action])
   end
 end

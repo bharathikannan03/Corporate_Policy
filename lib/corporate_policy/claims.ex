@@ -2,6 +2,7 @@ defmodule CorporatePolicy.Claims do
   import Ecto.Query, warn: false
 
   alias CorporatePolicy.Claims.{ClaimLog, ClaimSubmissionDocument, MasterClaimSubmission}
+  alias CorporatePolicy.Corporates
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
   alias CorporatePolicy.Repo
 
@@ -96,6 +97,8 @@ defmodule CorporatePolicy.Claims do
   end
 
   def create_claim(attrs, user, portal) do
+    submitted_by = resolve_submitted_by(user, portal, attrs)
+
     attrs =
       attrs
       |> normalize_reference_fields()
@@ -112,7 +115,15 @@ defmodule CorporatePolicy.Claims do
            |> MasterClaimSubmission.create_changeset(attrs)
            |> Repo.insert() do
         {:ok, claim} ->
-          create_log!(claim, user.id, portal_id_for(portal), "Created", attrs["remarks"])
+          create_log!(
+            claim,
+            user.id,
+            portal_id_for(portal),
+            submitted_by,
+            "Created",
+            attrs["remarks"]
+          )
+
           Repo.preload(claim, [:documents, :logs])
 
         {:error, changeset} ->
@@ -123,6 +134,8 @@ defmodule CorporatePolicy.Claims do
   end
 
   def update_claim(%MasterClaimSubmission{} = claim, attrs, user, portal) do
+    submitted_by = resolve_submitted_by(user, portal, claim)
+
     attrs =
       attrs
       |> normalize_reference_fields()
@@ -134,7 +147,15 @@ defmodule CorporatePolicy.Claims do
            |> MasterClaimSubmission.update_changeset(attrs)
            |> Repo.update() do
         {:ok, updated_claim} ->
-          create_log!(updated_claim, user.id, portal_id_for(portal), "Updated", attrs["remarks"])
+          create_log!(
+            updated_claim,
+            user.id,
+            portal_id_for(portal),
+            submitted_by,
+            "Updated",
+            attrs["remarks"]
+          )
+
           Repo.preload(updated_claim, [:documents, :logs])
 
         {:error, changeset} ->
@@ -146,6 +167,7 @@ defmodule CorporatePolicy.Claims do
 
   def submit_claim(%MasterClaimSubmission{} = claim, user, portal) do
     document_count = count_claim_documents(claim.id)
+    submitted_by = resolve_submitted_by(user, portal, claim)
 
     if document_count < @min_documents do
       {:error, :minimum_documents_not_met}
@@ -155,6 +177,7 @@ defmodule CorporatePolicy.Claims do
              |> MasterClaimSubmission.update_changeset(%{
                "claim_status" => "Submitted",
                "submitted_at" => DateTime.utc_now(),
+               "submitted_by" => submitted_by,
                "updated_by" => user.id
              })
              |> Repo.update() do
@@ -163,6 +186,7 @@ defmodule CorporatePolicy.Claims do
               submitted_claim,
               user.id,
               portal_id_for(portal),
+              submitted_by,
               "Submitted",
               "Claim submitted"
             )
@@ -192,6 +216,8 @@ defmodule CorporatePolicy.Claims do
   end
 
   def create_claim_document(%MasterClaimSubmission{} = claim, attrs, user, portal) do
+    submitted_by = resolve_submitted_by(user, portal, claim)
+
     attrs =
       attrs
       |> Map.put("claim_id", claim.id)
@@ -208,6 +234,7 @@ defmodule CorporatePolicy.Claims do
             claim,
             user.id,
             portal_id_for(portal),
+            submitted_by,
             "Document Uploaded",
             document.document_name
           )
@@ -227,6 +254,8 @@ defmodule CorporatePolicy.Claims do
         user,
         portal
       ) do
+    submitted_by = resolve_submitted_by(user, portal, claim)
+
     Repo.transaction(fn ->
       case document
            |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(), updated_by: user.id)
@@ -236,6 +265,7 @@ defmodule CorporatePolicy.Claims do
             claim,
             user.id,
             portal_id_for(portal),
+            submitted_by,
             "Document Deleted",
             deleted_document.document_name
           )
@@ -283,6 +313,16 @@ defmodule CorporatePolicy.Claims do
     )
   end
 
+  def list_patient_options(policy_id, employee_code) do
+    Repo.all(
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and e.employee_code == ^employee_code and
+            is_nil(e.deleted_at),
+        order_by: [asc: e.relationship, asc: e.employee_name]
+    )
+  end
+
   def get_policy_employee(policy_id, employee_code, patient_name) do
     Repo.one(
       from e in TrnMappingLiveEmployee,
@@ -296,6 +336,8 @@ defmodule CorporatePolicy.Claims do
   def get_policy(policy_id) do
     CorporatePolicy.Policies.get_policy_with_preloads(policy_id)
   end
+
+  def get_location_by_pincode(pincode), do: Corporates.get_location_by_pincode(pincode)
 
   def policy_option_label(policy) do
     [policy.policy_number, policy.policy_type, policy.corporate_name]
@@ -492,17 +534,46 @@ defmodule CorporatePolicy.Claims do
     |> Map.put("tpa_name", policy && policy.select_tpa)
   end
 
-  defp create_log!(claim, user_id, portal_id, action, remarks) do
+  defp create_log!(claim, user_id, portal_id, submitted_by, action, remarks) do
     %ClaimLog{}
     |> ClaimLog.changeset(%{
       claim_id: claim.id,
       policy_id: claim.ref_policy_id,
       portal_id: portal_id,
+      submitted_by: submitted_by,
       action: action,
       remarks: remarks,
       user_id: user_id
     })
     |> Repo.insert!()
+  end
+
+  defp resolve_submitted_by(_user, :admin, _claim_or_attrs), do: 1
+
+  defp resolve_submitted_by(user, :corporate, _claim_or_attrs) do
+    user && user.id
+  end
+
+  defp resolve_submitted_by(user, :employee, %MasterClaimSubmission{} = claim) do
+    case get_policy_employee(claim.ref_policy_id, claim.employee_code, claim.patient_name) do
+      %{id: emp_id} -> emp_id
+      _ -> user && user.id
+    end
+  end
+
+  defp resolve_submitted_by(user, :employee, attrs) when is_map(attrs) do
+    policy_id = attrs["ref_policy_id"] || attrs[:ref_policy_id]
+    employee_code = attrs["employee_code"] || attrs[:employee_code]
+    patient_name = attrs["patient_name"] || attrs[:patient_name]
+
+    if policy_id && employee_code && patient_name do
+      case get_policy_employee(policy_id, employee_code, patient_name) do
+        %{id: emp_id} -> emp_id
+        _ -> user && user.id
+      end
+    else
+      user && user.id
+    end
   end
 
   defp stringify_keys(map) do

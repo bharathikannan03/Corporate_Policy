@@ -1,45 +1,64 @@
-<div class="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-  <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-    <div class="mb-8 text-center">
-      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
-        Employee Portal
-      </p>
-      <h1 class="mt-3 text-3xl font-bold text-slate-900">Claim Submission Access</h1>
-      <p class="mt-2 text-sm text-slate-500">
-        Sign in to submit and track employee health claims.
+<div class="employee-login-page">
+  <div class="employee-login-card">
+    <div class="employee-login-shell">
+      <div class="employee-login-brand">
+        <div class="employee-login-logo">
+          <span class="employee-brand-v">V</span>
+          <span class="employee-brand-i">I</span>
+          <span class="employee-brand-b">B</span>
+          <span class="employee-brand-e">E</span>
+        </div>
+        <p>Insurance Broking and Advisory Service Pvt Ltd</p>
+      </div>
+
+      <h1 class="employee-login-title">Employee Login</h1>
+
+      <.form for={@form} action={~p"/employee/login"} method="post" class="employee-login-form">
+        <input
+          type="hidden"
+          name="employee_auth[action]"
+          value={if @otp_sent, do: "login", else: "request_otp"}
+        />
+
+        <div>
+          <label class="employee-login-label">Phone Number</label>
+          <input
+            type="text"
+            name="employee_auth[mobile_number]"
+            value={@form[:mobile_number].value || ""}
+            class="employee-login-input"
+            placeholder="Enter registered mobile number"
+            inputmode="numeric"
+            maxlength="10"
+            pattern="[0-9]{10}"
+            required
+          />
+        </div>
+
+        <%= if @otp_sent do %>
+          <div>
+            <label class="employee-login-label">Enter OTP</label>
+            <input
+              type="text"
+              name="employee_auth[otp]"
+              value={@form[:otp].value || ""}
+              class="employee-login-input"
+              placeholder="Enter OTP"
+              inputmode="numeric"
+              maxlength="6"
+              required
+            />
+          </div>
+        <% end %>
+
+        <button type="submit" class="employee-login-submit">
+          {if @otp_sent, do: "Login", else: "Generate OTP"}
+        </button>
+      </.form>
+
+      <p class="employee-login-note">
+        Access is limited to active employee/self records mapped in the employee policy data.
       </p>
     </div>
-
-    <.form for={@form} action={~p"/employee/login"} method="post" class="space-y-5">
-      <div>
-        <label class="mb-2 block text-sm font-medium text-slate-700">Email Address</label>
-        <input
-          type="email"
-          name="user[email_address]"
-          value={@form[:email_address].value || ""}
-          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          placeholder="employee@corporate.com"
-          required
-        />
-      </div>
-
-      <div>
-        <label class="mb-2 block text-sm font-medium text-slate-700">Password</label>
-        <input
-          type="password"
-          name="user[password]"
-          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          placeholder="Enter your password"
-          required
-        />
-      </div>
-
-      <button
-        type="submit"
-        class="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 font-semibold text-white shadow-lg transition hover:from-blue-600 hover:to-blue-800"
-      >
-        Sign In
-      </button>
-    </.form>
   </div>
 </div>

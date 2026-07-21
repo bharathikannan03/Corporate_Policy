@@ -1,11 +1,17 @@
 defmodule CorporatePolicyWeb.Employee.ClaimSubmissionExportController do
   use CorporatePolicyWeb, :controller
 
-  alias CorporatePolicy.Accounts
   alias CorporatePolicy.Claims
+  alias CorporatePolicy.EmployeePortal
 
   def export(conn, _params) do
-    user = conn.assigns[:current_user] || Accounts.get_user(get_session(conn, :current_user_id))
+    user =
+      conn.assigns[:current_user] ||
+        with employee_id when not is_nil(employee_id) <- get_session(conn, :current_employee_id),
+             {:ok, employee} <- EmployeePortal.get_authenticated_employee_session(employee_id) do
+          employee
+        end
+
     claims = Claims.list_claims_for_export(user, :employee)
     csv = Claims.to_csv(claims)
 

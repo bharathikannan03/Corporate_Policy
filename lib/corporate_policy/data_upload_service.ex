@@ -307,7 +307,6 @@ defmodule CorporatePolicy.DataUploadService do
     end
   end
 
-  
   defp deactivate_inception_member(policy_id, employee_code, relationship, now_utc) do
     case Repo.get_by(MasterInceptionDataUpload,
            ref_policy_id: policy_id,

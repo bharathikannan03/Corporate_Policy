@@ -8,21 +8,25 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
       use CorporatePolicyWeb, :live_view
 
       import CorporatePolicyWeb.ClaimSubmissionComponents
+      import CorporatePolicyWeb.Employee.PortalComponents
 
       @portal unquote(portal)
 
       @impl true
       def mount(_params, session, socket) do
-        current_user =
-          case session["current_user_id"] do
-            nil -> socket.assigns[:current_user]
-            id -> CorporatePolicy.Accounts.get_user(id)
-          end
+        current_user = resolve_current_user(session, socket, @portal)
 
         {:ok,
          socket
          |> assign(:portal, @portal)
          |> assign(:current_user, current_user)
+         |> assign(
+           :employee_policy,
+           if(@portal == :employee && current_user,
+             do: Claims.get_policy(current_user.ref_policy_id),
+             else: nil
+           )
+         )
          |> assign(:page_title, "Claim Submission")
          |> assign(:active_path, portal_path(@portal, "/claims-submission"))
          |> assign(:claim_statuses, Claims.claim_statuses())
@@ -56,24 +60,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
       @impl true
       def render(var!(assigns)) do
         ~H"""
-        <%= if @portal == :admin do %>
-          <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
-            <.portal_shell
-              portal={@portal}
-              current_user={@current_user}
-              page_title={@page_title}
-              active_path={@active_path}
-            >
-              <.submissions_index
-                claims_page={@claims_page}
-                portal={@portal}
-                status_options={@claim_statuses}
-              />
-            </.portal_shell>
-          </Layouts.admin>
-        <% else %>
-          <Layouts.app flash={@flash}>
-            <div class="p-6">
+        <%= cond do %>
+          <% @portal == :admin -> %>
+            <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
               <.portal_shell
                 portal={@portal}
                 current_user={@current_user}
@@ -86,8 +75,46 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
                   status_options={@claim_statuses}
                 />
               </.portal_shell>
-            </div>
-          </Layouts.app>
+            </Layouts.admin>
+          <% @portal == :employee -> %>
+            <Layouts.app flash={@flash}>
+              <.shell
+                current_user={@current_user}
+                policy={@employee_policy}
+                active_path={@active_path}
+                page_title={@page_title}
+              >
+                <.portal_shell
+                  portal={@portal}
+                  current_user={@current_user}
+                  page_title={@page_title}
+                  active_path={@active_path}
+                >
+                  <.submissions_index
+                    claims_page={@claims_page}
+                    portal={@portal}
+                    status_options={@claim_statuses}
+                  />
+                </.portal_shell>
+              </.shell>
+            </Layouts.app>
+          <% true -> %>
+            <Layouts.app flash={@flash}>
+              <div class="p-6">
+                <.portal_shell
+                  portal={@portal}
+                  current_user={@current_user}
+                  page_title={@page_title}
+                  active_path={@active_path}
+                >
+                  <.submissions_index
+                    claims_page={@claims_page}
+                    portal={@portal}
+                    status_options={@claim_statuses}
+                  />
+                </.portal_shell>
+              </div>
+            </Layouts.app>
         <% end %>
         """
       end
@@ -99,6 +126,30 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
 
       defp stringify(map) do
         Map.new(map, fn {key, value} -> {to_string(key), value} end)
+      end
+
+      defp resolve_current_user(session, socket, portal) do
+        if portal == :employee do
+          cond do
+            socket.assigns[:current_user] &&
+                Map.has_key?(socket.assigns.current_user, :ref_policy_id) ->
+              socket.assigns.current_user
+
+            employee_id = session["current_employee_id"] ->
+              case CorporatePolicy.EmployeePortal.get_authenticated_employee_session(employee_id) do
+                {:ok, employee} -> employee
+                _ -> socket.assigns[:current_user]
+              end
+
+            true ->
+              socket.assigns[:current_user]
+          end
+        else
+          case session["current_user_id"] do
+            nil -> socket.assigns[:current_user]
+            id -> CorporatePolicy.Accounts.get_user(id)
+          end
+        end
       end
     end
   end

@@ -235,7 +235,7 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
           <%= if Enum.empty?(@escalation_matrices) do %>
             <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-12 text-center text-slate-500">
               <.icon name="hero-exclamation-circle" class="w-12 h-12 mx-auto text-slate-300 mb-3" />
-              <p class="text-base font-medium">No escalation matrix configured for this policy.</p>
+              <p class="text-base font-medium">No user found for this policy.</p>
             </div>
           <% else %>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

@@ -1462,60 +1462,30 @@ defmodule CorporatePolicy.Policies do
 
   @doc """
   Returns all active escalation matrix records for a policy, joined with master_escalation_matrices details.
-  If policy_id is nil or no records exist for the policy, falls back to active master_escalation_matrices contacts.
+  Returns [] if policy_id is nil or if no records exist for the policy.
   """
-  def list_escalation_matrices_for_policy(nil), do: list_default_escalation_matrices()
+  def list_escalation_matrices_for_policy(nil), do: []
 
   def list_escalation_matrices_for_policy(policy_id) do
-    query =
-      from p in MasterPolicyEscalationMatrix,
-        left_join: m in MasterEscalationMatrix,
-        on: p.user_id == m.id,
-        where: p.policy_id == ^policy_id and is_nil(p.deleted_at),
-        order_by: [asc: p.escalation_level_id, asc: p.id],
-        select: %{
-          id: p.id,
-          policy_id: p.policy_id,
-          escalation_level_id: p.escalation_level_id,
-          level: p.level,
-          user_id: p.user_id,
-          fullname: coalesce(m.fullname, p.user_fullname),
-          phone_number: m.phone_number,
-          mobile_number: m.mobile_number,
-          email_id: m.email_id,
-          alt_email_id: m.alt_email_id,
-          company_fulladdress: m.company_fulladdress,
-          type: m.type,
-          status: p.status
-        }
-
-    records = Repo.all(query)
-
-    if Enum.empty?(records) do
-      list_default_escalation_matrices()
-    else
-      records
-    end
-  end
-
-  defp list_default_escalation_matrices do
-    from(m in MasterEscalationMatrix,
-      where: is_nil(m.deleted_at) and m.status == 1,
-      order_by: [asc: m.id],
+    from(p in MasterPolicyEscalationMatrix,
+      left_join: m in MasterEscalationMatrix,
+      on: p.user_id == m.id,
+      where: p.policy_id == ^policy_id and is_nil(p.deleted_at),
+      order_by: [asc: p.escalation_level_id, asc: p.id],
       select: %{
-        id: m.id,
-        policy_id: nil,
-        escalation_level_id: m.id,
-        level: fragment("CONCAT('Level ', ?)", m.id),
-        user_id: m.id,
-        fullname: m.fullname,
+        id: p.id,
+        policy_id: p.policy_id,
+        escalation_level_id: p.escalation_level_id,
+        level: p.level,
+        user_id: p.user_id,
+        fullname: coalesce(m.fullname, p.user_fullname),
         phone_number: m.phone_number,
         mobile_number: m.mobile_number,
         email_id: m.email_id,
         alt_email_id: m.alt_email_id,
         company_fulladdress: m.company_fulladdress,
         type: m.type,
-        status: m.status
+        status: p.status
       }
     )
     |> Repo.all()

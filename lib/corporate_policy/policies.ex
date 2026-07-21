@@ -17,6 +17,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.Insurer
   alias CorporatePolicy.Policies.MasterPolicyFeatureTemplateField
   alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
+  alias CorporatePolicy.Policies.TrnMappingLiveEmployee
 
   @page_size 15
 
@@ -713,4 +714,235 @@ defmodule CorporatePolicy.Policies do
   end
 
   defp normalize_page(_value), do: 1
+
+  # === TrnMappingLiveEmployee & Enrollment Queries ===
+
+  @doc """
+  Returns member counts (%{employees_count: integer, dependents_count: integer, lives_count: integer})
+  for a policy ID. Defaults to 0 if no policy ID or no records exist.
+  """
+  def get_policy_member_counts(nil),
+    do: %{employees_count: 0, dependents_count: 0, lives_count: 0}
+
+  def get_policy_member_counts(policy_id) do
+    base =
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+            (e.status == "active" or is_nil(e.status))
+
+    emp_query =
+      from e in base,
+        where: fragment("LOWER(?)", e.relationship) in ["employee", "self"]
+
+    dep_query =
+      from e in base,
+        where: fragment("LOWER(?)", e.relationship) not in ["employee", "self"]
+
+    emp_count = Repo.aggregate(emp_query, :count, :id) || 0
+    dep_count = Repo.aggregate(dep_query, :count, :id) || 0
+
+    %{
+      employees_count: emp_count,
+      dependents_count: dep_count,
+      lives_count: emp_count + dep_count
+    }
+  end
+
+  @doc """
+  Returns a paginated map of primary employees for a given policy_id.
+  Page size is 15. Supports filtering by params: employee_name, employee_code, sum_insured, mobile_number, email.
+  """
+  def list_policy_employees_paginated(policy_id, params \\ %{})
+
+  def list_policy_employees_paginated(nil, _params) do
+    %{
+      entries: [],
+      page: 1,
+      page_size: 15,
+      total_entries: 0,
+      total_pages: 1
+    }
+  end
+
+  def list_policy_employees_paginated(policy_id, params) do
+    page = normalize_page(Map.get(params, "page", 1))
+    page_size = 15
+
+    base_query =
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and
+            is_nil(e.deleted_at) and
+            (e.status == "active" or is_nil(e.status)) and
+            fragment("LOWER(?)", e.relationship) in ["employee", "self"]
+
+    base_query =
+      base_query
+      |> me_filter_search(:employee_name, params["employee_name"])
+      |> me_filter_search(:employee_code, params["employee_code"])
+      |> me_filter_search(:sum_insured, params["sum_insured"])
+      |> me_filter_search(:mobile_number, params["mobile_number"])
+      |> me_filter_search(:email, params["email"])
+
+    total_entries = Repo.aggregate(base_query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      base_query
+      |> order_by([e], asc: e.id)
+      |> offset(^((page - 1) * page_size))
+      |> limit(^page_size)
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
+  end
+
+  @doc """
+  Returns a paginated list of dependents for a given employee_code and policy_id.
+  Page size is 10. Supports search term filtering across name, relationship, mobile, email.
+  """
+  def list_employee_dependents_paginated(policy_id, employee_code, params \\ %{})
+
+  def list_employee_dependents_paginated(nil, _code, _params) do
+    %{
+      entries: [],
+      page: 1,
+      page_size: 10,
+      total_entries: 0,
+      total_pages: 1
+    }
+  end
+
+  def list_employee_dependents_paginated(policy_id, employee_code, params) do
+    page = normalize_page(Map.get(params, "page", 1))
+    page_size = 10
+    search = String.trim(Map.get(params, "search", ""))
+
+    base_query =
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and
+            e.employee_code == ^employee_code and
+            is_nil(e.deleted_at) and
+            (e.status == "active" or is_nil(e.status)) and
+            fragment("LOWER(?)", e.relationship) not in ["employee", "self"]
+
+    base_query =
+      if search != "" do
+        pattern = "%#{search}%"
+
+        from e in base_query,
+          where:
+            ilike(e.employee_name, ^pattern) or
+              ilike(e.relationship, ^pattern) or
+              ilike(e.mobile_number, ^pattern) or
+              ilike(e.email, ^pattern)
+      else
+        base_query
+      end
+
+    total_entries = Repo.aggregate(base_query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      base_query
+      |> order_by([e], asc: e.id)
+      |> offset(^((page - 1) * page_size))
+      |> limit(^page_size)
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
+  end
+
+  @doc """
+  Generates a CSV string for all primary active employees of a policy.
+  """
+  def export_policy_employees_csv(nil), do: ""
+
+  def export_policy_employees_csv(policy_id) do
+    query =
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and
+            is_nil(e.deleted_at) and
+            (e.status == "active" or is_nil(e.status)) and
+            fragment("LOWER(?)", e.relationship) in ["employee", "self"],
+        order_by: [asc: e.id]
+
+    employees = Repo.all(query)
+
+    headers = [
+      "SI NO",
+      "EMPLOYEE NAME",
+      "EMPLOYEE CODE",
+      "GENDER",
+      "MEMBER ID",
+      "SUM INSURED",
+      "EMPLOYEE MOBILE NUMBER",
+      "EMPLOYEE EMAIL"
+    ]
+
+    rows =
+      employees
+      |> Enum.with_index(1)
+      |> Enum.map(fn {emp, idx} ->
+        [
+          idx,
+          emp.employee_name || "",
+          emp.employee_code || "",
+          emp.gender || "",
+          emp.member_card_number || "",
+          emp.sum_insured || "",
+          emp.mobile_number || "",
+          emp.email || ""
+        ]
+      end)
+
+    [headers | rows]
+    |> NimbleCSV.RFC4180.dump_to_iodata()
+    |> IO.iodata_to_binary()
+  end
+
+  defp me_filter_search(query, _field, nil), do: query
+  defp me_filter_search(query, _field, ""), do: query
+
+  defp me_filter_search(query, :employee_name, val) do
+    pattern = "%#{String.trim(val)}%"
+    from e in query, where: ilike(e.employee_name, ^pattern)
+  end
+
+  defp me_filter_search(query, :employee_code, val) do
+    pattern = "%#{String.trim(val)}%"
+    from e in query, where: ilike(e.employee_code, ^pattern)
+  end
+
+  defp me_filter_search(query, :sum_insured, val) do
+    pattern = "%#{String.trim(val)}%"
+    from e in query, where: fragment("CAST(? AS TEXT)", e.sum_insured) |> ilike(^pattern)
+  end
+
+  defp me_filter_search(query, :mobile_number, val) do
+    pattern = "%#{String.trim(val)}%"
+    from e in query, where: ilike(e.mobile_number, ^pattern)
+  end
+
+  defp me_filter_search(query, :email, val) do
+    pattern = "%#{String.trim(val)}%"
+    from e in query, where: ilike(e.email, ^pattern)
+  end
 end

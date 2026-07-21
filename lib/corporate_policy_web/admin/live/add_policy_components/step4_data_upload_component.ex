@@ -162,7 +162,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               >
               </path>
             </svg>
-            <span class="font-semibold">{@error_message}</span>
+             <span class="font-semibold">{@error_message}</span>
           </div>
         </div>
       <% end %>
@@ -182,17 +182,17 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               <option value="" disabled selected={@form[:data_type].value == ""}>
                 Select Data Type
               </option>
-
+              
               <%= for type <- available_data_types(@policy) do %>
                 <option value={type} selected={@form[:data_type].value == type}>{type}</option>
               <% end %>
             </select>
-
+            
             <p class="text-xs text-gray-400 mt-1">
               Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
             </p>
           </div>
-
+          
           <div>
             <label class="corp-label">Remark</label>
             <input
@@ -204,7 +204,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             />
           </div>
         </div>
-
+        
         <div class="mb-4">
           <label class="corp-label">Upload File <span class="text-red-500">*</span></label>
           <div
@@ -215,7 +215,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             <label for={@uploads.data_file.ref} class="cursor-pointer text-primary hover:underline">
               Click to browse
             </label>
-            <span class="text-gray-500"> or drag and drop here</span>
+             <span class="text-gray-500"> or drag and drop here</span>
           </div>
         </div>
         <!-- Preview pending uploads -->
@@ -236,7 +236,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             </div>
           </div>
         <% end %>
-
+        
         <div class="flex justify-end mt-4">
           <button
             type="submit"
@@ -253,19 +253,19 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
           <thead>
             <tr>
               <th>#</th>
-
+              
               <th>FILE NAME</th>
-
+              
               <th>DATA TYPE</th>
-
+              
               <th>REMARK</th>
-
+              
               <th>STATUS</th>
-
+              
               <th>CREATED AT</th>
             </tr>
           </thead>
-
+          
           <tbody>
             <%= if Enum.empty?(@uploads_list) do %>
               <tr>
@@ -285,19 +285,19 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               <%= for {upload, index} <- Enum.with_index(@uploads_page.entries, 1) do %>
                 <tr>
                   <td>{(@uploads_page.page - 1) * @uploads_page.page_size + index}</td>
-
+                  
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {upload.original_file_name}
                   </td>
-
+                  
                   <td>{upload.data_type}</td>
-
+                  
                   <td>{upload.remark}</td>
-
+                  
                   <td>
                     <span class="badge badge-success badge-sm text-white border-none bg-green-500">Uploaded</span>
                   </td>
-
+                  
                   <td class="whitespace-nowrap">
                     {Calendar.strftime(upload.inserted_at, "%d-%b-%Y %I:%M %p")}
                   </td>
@@ -307,7 +307,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
           </tbody>
         </table>
       </div>
-
+      
       <.pagination
         page={@uploads_page.page}
         page_size={@uploads_page.page_size}
@@ -317,12 +317,11 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         target={@myself}
         class="mb-8 bg-gray-50 rounded-b-lg"
       />
-
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-
+        
         <button type="button" phx-click="save_step4" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

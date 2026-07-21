@@ -101,11 +101,14 @@ defmodule CorporatePolicyWeb.Router do
         on_mount: [{CorporatePolicyWeb.Corporate.LiveAuth, :default}],
         layout: {CorporatePolicyWeb.Layouts, :app} do
         live "/dashboard", DashboardLive
+        live "/enrollment-details", EnrollmentDetailsLive
+        live "/employee", EnrollmentDetailsLive
         live "/claims-submission", ClaimsSubmissionIndexLive, :index
         live "/claims-submission/add", ClaimSubmissionFormLive, :new
         live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
       end
 
+      get "/enrollment-details/export", EmployeeExportController, :export
       get "/claims-submission/export", ClaimSubmissionExportController, :export
     end
   end

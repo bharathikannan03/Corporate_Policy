@@ -193,31 +193,31 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
           <thead>
             <tr>
               <th>#</th>
-
+              
               <th>POLICY NUMBER</th>
-
+              
               <th>PARTICULAR</th>
-
+              
               <th>DEBIT AMOUNT (DR)</th>
-
+              
               <th>CREDIT AMOUNT (CR)</th>
-
+              
               <th>POLICY ENDORSEMENT NO</th>
-
+              
               <th>ENDORSEMENT ISSUED DATE</th>
-
+              
               <th>BANK NAME</th>
-
+              
               <th>CHEQUE NO</th>
-
+              
               <th>REMARK</th>
-
+              
               <th>CREATED AT</th>
-
+              
               <th class="text-right">DELETE</th>
             </tr>
           </thead>
-
+          
           <tbody>
             <%= if Enum.empty?(@cd_statements) do %>
               <tr>
@@ -237,29 +237,29 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
               <%= for {stmt, index} <- Enum.with_index(@cd_statements_page.entries, 1) do %>
                 <tr style="font-size: 0.875rem;">
                   <td>{(@cd_statements_page.page - 1) * @cd_statements_page.page_size + index}</td>
-
+                  
                   <td class="font-medium">{stmt.policy_number}</td>
-
+                  
                   <td>{stmt.particular}</td>
-
+                  
                   <td class="text-red-500 font-medium">{stmt.debit_amount}</td>
-
+                  
                   <td class="text-green-600 font-medium">{stmt.credit_amount}</td>
-
+                  
                   <td>{stmt.policy_endorsement_no}</td>
-
+                  
                   <td>{stmt.endorsement_issued_date}</td>
-
+                  
                   <td>{stmt.bank_name}</td>
-
+                  
                   <td>{stmt.cheque_no}</td>
-
+                  
                   <td>{stmt.remark}</td>
-
+                  
                   <td class="whitespace-nowrap" style="font-size: 0.75rem;">
                     {Calendar.strftime(stmt.inserted_at, "%d-%b-%Y")}
                   </td>
-
+                  
                   <td class="text-right">
                     <button
                       type="button"
@@ -288,7 +288,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
           </tbody>
         </table>
       </div>
-
+      
       <.pagination
         page={@cd_statements_page.page}
         page_size={@cd_statements_page.page_size}
@@ -297,12 +297,11 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
         event="paginate_table"
         target={@myself}
       />
-
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-
+        
         <button type="button" phx-click="save_step7" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Complete Policy"}
         </button>
@@ -329,7 +328,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                 </button>
                 Back To CD Statement
               </h2>
-
+              
               <button
                 type="button"
                 phx-click="close_add_modal"
@@ -345,12 +344,12 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                 </path></svg>
               </button>
             </div>
-
+            
             <div class="p-6">
               <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-semibold">Add CD Statement</h3>
               </div>
-
+              
               <.form
                 for={@form}
                 id="add-cd-form"
@@ -367,7 +366,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                         <option value="" disabled selected={@form[:corporate_id].value == ""}>
                           Select Corporate name
                         </option>
-
+                        
                         <%= for corp <- @corporates do %>
                           <option
                             value={corp.id}
@@ -378,7 +377,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                         <% end %>
                       </select>
                     </div>
-
+                    
                     <div>
                       <label class="corp-label">CD Accounts (Insurer | CD Number)
                       <span class="text-red-500">*</span></label>
@@ -391,7 +390,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                         <option value="" disabled selected={@form[:cd_account_id].value == ""}>
                           Select CD Account
                         </option>
-
+                        
                         <%= for acc <- @available_cd_accounts do %>
                           <option
                             value={acc.id}
@@ -453,7 +452,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <% end %>
                   </div>
                 </div>
-
+                
                 <div class="flex justify-end pt-4 border-t border-gray-200">
                   <button
                     type="submit"

@@ -10,11 +10,13 @@ defmodule CorporatePolicy.Policies.TrnEndorsementDeletionLog do
     field :endorsement_date, :string
     field :endorsement_type, :string
     field :deletion_category, :string, default: "Dependant Deletion"
+    field :action, :string
     field :deleted_at, :utc_datetime
 
     field :created_by, :integer
     field :updated_by, :integer
 
+    belongs_to :upload, CorporatePolicy.Policies.MasterPolicyDataUpload, foreign_key: :upload_id
     belongs_to :policy, CorporatePolicy.Policies.Policy, foreign_key: :ref_policy_id
 
     belongs_to :corporate, CorporatePolicy.Policies.Corporate,
@@ -35,9 +37,11 @@ defmodule CorporatePolicy.Policies.TrnEndorsementDeletionLog do
       :endorsement_date,
       :endorsement_type,
       :deletion_category,
+      :action,
       :deleted_at,
       :created_by,
       :updated_by,
+      :upload_id,
       :ref_policy_id,
       :ref_corporate_id
     ])

@@ -13,6 +13,13 @@ defmodule CorporatePolicy.DataUploadService do
 
   require Logger
 
+  @supported_endorsement_types ~w(
+    employee_addition
+    dependent_addition
+    employee_deletion
+    dependent_deletion
+  )
+
   def process_upload(policy_id, data_type, remark, file_path, original_file_name, user_id \\ nil) do
     effective_user_id =
       user_id ||
@@ -36,7 +43,15 @@ defmodule CorporatePolicy.DataUploadService do
     Repo.transaction(fn ->
       case Repo.insert(MasterPolicyDataUpload.changeset(%MasterPolicyDataUpload{}, upload_attrs)) do
         {:ok, upload} ->
-          process_file(data_type, file_path, policy_id, original_file_name, effective_user_id)
+          process_file(
+            data_type,
+            file_path,
+            policy_id,
+            original_file_name,
+            effective_user_id,
+            upload.id
+          )
+
           upload
 
         {:error, changeset} ->
@@ -45,7 +60,7 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp process_file("Ecards", file_path, policy_id, original_file_name, _user_id) do
+  defp process_file("Ecards", file_path, policy_id, original_file_name, _user_id, _upload_id) do
     Repo.insert!(%MasterEcardsDataUpload{
       ref_policy_id: policy_id,
       ecards_data_url: file_path,
@@ -54,13 +69,13 @@ defmodule CorporatePolicy.DataUploadService do
     })
   end
 
-  defp process_file(data_type, file_path, policy_id, _original_file_name, user_id) do
+  defp process_file(data_type, file_path, policy_id, _original_file_name, user_id, upload_id) do
     content = File.read!(file_path) |> sanitize_utf8()
     rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
 
     case data_type do
       "Inception Data" -> process_inception(rows, policy_id, user_id)
-      "Endorsement Data" -> process_endorsement(rows, policy_id, user_id)
+      "Endorsement Data" -> process_endorsement(rows, policy_id, user_id, upload_id)
       "Claim Dumps" -> process_claim_dumps(rows, policy_id)
       _ -> Logger.warning("Unknown data type #{data_type}")
     end
@@ -97,7 +112,7 @@ defmodule CorporatePolicy.DataUploadService do
     save_trn_mapping_live_employees(rows, policy_id, "Inception", user_id)
   end
 
-  defp process_endorsement(rows, policy_id, user_id) do
+  defp process_endorsement(rows, policy_id, user_id, upload_id) do
     Enum.each(rows, fn row ->
       padded = pad_row(row, 16)
 
@@ -119,6 +134,8 @@ defmodule CorporatePolicy.DataUploadService do
       designation = Enum.at(padded, 15) |> clean_string()
 
       if emp_code != "" do
+        normalized_endorsement_type = normalize_endorsement_type!(end_type)
+
         Repo.insert!(%MasterEndorsementDataUpload{
           ref_policy_id: policy_id,
           employee_code: emp_code,
@@ -133,7 +150,7 @@ defmodule CorporatePolicy.DataUploadService do
           doj: doj,
           endorsement_number: end_no,
           endorsement_date: end_date,
-          endorsement_type: end_type,
+          endorsement_type: normalized_endorsement_type,
           dol: dol,
           member_card_number: card_no,
           designation: designation
@@ -141,7 +158,7 @@ defmodule CorporatePolicy.DataUploadService do
       end
     end)
 
-    save_trn_mapping_live_employees(rows, policy_id, "Endorsement", user_id)
+    save_trn_mapping_live_employees(rows, policy_id, "Endorsement", user_id, upload_id)
   end
 
   defp process_claim_dumps(rows, policy_id) do
@@ -177,7 +194,7 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp save_trn_mapping_live_employees(rows, policy_id, source_type, user_id) do
+  defp save_trn_mapping_live_employees(rows, policy_id, source_type, user_id, upload_id \\ nil) do
     now_naive = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     now_utc = DateTime.utc_now() |> DateTime.truncate(:second)
 
@@ -208,43 +225,29 @@ defmodule CorporatePolicy.DataUploadService do
       if emp_code != "" do
         relationship_value = normalize_relationship(rel, emp_code)
 
-        if source_type == "Endorsement" and deletion_type?(end_type) do
-          # Deletion processing rule:
-          # If relationship == "Employee" or "Self", throw invalid data error, do NOT save, do NOT log!
-          if String.downcase(relationship_value) in ["employee", "self"] do
-            raise "Invalid data: Deletion requested for primary employee (Employee Code: #{emp_code}). Upload aborted."
-          else
-            # Valid dependant deletion (relationship != "Self")
-            member =
-              Repo.get_by(TrnMappingLiveEmployee,
-                ref_policy_id: policy_id,
-                employee_code: emp_code,
-                relationship: relationship_value
-              )
+        normalized_endorsement_type =
+          if source_type == "Endorsement", do: normalize_endorsement_type!(end_type), else: nil
 
-            if member do
-              # Soft delete member
-              member
-              |> Ecto.Changeset.change(status: "inactive", deleted_at: now_utc)
-              |> Repo.update!()
+        if source_type == "Endorsement" and deletion_type?(normalized_endorsement_type) do
+          deactivate_inception_member(policy_id, emp_code, relationship_value, now_utc)
+          deactivate_live_member(policy_id, emp_code, relationship_value, now_utc)
 
-              # Create audit log entry
-              Repo.insert!(%TrnEndorsementDeletionLog{
-                ref_policy_id: policy_id,
-                ref_corporate_id: corporate_id,
-                employee_code: emp_code,
-                employee_name: emp_name,
-                relationship: relationship_value,
-                endorsement_number: end_no,
-                endorsement_date: end_date,
-                endorsement_type: end_type,
-                deletion_category: "Dependant Deletion",
-                deleted_at: now_utc,
-                created_by: effective_user,
-                updated_by: effective_user
-              })
-            end
-          end
+          Repo.insert!(%TrnEndorsementDeletionLog{
+            ref_policy_id: policy_id,
+            ref_corporate_id: corporate_id,
+            upload_id: upload_id,
+            employee_code: emp_code,
+            employee_name: emp_name,
+            relationship: relationship_value,
+            endorsement_number: end_no,
+            endorsement_date: end_date,
+            endorsement_type: normalized_endorsement_type,
+            deletion_category: deletion_category(normalized_endorsement_type),
+            action: deletion_action(normalized_endorsement_type),
+            deleted_at: now_utc,
+            created_by: effective_user,
+            updated_by: effective_user
+          })
         else
           # Standard Addition / Upsert
           attrs = %{
@@ -262,7 +265,7 @@ defmodule CorporatePolicy.DataUploadService do
             doj: doj,
             endorsement_number: end_no,
             endorsement_date: end_date,
-            endorsement_type: end_type,
+            endorsement_type: normalized_endorsement_type,
             dol: dol,
             member_card_number: card_no,
             designation: designation,
@@ -285,14 +288,61 @@ defmodule CorporatePolicy.DataUploadService do
     end)
   end
 
-  defp deletion_type?(end_type) when is_binary(end_type) do
-    down = String.downcase(end_type)
-
-    String.contains?(down, "deletion") or String.contains?(down, "resignation") or
-      String.contains?(down, "termination")
-  end
+  defp deletion_type?(end_type) when is_binary(end_type),
+    do: end_type in ["employee_deletion", "dependent_deletion"]
 
   defp deletion_type?(_), do: false
+
+  defp normalize_endorsement_type!(endorsement_type) do
+    normalized =
+      endorsement_type
+      |> clean_string()
+      |> String.downcase()
+
+    if normalized in @supported_endorsement_types do
+      normalized
+    else
+      raise "Invalid endorsement_type. Only employee_addition, dependent_addition, employee_deletion, and dependent_deletion are supported."
+    end
+  end
+
+  defp deactivate_inception_member(policy_id, employee_code, relationship, now_utc) do
+    case Repo.get_by(MasterInceptionDataUpload,
+           ref_policy_id: policy_id,
+           employee_code: employee_code,
+           relationship: relationship
+         ) do
+      nil ->
+        :ok
+
+      member ->
+        member
+        |> Ecto.Changeset.change(status: "inactive", deleted_at: now_utc)
+        |> Repo.update!()
+    end
+  end
+
+  defp deactivate_live_member(policy_id, employee_code, relationship, now_utc) do
+    case Repo.get_by(TrnMappingLiveEmployee,
+           ref_policy_id: policy_id,
+           employee_code: employee_code,
+           relationship: relationship
+         ) do
+      nil ->
+        :ok
+
+      member ->
+        member
+        |> Ecto.Changeset.change(status: "inactive", deleted_at: now_utc)
+        |> Repo.update!()
+    end
+  end
+
+  defp deletion_category("employee_deletion"), do: "Employee Deletion"
+  defp deletion_category("dependent_deletion"), do: "Dependant Deletion"
+
+  defp deletion_action("employee_deletion"), do: "employee_deletion"
+  defp deletion_action("dependent_deletion"), do: "dependent_deletion"
 
   defp clean_string(nil), do: ""
 

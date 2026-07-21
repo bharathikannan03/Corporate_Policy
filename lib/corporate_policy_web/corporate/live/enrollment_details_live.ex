@@ -4,6 +4,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
   alias CorporatePolicy.Corporates
   alias CorporatePolicy.Policies
   alias CorporatePolicyWeb.Corporate.PolicyDetailsComponent
+  alias CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView
   alias CorporatePolicyWeb.Layouts
 
   @impl true
@@ -80,6 +81,22 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
 
     employees_page = Policies.list_policy_employees_paginated(policy_id, filter_params)
 
+    # List View States
+    active_list_type = "active"
+    list_counts = Policies.get_policy_list_counts(policy_id)
+
+    list_filter_params = %{
+      "page" => 1,
+      "employee_name" => "",
+      "employee_code" => "",
+      "sum_insured" => "",
+      "mobile_number" => "",
+      "email" => ""
+    }
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(policy_id, active_list_type, list_filter_params)
+
     socket =
       socket
       |> assign(:page_title, "Enrollment Details")
@@ -101,6 +118,11 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> assign(:active_nav_tab, "enrollment_details")
       |> assign(:filter_params, filter_params)
       |> assign(:employees_page, employees_page)
+      # List View Assigns
+      |> assign(:active_list_type, active_list_type)
+      |> assign(:list_counts, list_counts)
+      |> assign(:list_filter_params, list_filter_params)
+      |> assign(:list_view_page, list_view_page)
       |> assign(:active_path, "/corporate/enrollment-details")
       # Dependent Modal State
       |> assign(:show_dependents_modal, false)
@@ -132,6 +154,15 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
     filter_params = Map.put(socket.assigns.filter_params, "page", 1)
     employees_page = Policies.list_policy_employees_paginated(policy_id, filter_params)
 
+    list_counts = Policies.get_policy_list_counts(policy_id)
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(
+        policy_id,
+        socket.assigns.active_list_type,
+        socket.assigns.list_filter_params
+      )
+
     socket =
       socket
       |> assign(:active_policy_type, type)
@@ -141,6 +172,8 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> assign(:member_counts, member_counts)
       |> assign(:filter_params, filter_params)
       |> assign(:employees_page, employees_page)
+      |> assign(:list_counts, list_counts)
+      |> assign(:list_view_page, list_view_page)
 
     {:noreply, socket}
   end
@@ -156,6 +189,15 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
     filter_params = Map.put(socket.assigns.filter_params, "page", 1)
     employees_page = Policies.list_policy_employees_paginated(policy_id, filter_params)
 
+    list_counts = Policies.get_policy_list_counts(policy_id)
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(
+        policy_id,
+        socket.assigns.active_list_type,
+        socket.assigns.list_filter_params
+      )
+
     socket =
       socket
       |> assign(:active_policy_number, number)
@@ -163,6 +205,8 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> assign(:member_counts, member_counts)
       |> assign(:filter_params, filter_params)
       |> assign(:employees_page, employees_page)
+      |> assign(:list_counts, list_counts)
+      |> assign(:list_view_page, list_view_page)
 
     {:noreply, socket}
   end
@@ -201,6 +245,15 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
     filter_params = Map.put(socket.assigns.filter_params, "page", 1)
     employees_page = Policies.list_policy_employees_paginated(policy_id, filter_params)
 
+    list_counts = Policies.get_policy_list_counts(policy_id)
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(
+        policy_id,
+        socket.assigns.active_list_type,
+        socket.assigns.list_filter_params
+      )
+
     socket =
       socket
       |> assign(:current_fy_name, fy_name)
@@ -214,6 +267,8 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> assign(:member_counts, member_counts)
       |> assign(:filter_params, filter_params)
       |> assign(:employees_page, employees_page)
+      |> assign(:list_counts, list_counts)
+      |> assign(:list_view_page, list_view_page)
 
     {:noreply, socket}
   end
@@ -226,6 +281,61 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
   @impl true
   def handle_event("select_nav_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, :active_nav_tab, tab)}
+  end
+
+  @impl true
+  def handle_event("select_list_type", %{"type" => type}, socket) do
+    policy_id = socket.assigns.selected_policy && socket.assigns.selected_policy.id
+    reset_params = Map.put(socket.assigns.list_filter_params, "page", 1)
+    list_view_page = Policies.list_policy_list_view_paginated(policy_id, type, reset_params)
+
+    socket =
+      socket
+      |> assign(:active_list_type, type)
+      |> assign(:list_filter_params, reset_params)
+      |> assign(:list_view_page, list_view_page)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("filter_list_view", params, socket) do
+    policy_id = socket.assigns.selected_policy && socket.assigns.selected_policy.id
+    new_params = Map.merge(socket.assigns.list_filter_params, params) |> Map.put("page", 1)
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(
+        policy_id,
+        socket.assigns.active_list_type,
+        new_params
+      )
+
+    socket =
+      socket
+      |> assign(:list_filter_params, new_params)
+      |> assign(:list_view_page, list_view_page)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("goto_list_view_page", %{"page" => page}, socket) do
+    policy_id = socket.assigns.selected_policy && socket.assigns.selected_policy.id
+    new_params = Map.put(socket.assigns.list_filter_params, "page", page)
+
+    list_view_page =
+      Policies.list_policy_list_view_paginated(
+        policy_id,
+        socket.assigns.active_list_type,
+        new_params
+      )
+
+    socket =
+      socket
+      |> assign(:list_filter_params, new_params)
+      |> assign(:list_view_page, list_view_page)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -351,7 +461,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       <%!-- Top White Header Bar with Navigation Tabs (Image 1 Navbar) --%>
       <div class="bg-white rounded-lg p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between border border-gray-200 shadow-xs gap-3">
         <h2 class="text-xl font-bold text-gray-800">Enrollment Details</h2>
-        
+
         <div class="flex items-center space-x-2">
           <button
             type="button"
@@ -366,7 +476,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           >
             Enrollment Details
           </button>
-          
+
           <button
             type="button"
             phx-click="select_nav_tab"
@@ -380,7 +490,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           >
             List View
           </button>
-          
+
           <button
             type="button"
             phx-click="select_nav_tab"
@@ -396,224 +506,216 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           </button>
         </div>
       </div>
-       <%!-- Policy Details Reusable Component --%>
-      <PolicyDetailsComponent.policy_details
-        selected_policy={@selected_policy}
-        member_counts={@member_counts}
-        show_details={@show_policy_details}
-      /> <%!-- Employee Data Table Section (Image 2) --%>
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs mt-6 p-4">
-        <%!-- Export Button Header --%>
-        <div class="flex items-center justify-end mb-4">
-          <a
-            href={
-              ~p"/corporate/enrollment-details/export?policy_id=#{if @selected_policy, do: @selected_policy.id, else: ""}"
-            }
-            target="_blank"
-            class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center space-x-1.5 shadow-xs transition-colors"
-          >
-            <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> <span>Export</span>
-          </a>
-        </div>
-         <%!-- Filter Bar Form --%>
-        <form phx-change="filter_employees" id="employee-table-filters" class="mb-3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-            <input
-              type="text"
-              name="employee_name"
-              value={@filter_params["employee_name"]}
-              placeholder="Search Employee Name"
-              class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              name="employee_code"
-              value={@filter_params["employee_code"]}
-              placeholder="Search Employee Code"
-              class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              name="sum_insured"
-              value={@filter_params["sum_insured"]}
-              placeholder="Search Sum Insured"
-              class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              name="mobile_number"
-              value={@filter_params["mobile_number"]}
-              placeholder="Search Mobile Number"
-              class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              name="email"
-              value={@filter_params["email"]}
-              placeholder="Search Email"
-              class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </form>
-         <%!-- Table Container --%>
-        <div class="overflow-x-auto border border-gray-200 rounded-md">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
-                <th class="p-3">SI NO</th>
-                
-                <th class="p-3">EMPLOYEE NAME</th>
-                
-                <th class="p-3">EMPLOYEE CODE</th>
-                
-                <th class="p-3">GENDER</th>
-                
-                <th class="p-3">MEMBER ID</th>
-                
-                <th class="p-3">SUM INSURED</th>
-                
-                <th class="p-3 text-center">DEPENDENT</th>
-                
-                <th class="p-3 text-center">CARDS</th>
-                
-                <th class="p-3 text-center">INTIMATE</th>
-                
-                <th class="p-3">EMPLOYEE MOBILE NUMBER</th>
-                
-                <th class="p-3">EMPLOYEE EMAIL</th>
-              </tr>
-            </thead>
-            
-            <tbody class="divide-y divide-gray-200 bg-white">
-              <%= if @employees_page.entries == [] do %>
-                <tr>
-                  <td colspan="11" class="p-6 text-center text-gray-500 font-medium">
-                    No employee records found for this policy.
-                  </td>
-                </tr>
-              <% else %>
-                <%= for {emp, index} <- Enum.with_index(@employees_page.entries, 1) do %>
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="p-3 text-gray-600 font-medium">
-                      {(@employees_page.page - 1) * @employees_page.page_size + index}
-                    </td>
-                    
-                    <td class="p-3 font-semibold text-gray-800">{emp.employee_name}</td>
-                    
-                    <td class="p-3 text-gray-600">{emp.employee_code}</td>
-                    
-                    <td class="p-3 text-gray-600">{emp.gender || "-"}</td>
-                    
-                    <td class="p-3 text-gray-600">{emp.member_card_number || "-"}</td>
-                    
-                    <td class="p-3 text-gray-600">{emp.sum_insured || "-"}</td>
-                    
-                    <td class="p-3 text-center">
-                      <button
-                        type="button"
-                        phx-click="view_dependents"
-                        phx-value-code={emp.employee_code}
-                        phx-value-name={emp.employee_name}
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
-                      >
-                        <.icon name="hero-user-group" class="w-3.5 h-3.5" />
-                        <span>View Dependent</span>
-                      </button>
-                    </td>
-                    
-                    <td class="p-3 text-center">
-                      <button
-                        type="button"
-                        phx-click="view_card"
-                        phx-value-code={emp.employee_code}
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
-                      >
-                        <span>View Card</span>
-                      </button>
-                    </td>
-                    
-                    <td class="p-3 text-center">
-                      <.link
-                        navigate={
-                          ~p"/corporate/claims-submission/add?employee_code=#{emp.employee_code}"
-                        }
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
-                      >
-                        <span>Intimate Claim</span>
-                      </.link>
-                    </td>
-                    
-                    <td class="p-3 text-gray-600">{emp.mobile_number || "-"}</td>
-                    
-                    <td class="p-3 text-gray-600">{emp.email || "-"}</td>
-                  </tr>
-                <% end %>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-         <%!-- Pagination Footer (15 / page) --%>
-        <div class="flex flex-col sm:flex-row items-center justify-between mt-4 text-xs text-gray-600 gap-3">
-          <div>
-            Showing {if @employees_page.total_entries == 0,
-              do: 0,
-              else: (@employees_page.page - 1) * @employees_page.page_size + 1} to {min(
-              @employees_page.page * @employees_page.page_size,
-              @employees_page.total_entries
-            )} of {@employees_page.total_entries} entries
-          </div>
-          
-          <div class="flex items-center space-x-2">
-            <button
-              type="button"
-              disabled={@employees_page.page <= 1}
-              phx-click="goto_employee_page"
-              phx-value-page={@employees_page.page - 1}
-              class="px-2.5 py-1 border border-gray-300 rounded-md bg-white disabled:opacity-40 hover:bg-gray-50"
+      <%= if @active_nav_tab == "list_view" do %>
+        <PolicyDetailsComponent.policy_details
+          selected_policy={@selected_policy}
+          member_counts={@member_counts}
+          show_details={@show_policy_details}
+          show_member_cards={false}
+        />
+        <ListView.render_list_view
+          selected_policy={@selected_policy}
+          list_counts={@list_counts}
+          active_list_type={@active_list_type}
+          list_view_page={@list_view_page}
+          list_filter_params={@list_filter_params}
+        />
+      <% else %>
+        <%!-- Policy Details Reusable Component --%>
+        <PolicyDetailsComponent.policy_details
+          selected_policy={@selected_policy}
+          member_counts={@member_counts}
+          show_details={@show_policy_details}
+        />
+        <%!-- Employee Data Table Section (Image 2) --%>
+        <div class="bg-white rounded-lg border border-gray-200 shadow-xs mt-6 p-4">
+          <%!-- Export Button Header --%>
+          <div class="flex items-center justify-end mb-4">
+            <a
+              href={
+                ~p"/corporate/enrollment-details/export?policy_id=#{if @selected_policy, do: @selected_policy.id, else: ""}"
+              }
+              target="_blank"
+              class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center space-x-1.5 shadow-xs transition-colors"
             >
-              &lt;
-            </button>
-            
-            <%= for p <- 1..max(@employees_page.total_pages, 1) do %>
+              <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> <span>Export</span>
+            </a>
+          </div>
+          <%!-- Filter Bar Form --%>
+          <form phx-change="filter_employees" id="employee-table-filters" class="mb-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+              <input
+                type="text"
+                name="employee_name"
+                value={@filter_params["employee_name"]}
+                placeholder="Search Employee Name"
+                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                name="employee_code"
+                value={@filter_params["employee_code"]}
+                placeholder="Search Employee Code"
+                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                name="sum_insured"
+                value={@filter_params["sum_insured"]}
+                placeholder="Search Sum Insured"
+                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                name="mobile_number"
+                value={@filter_params["mobile_number"]}
+                placeholder="Search Mobile Number"
+                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                name="email"
+                value={@filter_params["email"]}
+                placeholder="Search Email"
+                class="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </form>
+          <%!-- Table Container --%>
+          <div class="overflow-x-auto border border-gray-200 rounded-md">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
+                  <th class="p-3">SI NO</th>
+                  <th class="p-3">EMPLOYEE NAME</th>
+                  <th class="p-3">EMPLOYEE CODE</th>
+                  <th class="p-3">GENDER</th>
+                  <th class="p-3">MEMBER ID</th>
+                  <th class="p-3">SUM INSURED</th>
+                  <th class="p-3 text-center">DEPENDENT</th>
+                  <th class="p-3 text-center">CARDS</th>
+                  <th class="p-3 text-center">INTIMATE</th>
+                  <th class="p-3">EMPLOYEE MOBILE NUMBER</th>
+                  <th class="p-3">EMPLOYEE EMAIL</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <%= if @employees_page.entries == [] do %>
+                  <tr>
+                    <td colspan="11" class="p-6 text-center text-gray-500 font-medium">
+                      No employee records found for this policy.
+                    </td>
+                  </tr>
+                <% else %>
+                  <%= for {emp, index} <- Enum.with_index(@employees_page.entries, 1) do %>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                      <td class="p-3 text-gray-600 font-medium">
+                        {(@employees_page.page - 1) * @employees_page.page_size + index}
+                      </td>
+                      <td class="p-3 font-semibold text-gray-800">{emp.employee_name}</td>
+                      <td class="p-3 text-gray-600">{emp.employee_code}</td>
+                      <td class="p-3 text-gray-600">{emp.gender || "-"}</td>
+                      <td class="p-3 text-gray-600">{emp.member_card_number || "-"}</td>
+                      <td class="p-3 text-gray-600">{emp.sum_insured || "-"}</td>
+                      <td class="p-3 text-center">
+                        <button
+                          type="button"
+                          phx-click="view_dependents"
+                          phx-value-code={emp.employee_code}
+                          phx-value-name={emp.employee_name}
+                          class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
+                        >
+                          <.icon name="hero-user-group" class="w-3.5 h-3.5" />
+                          <span>View Dependent</span>
+                        </button>
+                      </td>
+                      <td class="p-3 text-center">
+                        <button
+                          type="button"
+                          phx-click="view_card"
+                          phx-value-code={emp.employee_code}
+                          class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
+                        >
+                          <span>View Card</span>
+                        </button>
+                      </td>
+                      <td class="p-3 text-center">
+                        <.link
+                          navigate={
+                            ~p"/corporate/claims-submission/add?employee_code=#{emp.employee_code}"
+                          }
+                          class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium inline-flex items-center space-x-1 shadow-2xs transition-colors"
+                        >
+                          <span>Intimate Claim</span>
+                        </.link>
+                      </td>
+                      <td class="p-3 text-gray-600">{emp.mobile_number || "-"}</td>
+                      <td class="p-3 text-gray-600">{emp.email || "-"}</td>
+                    </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          <%!-- Pagination Footer (15 / page) --%>
+          <div class="flex flex-col sm:flex-row items-center justify-between mt-4 text-xs text-gray-600 gap-3">
+            <div>
+              Showing {if @employees_page.total_entries == 0,
+                do: 0,
+                else: (@employees_page.page - 1) * @employees_page.page_size + 1} to {min(
+                @employees_page.page * @employees_page.page_size,
+                @employees_page.total_entries
+              )} of {@employees_page.total_entries} entries
+            </div>
+            <div class="flex items-center space-x-2">
               <button
                 type="button"
+                disabled={@employees_page.page <= 1}
                 phx-click="goto_employee_page"
-                phx-value-page={p}
-                class={[
-                  "px-3 py-1 border rounded-md text-xs font-medium transition-colors",
-                  p == @employees_page.page && "bg-blue-600 text-white border-blue-600",
-                  p != @employees_page.page &&
-                    "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                ]}
+                phx-value-page={@employees_page.page - 1}
+                class="px-2.5 py-1 border border-gray-300 rounded-md bg-white disabled:opacity-40 hover:bg-gray-50"
               >
-                {p}
+                &lt;
               </button>
-            <% end %>
-            
-            <button
-              type="button"
-              disabled={@employees_page.page >= @employees_page.total_pages}
-              phx-click="goto_employee_page"
-              phx-value-page={@employees_page.page + 1}
-              class="px-2.5 py-1 border border-gray-300 rounded-md bg-white disabled:opacity-40 hover:bg-gray-50"
-            >
-              &gt;
-            </button>
-            
-            <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
-              15/page
-            </span>
+              <%= for p <- 1..max(@employees_page.total_pages, 1) do %>
+                <button
+                  type="button"
+                  phx-click="goto_employee_page"
+                  phx-value-page={p}
+                  class={[
+                    "px-3 py-1 border rounded-md text-xs font-medium transition-colors",
+                    p == @employees_page.page && "bg-blue-600 text-white border-blue-600",
+                    p != @employees_page.page &&
+                      "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ]}
+                >
+                  {p}
+                </button>
+              <% end %>
+              <button
+                type="button"
+                disabled={@employees_page.page >= @employees_page.total_pages}
+                phx-click="goto_employee_page"
+                phx-value-page={@employees_page.page + 1}
+                class="px-2.5 py-1 border border-gray-300 rounded-md bg-white disabled:opacity-40 hover:bg-gray-50"
+              >
+                &gt;
+              </button>
+              <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
+                15/page
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-       <%!-- Family Dependent Modal Popup (Image 3) --%>
+      <% end %>
+      <%!-- Family Dependent Modal Popup (Image 3) --%>
       <%= if @show_dependents_modal do %>
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 overflow-hidden border border-gray-200 animate-fade-in">
             <%!-- Modal Header --%>
             <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
               <h3 class="text-base font-bold text-gray-800">Family Dependent</h3>
-              
+
               <button
                 type="button"
                 phx-click="close_dependents_modal"
@@ -622,7 +724,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 <.icon name="hero-x-mark" class="w-5 h-5" />
               </button>
             </div>
-             <%!-- Search Box --%>
+            <%!-- Search Box --%>
             <div class="flex justify-end mb-4">
               <div class="relative w-64">
                 <.icon
@@ -639,27 +741,27 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 />
               </div>
             </div>
-             <%!-- Dependents Table --%>
+            <%!-- Dependents Table --%>
             <div class="overflow-x-auto border border-gray-100 rounded-lg">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
                     <th class="p-3">Relation</th>
-                    
+
                     <th class="p-3">Name</th>
-                    
+
                     <th class="p-3">Gender</th>
-                    
+
                     <th class="p-3">DOB</th>
-                    
+
                     <th class="p-3">Age</th>
-                    
+
                     <th class="p-3">Mobile Number</th>
-                    
+
                     <th class="p-3">Email</th>
                   </tr>
                 </thead>
-                
+
                 <tbody class="divide-y divide-gray-100 bg-white">
                   <%= if @dependents_page.entries == [] do %>
                     <tr>
@@ -671,17 +773,17 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                     <%= for dep <- @dependents_page.entries do %>
                       <tr class="hover:bg-gray-50">
                         <td class="p-3 text-gray-700">{dep.relationship}</td>
-                        
+
                         <td class="p-3 font-medium text-gray-900">{dep.employee_name}</td>
-                        
+
                         <td class="p-3 text-gray-600">{dep.gender || "-"}</td>
-                        
+
                         <td class="p-3 text-gray-600">{dep.dob || "-"}</td>
-                        
+
                         <td class="p-3 text-gray-600">{dep.age || "-"}</td>
-                        
+
                         <td class="p-3 text-gray-600">{dep.mobile_number || "-"}</td>
-                        
+
                         <td class="p-3 text-gray-600">{dep.email || "-"}</td>
                       </tr>
                     <% end %>
@@ -689,7 +791,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 </tbody>
               </table>
             </div>
-             <%!-- Modal Pagination Footer (10 / page) --%>
+            <%!-- Modal Pagination Footer (10 / page) --%>
             <div class="flex items-center justify-end mt-4 text-xs text-gray-600 space-x-2">
               <button
                 type="button"
@@ -700,11 +802,11 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &lt;
               </button>
-              
+
               <span class="px-2.5 py-1 border border-blue-600 rounded-md bg-white font-medium text-blue-600">
                 {@dependents_page.page}
               </span>
-              
+
               <button
                 type="button"
                 disabled={@dependents_page.page >= @dependents_page.total_pages}
@@ -714,7 +816,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &gt;
               </button>
-              
+
               <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
                 10/page
               </span>

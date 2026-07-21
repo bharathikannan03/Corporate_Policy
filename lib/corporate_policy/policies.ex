@@ -19,6 +19,8 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.MasterPolicyFeatureTemplateField
   alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
+  alias CorporatePolicy.Policies.MasterInceptionDataUpload
+  alias CorporatePolicy.Policies.MasterEndorsementDataUpload
 
   @page_size 15
 
@@ -948,5 +950,272 @@ defmodule CorporatePolicy.Policies do
   defp me_filter_search(query, :email, val) do
     pattern = "%#{String.trim(val)}%"
     from e in query, where: ilike(e.email, ^pattern)
+  end
+
+  # === List View Queries (Active, Inception, Addition, Deletion) ===
+
+  @doc """
+  Returns counts for List View tabs (%{active_count: integer, inception_count: integer, addition_count: integer, deletion_count: integer}).
+  """
+  def get_policy_list_counts(nil) do
+    %{active_count: 0, inception_count: 0, addition_count: 0, deletion_count: 0}
+  end
+
+  def get_policy_list_counts(policy_id) do
+    active_count =
+      Repo.aggregate(
+        from(e in TrnMappingLiveEmployee,
+          where:
+            e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+              (e.status == "active" or is_nil(e.status))
+        ),
+        :count,
+        :id
+      ) || 0
+
+    inception_count =
+      Repo.aggregate(
+        from(m in MasterInceptionDataUpload,
+          where: m.ref_policy_id == ^policy_id and is_nil(m.deleted_at)
+        ),
+        :count,
+        :id
+      ) || 0
+
+    endorsement_data = get_deduplicated_endorsement_records(policy_id)
+    addition_count = length(endorsement_data.addition)
+    deletion_count = length(endorsement_data.deletion)
+
+    %{
+      active_count: active_count,
+      inception_count: inception_count,
+      addition_count: addition_count,
+      deletion_count: deletion_count
+    }
+  end
+
+  @doc """
+  Returns paginated list view entries (page size 10) for a given list_type ("active", "inception", "addition", "deletion").
+  """
+  def list_policy_list_view_paginated(nil, _list_type, _params) do
+    %{
+      entries: [],
+      page: 1,
+      page_size: 10,
+      total_entries: 0,
+      total_pages: 1
+    }
+  end
+
+  def list_policy_list_view_paginated(policy_id, list_type, params) do
+    page = normalize_page(Map.get(params, "page", 1))
+    page_size = 10
+
+    all_records =
+      case list_type do
+        "active" ->
+          get_active_live_employee_records(policy_id)
+
+        "inception" ->
+          get_inception_records(policy_id)
+
+        "addition" ->
+          get_deduplicated_endorsement_records(policy_id).addition
+
+        "deletion" ->
+          get_deduplicated_endorsement_records(policy_id).deletion
+
+        _ ->
+          get_active_live_employee_records(policy_id)
+      end
+
+    filtered_records = filter_list_records(all_records, params)
+
+    total_entries = length(filtered_records)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      filtered_records
+      |> Enum.slice((page - 1) * page_size, page_size)
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
+  end
+
+  @doc """
+  Generates CSV binary for List View export.
+  """
+  def export_policy_list_view_csv(nil, _list_type), do: ""
+
+  def export_policy_list_view_csv(policy_id, list_type) do
+    policy = Repo.get(Policy, policy_id)
+    policy_number = (policy && policy.policy_number) || ""
+
+    records =
+      case list_type do
+        "active" -> get_active_live_employee_records(policy_id)
+        "inception" -> get_inception_records(policy_id)
+        "addition" -> get_deduplicated_endorsement_records(policy_id).addition
+        "deletion" -> get_deduplicated_endorsement_records(policy_id).deletion
+        _ -> get_active_live_employee_records(policy_id)
+      end
+
+    headers = [
+      "SI NO",
+      "EMPLOYEE NAME",
+      "EMPLOYEE ID",
+      "MEMBER ID",
+      "AGE",
+      "DOB",
+      "GENDER",
+      "RELATION",
+      "DATE OF JOINING",
+      "ENDORSEMENT NO",
+      "ENDORSEMENT DATE",
+      "SUMINSURED",
+      "POLICY NUMBER",
+      "EMPLOYEE MOBILE",
+      "EMPLOYEE EMAIL"
+    ]
+
+    rows =
+      records
+      |> Enum.with_index(1)
+      |> Enum.map(fn {rec, idx} ->
+        [
+          idx,
+          rec.employee_name || "",
+          rec.employee_code || "",
+          rec.member_card_number || "",
+          rec.age || "",
+          rec.dob || "",
+          rec.gender || "",
+          rec.relationship || "",
+          rec.doj || "",
+          rec.endorsement_number || "",
+          rec.endorsement_date || "",
+          rec.sum_insured || "",
+          policy_number,
+          rec.mobile_number || "",
+          rec.email || ""
+        ]
+      end)
+
+    [headers | rows]
+    |> NimbleCSV.RFC4180.dump_to_iodata()
+    |> IO.iodata_to_binary()
+  end
+
+  defp get_active_live_employee_records(policy_id) do
+    Repo.all(
+      from e in TrnMappingLiveEmployee,
+        where:
+          e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+            (e.status == "active" or is_nil(e.status)),
+        order_by: [asc: e.id]
+    )
+  end
+
+  defp get_inception_records(policy_id) do
+    Repo.all(
+      from m in MasterInceptionDataUpload,
+        where: m.ref_policy_id == ^policy_id and is_nil(m.deleted_at),
+        order_by: [asc: m.id]
+    )
+  end
+
+  defp get_deduplicated_endorsement_records(policy_id) do
+    records =
+      Repo.all(
+        from m in MasterEndorsementDataUpload,
+          where: m.ref_policy_id == ^policy_id and is_nil(m.deleted_at),
+          order_by: [asc: m.id]
+      )
+
+    classified =
+      Enum.map(records, fn rec ->
+        type = rec.endorsement_type |> to_string() |> String.downcase()
+
+        category =
+          cond do
+            type in ["employee_addition", "dependent_addition", "addition", "add"] or
+                String.contains?(type, "add") ->
+              :addition
+
+            type in ["employee_deletion", "dependent_deletion", "deletion", "del"] or
+                String.contains?(type, "del") ->
+              :deletion
+
+            true ->
+              :other
+          end
+
+        {rec, category}
+      end)
+
+    additions = Enum.filter(classified, fn {_r, cat} -> cat == :addition end)
+    deletions = Enum.filter(classified, fn {_r, cat} -> cat == :deletion end)
+
+    member_key = fn rec ->
+      code = (rec.employee_code || "") |> String.trim() |> String.downcase()
+      rel = (rec.relationship || "") |> String.trim() |> String.downcase()
+      {code, rel}
+    end
+
+    addition_keys = additions |> Enum.map(fn {r, _} -> member_key.(r) end) |> MapSet.new()
+    deletion_keys = deletions |> Enum.map(fn {r, _} -> member_key.(r) end) |> MapSet.new()
+
+    cancelled_keys = MapSet.intersection(addition_keys, deletion_keys)
+
+    valid_additions =
+      additions
+      |> Enum.map(fn {r, _} -> r end)
+      |> Enum.reject(fn r -> member_key.(r) in cancelled_keys end)
+      |> Enum.uniq_by(member_key)
+
+    valid_deletions =
+      deletions
+      |> Enum.map(fn {r, _} -> r end)
+      |> Enum.reject(fn r -> member_key.(r) in cancelled_keys end)
+      |> Enum.uniq_by(member_key)
+
+    %{addition: valid_additions, deletion: valid_deletions}
+  end
+
+  defp filter_list_records(records, params) do
+    emp_name = (params["employee_name"] || "") |> String.trim() |> String.downcase()
+    emp_code = (params["employee_code"] || "") |> String.trim() |> String.downcase()
+    sum_ins = (params["sum_insured"] || "") |> String.trim() |> String.downcase()
+    mobile = (params["mobile_number"] || "") |> String.trim() |> String.downcase()
+    email = (params["email"] || "") |> String.trim() |> String.downcase()
+    search = (params["search"] || "") |> String.trim() |> String.downcase()
+
+    Enum.filter(records, fn rec ->
+      r_name = (rec.employee_name || "") |> String.downcase()
+      r_code = (rec.employee_code || "") |> String.downcase()
+      r_sum = (rec.sum_insured || "") |> to_string() |> String.downcase()
+      r_mob = (rec.mobile_number || "") |> String.downcase()
+      r_email = (rec.email || "") |> String.downcase()
+      r_rel = (rec.relationship || "") |> String.downcase()
+
+      match_name = emp_name == "" or String.contains?(r_name, emp_name)
+      match_code = emp_code == "" or String.contains?(r_code, emp_code)
+      match_sum = sum_ins == "" or String.contains?(r_sum, sum_ins)
+      match_mob = mobile == "" or String.contains?(r_mob, mobile)
+      match_email = email == "" or String.contains?(r_email, email)
+
+      match_search =
+        search == "" or String.contains?(r_name, search) or String.contains?(r_code, search) or
+          String.contains?(r_mob, search) or String.contains?(r_email, search) or
+          String.contains?(r_rel, search)
+
+      match_name and match_code and match_sum and match_mob and match_email and match_search
+    end)
   end
 end

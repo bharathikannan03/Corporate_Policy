@@ -143,7 +143,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               <option value="" disabled selected={@form[:document_type_id].value == ""}>
                 Select Document Type
               </option>
-              
+
               <%= for type <- @doc_types do %>
                 <option
                   value={type.id}
@@ -154,7 +154,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               <% end %>
             </select>
           </div>
-          
+
           <div>
             <label class="corp-label">Document Name <span class="text-red-500">*</span></label>
             <select
@@ -166,7 +166,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               <option value="" disabled selected={@form[:document_name_id].value == ""}>
                 Type or select Document Name
               </option>
-              
+
               <%= for name <- @available_doc_names do %>
                 <option
                   value={name.id}
@@ -178,7 +178,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             </select>
           </div>
         </div>
-        
+
         <div class="mb-4">
           <label class="corp-label">Note</label>
           <input
@@ -189,7 +189,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             placeholder="Enter a note (Optional)"
           />
         </div>
-        
+
         <div class="mb-4">
           <label class="corp-label">Attach Documents (PDF only) <span class="text-red-500">*</span></label>
           <div
@@ -206,7 +206,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             >
               Click to browse
             </label>
-             <span class="text-gray-500"> or drag and drop your PDF here</span>
+            <span class="text-gray-500"> or drag and drop your PDF here</span>
           </div>
         </div>
         <!-- Preview pending uploads -->
@@ -227,7 +227,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             </div>
           </div>
         <% end %>
-        
+
         <div class="flex justify-start mt-4">
           <button
             type="submit"
@@ -248,15 +248,15 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             >
             </path></svg>
           </div>
-          
+
           <div>
             <p class="font-semibold mb-1">Note:</p>
-            
+
             <ul class="list-disc ml-5">
               <li>
                 <strong>Service Document</strong> - Service documents which help for claim procedure
               </li>
-              
+
               <li>
                 <strong>Policy Documents (Policy Copies)</strong>
                 - Policy Documents will be only visible to HR
@@ -271,19 +271,19 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
           <thead>
             <tr>
               <th>S.No</th>
-              
+
               <th>Document Type</th>
-              
+
               <th>Document Name</th>
-              
+
               <th>Attachment</th>
-              
+
               <th>Note</th>
-              
+
               <th class="text-right">Action</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@documents) do %>
               <tr>
@@ -303,17 +303,17 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               <%= for {doc, index} <- Enum.with_index(@documents, 1) do %>
                 <tr>
                   <td>{index}</td>
-                  
+
                   <td>{doc.document_type}</td>
-                  
+
                   <td>{doc.document_name}</td>
-                  
+
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {doc.original_file_name}
                   </td>
-                  
+
                   <td>{doc.note}</td>
-                  
+
                   <td class="text-right">
                     <button
                       type="button"
@@ -336,12 +336,12 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         <button class="btn btn-sm btn-primary">Previous</button>
         <button class="btn btn-sm btn-primary">Next</button>
       </div>
-      
+
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step6" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

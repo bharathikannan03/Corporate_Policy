@@ -83,12 +83,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           <label class="corp-label">
             Policy Feature Identifier <span class="corp-required">*</span>
           </label>
-          
+
           <select name="policy_feature_identifier" class="corp-input" required>
             <option value="" disabled selected={@form[:policy_feature_identifier].value == ""}>
               Select Feature
             </option>
-            
+
             <%= for pi <- @policy_identifiers do %>
               <option
                 value={pi.policy_identifier}
@@ -99,12 +99,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             <% end %>
           </select>
         </div>
-         <%!-- Field 2: Sum Insured Text Box --%>
+        <%!-- Field 2: Sum Insured Text Box --%>
         <div class="flex-1">
           <label class="corp-label">
             Sum Insured <span class="corp-required">*</span>
           </label>
-          
+
           <input
             type="text"
             name="sum_insured"
@@ -114,26 +114,26 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             required
           />
         </div>
-        
+
         <div>
           <button type="submit" class="btn btn-outline btn-primary">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add
           </button>
         </div>
       </.form>
-       <%!-- List of Added Sum Insureds --%>
+      <%!-- List of Added Sum Insureds --%>
       <div class="overflow-x-auto corp-table-card mb-8">
         <table class="corp-table">
           <thead>
             <tr>
               <th class="corp-th p-4 border-b text-left">POLICY FEATURE IDENTIFIER</th>
-              
+
               <th class="corp-th p-4 border-b text-left">SUM INSURED AMOUNT</th>
-              
+
               <th class="corp-th p-4 border-b text-right w-24">ACTION</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
@@ -147,11 +147,11 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
                   <td class="corp-td p-4 border-b font-medium">
                     {si.policy_feature_identifier}
                   </td>
-                  
+
                   <td class="corp-td p-4 border-b">
                     {si.sum_insured}
                   </td>
-                  
+
                   <td class="corp-td p-4 border-b text-right">
                     <button
                       type="button"
@@ -170,12 +170,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           </tbody>
         </table>
       </div>
-      
+
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

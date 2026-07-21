@@ -55,7 +55,7 @@ defmodule CorporatePolicy.DataUploadService do
   end
 
   defp process_file(data_type, file_path, policy_id, _original_file_name, user_id) do
-    content = File.read!(file_path)
+    content = File.read!(file_path) |> sanitize_utf8()
     rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
 
     case data_type do
@@ -267,8 +267,40 @@ defmodule CorporatePolicy.DataUploadService do
   defp deletion_type?(_), do: false
 
   defp clean_string(nil), do: ""
-  defp clean_string(val) when is_binary(val), do: String.trim(val)
-  defp clean_string(val), do: to_string(val) |> String.trim()
+
+  defp clean_string(val) when is_binary(val) do
+    val
+    |> sanitize_utf8()
+    |> String.replace(~r/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\xA0]/, " ")
+    |> String.replace("\u00A0", " ")
+    |> String.trim()
+  end
+
+  defp clean_string(val) do
+    to_string(val)
+    |> clean_string()
+  end
+
+  defp sanitize_utf8(binary) when is_binary(binary) do
+    if String.valid?(binary) do
+      binary
+      |> String.replace(<<160>>, " ")
+      |> String.replace("\u00A0", " ")
+    else
+      case :unicode.characters_to_binary(binary, :latin1, :utf8) do
+        utf8 when is_binary(utf8) ->
+          utf8
+          |> String.replace(<<160>>, " ")
+          |> String.replace("\u00A0", " ")
+
+        _ ->
+          binary
+          |> :binary.bin_to_list()
+          |> Enum.filter(&(&1 in 32..126 or &1 in [9, 10, 13]))
+          |> List.to_string()
+      end
+    end
+  end
 
   defp pad_row(row, min_length) do
     len = length(row)
@@ -283,7 +315,7 @@ defmodule CorporatePolicy.DataUploadService do
   defp parse_int(nil), do: nil
 
   defp parse_int(val) do
-    case Integer.parse(to_string(val) |> String.trim()) do
+    case Integer.parse(clean_string(val)) do
       {num, _} -> num
       :error -> nil
     end
@@ -292,7 +324,7 @@ defmodule CorporatePolicy.DataUploadService do
   defp parse_float(nil), do: nil
 
   defp parse_float(val) do
-    str = to_string(val) |> String.trim()
+    str = clean_string(val)
 
     case Float.parse(str) do
       {num, _} ->

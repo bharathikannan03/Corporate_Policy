@@ -75,19 +75,23 @@ defmodule CorporatePolicy.DataUploadService do
       [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
         pad_row(row, 10)
 
-      Repo.insert!(%MasterInceptionDataUpload{
-        ref_policy_id: policy_id,
-        employee_code: clean_string(emp_code),
-        employee_name: clean_string(emp_name),
-        gender: clean_string(gender),
-        relationship: clean_string(rel),
-        dob: clean_string(dob),
-        age: parse_int(age),
-        mobile_number: clean_string(mobile),
-        email: clean_string(email),
-        sum_insured: parse_float(sum_insured),
-        doj: clean_string(Enum.at(rest, 0))
-      })
+      code = clean_string(emp_code)
+
+      if code != "" do
+        Repo.insert!(%MasterInceptionDataUpload{
+          ref_policy_id: policy_id,
+          employee_code: code,
+          employee_name: clean_string(emp_name),
+          gender: clean_string(gender),
+          relationship: normalize_relationship(rel, code),
+          dob: clean_string(dob),
+          age: parse_int(age),
+          mobile_number: clean_string(mobile),
+          email: clean_string(email),
+          sum_insured: parse_float(sum_insured),
+          doj: clean_string(Enum.at(rest, 0))
+        })
+      end
     end)
 
     save_trn_mapping_live_employees(rows, policy_id, "Inception", user_id)
@@ -114,25 +118,27 @@ defmodule CorporatePolicy.DataUploadService do
       card_no = Enum.at(padded, 14) |> clean_string()
       designation = Enum.at(padded, 15) |> clean_string()
 
-      Repo.insert!(%MasterEndorsementDataUpload{
-        ref_policy_id: policy_id,
-        employee_code: emp_code,
-        employee_name: emp_name,
-        gender: gender,
-        relationship: rel,
-        dob: dob,
-        age: age,
-        mobile_number: mobile,
-        email: email,
-        sum_insured: sum_insured,
-        doj: doj,
-        endorsement_number: end_no,
-        endorsement_date: end_date,
-        endorsement_type: end_type,
-        dol: dol,
-        member_card_number: card_no,
-        designation: designation
-      })
+      if emp_code != "" do
+        Repo.insert!(%MasterEndorsementDataUpload{
+          ref_policy_id: policy_id,
+          employee_code: emp_code,
+          employee_name: emp_name,
+          gender: gender,
+          relationship: normalize_relationship(rel, emp_code),
+          dob: dob,
+          age: age,
+          mobile_number: mobile,
+          email: email,
+          sum_insured: sum_insured,
+          doj: doj,
+          endorsement_number: end_no,
+          endorsement_date: end_date,
+          endorsement_type: end_type,
+          dol: dol,
+          member_card_number: card_no,
+          designation: designation
+        })
+      end
     end)
 
     save_trn_mapping_live_employees(rows, policy_id, "Endorsement", user_id)
@@ -199,14 +205,14 @@ defmodule CorporatePolicy.DataUploadService do
       card_no = Enum.at(padded, 14) |> clean_string()
       designation = Enum.at(padded, 15) |> clean_string()
 
-      relationship_value = if(rel != "", do: rel, else: "Self")
-
       if emp_code != "" do
+        relationship_value = normalize_relationship(rel, emp_code)
+
         if source_type == "Endorsement" and deletion_type?(end_type) do
           # Deletion processing rule:
-          # If relationship == "Self", throw invalid data error, do NOT save, do NOT log!
-          if String.downcase(relationship_value) == "self" do
-            raise "Invalid data: Deletion requested for employee relationship 'Self' (Employee Code: #{emp_code}). Upload aborted."
+          # If relationship == "Employee" or "Self", throw invalid data error, do NOT save, do NOT log!
+          if String.downcase(relationship_value) in ["employee", "self"] do
+            raise "Invalid data: Deletion requested for primary employee (Employee Code: #{emp_code}). Upload aborted."
           else
             # Valid dependant deletion (relationship != "Self")
             member =
@@ -357,6 +363,21 @@ defmodule CorporatePolicy.DataUploadService do
           {num, _} -> num / 1.0
           :error -> nil
         end
+    end
+  end
+
+  defp normalize_relationship(rel, emp_code) do
+    cleaned = clean_string(rel)
+
+    cond do
+      cleaned == "" ->
+        raise "Invalid data: Relationship is missing for record (Employee Code: #{emp_code}). Upload aborted."
+
+      String.downcase(cleaned) in ["self", "employee"] ->
+        "Employee"
+
+      true ->
+        cleaned
     end
   end
 end

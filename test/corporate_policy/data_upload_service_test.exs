@@ -81,9 +81,10 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     {:ok, policy: policy, user: user}
   end
 
-  test "process_upload for Inception Data saves to inception and trn_mapping_live_employees", %{
-    policy: policy
-  } do
+  test "process_upload for Inception Data saves to inception and trn_mapping_live_employees with normalized Employee relationship",
+       %{
+         policy: policy
+       } do
     csv_content = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
     EMP001,John Doe,Male,Self,1990-01-01,34,9876543210,john@example.com,500000,2020-01-01
@@ -104,12 +105,14 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     inception_records = Repo.all(MasterInceptionDataUpload)
     assert length(inception_records) == 1
     assert Enum.at(inception_records, 0).employee_code == "EMP001"
+    assert Enum.at(inception_records, 0).relationship == "Employee"
 
     employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1
     emp = Enum.at(employee_records, 0)
     assert emp.employee_code == "EMP001"
     assert emp.employee_name == "John Doe"
+    assert emp.relationship == "Employee"
     assert emp.ref_corporate_id == policy.ref_corporate_id
     assert emp.source_type == "Inception"
   end
@@ -118,7 +121,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
        %{policy: policy} do
     inception_csv = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
-    EMP002,Jane Smith,Female,Self,1992-05-15,32,9876543211,jane@example.com,300000,2021-03-01
+    EMP002,Jane Smith,Female,Employee,1992-05-15,32,9876543211,jane@example.com,300000,2021-03-01
     """
 
     endorsement_csv = """
@@ -152,6 +155,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert length(endorsements) == 1
     end_rec = Enum.at(endorsements, 0)
     assert end_rec.employee_code == "EMP002"
+    assert end_rec.relationship == "Employee"
     assert end_rec.endorsement_number == "END01"
     assert end_rec.endorsement_date == "2024-01-01"
     assert end_rec.endorsement_type == "Addition"
@@ -160,6 +164,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert length(employee_records) == 1
     emp = Enum.at(employee_records, 0)
     assert emp.employee_code == "EMP002"
+    assert emp.relationship == "Employee"
     assert emp.email == "jane_updated@example.com"
     assert emp.mobile_number == "9998887770"
     assert emp.sum_insured == 500_000.0
@@ -204,7 +209,9 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert spouse.status == "inactive"
     refute is_nil(spouse.deleted_at)
 
-    employee = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP004", relationship: "Self")
+    employee =
+      Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP004", relationship: "Employee")
+
     assert employee.status == "active"
     assert is_nil(employee.deleted_at)
 
@@ -216,7 +223,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert log.deletion_category == "Dependant Deletion"
   end
 
-  test "process_upload throws error on deletion record with relationship = Self", %{
+  test "process_upload throws error on deletion record with relationship = Employee or Self", %{
     policy: policy
   } do
     inception_csv = """
@@ -243,7 +250,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     )
 
     assert_raise RuntimeError,
-                 ~r/Invalid data: Deletion requested for employee relationship 'Self'/,
+                 ~r/Invalid data: Deletion requested for primary employee/,
                  fn ->
                    DataUploadService.process_upload(
                      policy.id,
@@ -261,28 +268,25 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert length(Repo.all(TrnEndorsementDeletionLog)) == 0
   end
 
-  test "process_upload handles whitespaces and defaults blank relationship to Self", %{
+  test "process_upload raises error when relationship is blank or missing", %{
     policy: policy
   } do
     csv_content = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
-      EMP003  ,  Bob White  ,Male,,1988-12-10,35,9123456789,bob@example.com,400000,2019-06-01
+    EMP003,Bob White,Male,,1988-12-10,35,9123456789,bob@example.com,400000,2019-06-01
     """
 
-    tmp_path = Path.join(System.tmp_dir!(), "trim_test_#{policy.id}.csv")
+    tmp_path = Path.join(System.tmp_dir!(), "missing_rel_#{policy.id}.csv")
     File.write!(tmp_path, csv_content)
 
-    assert {:ok, _upload} =
-             DataUploadService.process_upload(
-               policy.id,
-               "Inception Data",
-               "Trim Inception",
-               tmp_path,
-               "trim.csv"
-             )
-
-    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP003")
-    assert emp.employee_name == "Bob White"
-    assert emp.relationship == "Self"
+    assert_raise RuntimeError, ~r/Invalid data: Relationship is missing for record/, fn ->
+      DataUploadService.process_upload(
+        policy.id,
+        "Inception Data",
+        "Missing Relationship",
+        tmp_path,
+        "missing_rel.csv"
+      )
+    end
   end
 end

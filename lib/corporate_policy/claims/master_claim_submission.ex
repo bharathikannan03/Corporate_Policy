@@ -33,6 +33,7 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
     field :remarks, :string
     field :claim_status, :string, default: "Draft"
     field :submitted_at, :utc_datetime_usec
+    field :submitted_by, :integer
     field :deleted_at, :utc_datetime_usec
 
     belongs_to :policy, Policy, foreign_key: :ref_policy_id
@@ -53,7 +54,7 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
 
   @optional_fields ~w(
     intimation_number corporate_name policy_number policy_type insurer_name tpa_name employee_name
-    relationship treatment_details remarks submitted_at created_by updated_by deleted_at
+    relationship treatment_details remarks submitted_at submitted_by created_by updated_by deleted_at
   )a
 
   @locked_update_fields ~w(ref_corporate_id ref_policy_id employee_code patient_name estimated_amount)a
@@ -114,10 +115,15 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
     start_date = get_field(changeset, :hospitalization_date)
     end_date = get_field(changeset, :discharge_date)
 
-    if start_date && end_date && Date.compare(end_date, start_date) == :lt do
-      add_error(changeset, :discharge_date, "must be on or after hospitalization date")
-    else
-      changeset
+    cond do
+      is_nil(start_date) or is_nil(end_date) ->
+        changeset
+
+      Date.compare(end_date, start_date) in [:lt, :eq] ->
+        add_error(changeset, :discharge_date, "must be after hospitalization date")
+
+      true ->
+        changeset
     end
   end
 end

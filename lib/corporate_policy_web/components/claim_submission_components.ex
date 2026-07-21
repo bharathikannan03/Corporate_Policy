@@ -171,42 +171,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         </table>
       </div>
 
-      <div class="flex items-center justify-between p-4 border-t border-gray-200">
-        <div class="text-sm text-gray-500">
-          Showing {if @claims_page.total_entries == 0,
-            do: 0,
-            else: (@claims_page.page - 1) * @claims_page.page_size + 1} to {min(
-            @claims_page.page * @claims_page.page_size,
-            @claims_page.total_entries
-          )} of {@claims_page.total_entries} entries
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            phx-click="paginate"
-            phx-value-page={@claims_page.page - 1}
-            class="btn btn-sm btn-secondary"
-            disabled={@claims_page.page <= 1}
-          >
-            Previous
-          </button>
-
-          <span class="text-sm font-medium px-3 py-1 border rounded-md">
-            {@claims_page.page} / {@claims_page.total_pages}
-          </span>
-
-          <button
-            type="button"
-            phx-click="paginate"
-            phx-value-page={@claims_page.page + 1}
-            class="btn btn-sm btn-primary"
-            disabled={@claims_page.page >= @claims_page.total_pages}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <.pagination
+        page={@claims_page.page}
+        page_size={@claims_page.page_size}
+        total_entries={@claims_page.total_entries}
+        total_pages={@claims_page.total_pages}
+        event="paginate"
+      />
     </div>
     """
   end
@@ -219,7 +190,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :employees, :list, default: []
   attr :patient_options, :list, default: []
   attr :document_form, :map, required: true
-  attr :documents, :list, default: []
+  attr :documents_page, :map, required: true
   attr :uploads, :map, required: true
   attr :show_upload_modal, :boolean, default: false
   attr :document_requirements, :list, default: []
@@ -314,7 +285,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[ref_policy_id]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :ref_policy_id)}
+              disabled={
+                readonly_field?(@claim, :ref_policy_id) or @form[:ref_corporate_id].value in [nil, ""]
+              }
             >
               <option value="">Select Policy Number</option>
               <%= for policy <- @policies do %>
@@ -334,7 +307,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[employee_code]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :employee_code)}
+              disabled={
+                readonly_field?(@claim, :employee_code) or @form[:ref_policy_id].value in [nil, ""]
+              }
             >
               <option value="">Select Employee Code</option>
               <%= for employee <- @employees do %>
@@ -342,7 +317,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   value={employee.employee_code}
                   selected={to_string(@form[:employee_code].value || "") == employee.employee_code}
                 >
-                  {employee.employee_code} - {employee.employee_name}
+                  {employee.employee_code}
                 </option>
               <% end %>
             </select>
@@ -354,7 +329,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               name="claim[patient_name]"
               class="corp-input"
               required
-              disabled={readonly_field?(@claim, :patient_name)}
+              disabled={
+                readonly_field?(@claim, :patient_name) or @form[:employee_code].value in [nil, ""]
+              }
             >
               <option value="">Select Patient Name</option>
               <%= for patient <- @patient_options do %>
@@ -398,24 +375,51 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
 
           <div class="corp-field-group">
             <label class="corp-label">Hospitalization Date <span class="corp-required">*</span></label>
-            <input
-              type="date"
-              name="claim[hospitalization_date]"
-              value={@form[:hospitalization_date].value || ""}
-              class="corp-input"
-              required
-            />
+            <div class="corp-input-with-icon">
+              <input
+                id={"#{@portal}-hospitalization-date"}
+                type="date"
+                name="claim[hospitalization_date]"
+                value={@form[:hospitalization_date].value || ""}
+                class="corp-input"
+                required
+              />
+              <button
+                type="button"
+                id={"#{@portal}-hospitalization-date-trigger"}
+                class="corp-date-trigger"
+                phx-hook="DatePickerTrigger"
+                data-input-id={"#{@portal}-hospitalization-date"}
+                aria-label="Open hospitalization date picker"
+              >
+                <.icon name="hero-calendar-days" class="corp-date-trigger-icon" />
+              </button>
+            </div>
           </div>
 
           <div class="corp-field-group">
             <label class="corp-label">Discharge Date <span class="corp-required">*</span></label>
-            <input
-              type="date"
-              name="claim[discharge_date]"
-              value={@form[:discharge_date].value || ""}
-              class="corp-input"
-              required
-            />
+            <div class="corp-input-with-icon">
+              <input
+                id={"#{@portal}-discharge-date"}
+                type="date"
+                name="claim[discharge_date]"
+                value={@form[:discharge_date].value || ""}
+                min={next_discharge_date(@form[:hospitalization_date].value)}
+                class="corp-input"
+                required
+              />
+              <button
+                type="button"
+                id={"#{@portal}-discharge-date-trigger"}
+                class="corp-date-trigger"
+                phx-hook="DatePickerTrigger"
+                data-input-id={"#{@portal}-discharge-date"}
+                aria-label="Open discharge date picker"
+              >
+                <.icon name="hero-calendar-days" class="corp-date-trigger-icon" />
+              </button>
+            </div>
           </div>
 
           <div class="corp-field-group">
@@ -451,6 +455,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="City"
               required
+              readonly
             />
           </div>
 
@@ -463,6 +468,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="State"
               required
+              readonly
             />
           </div>
 
@@ -475,6 +481,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               placeholder="Pincode"
               required
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              maxlength="6"
             />
           </div>
 
@@ -558,7 +567,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 </thead>
 
                 <tbody>
-                  <%= if @documents == [] do %>
+                  <%= if @documents_page.entries == [] do %>
                     <tr class="corp-empty-row">
                       <td colspan="5" class="corp-empty-cell">
                         <div class="corp-empty-state">
@@ -568,9 +577,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                       </td>
                     </tr>
                   <% else %>
-                    <%= for {document, index} <- Enum.with_index(@documents, 1) do %>
+                    <%= for {document, index} <- Enum.with_index(@documents_page.entries, 1) do %>
                       <tr class="corp-tr">
-                        <td class="corp-td">{index}</td>
+                        <td class="corp-td">
+                          {(@documents_page.page - 1) * @documents_page.page_size + index}
+                        </td>
                         <td class="corp-td">{document.document_name}</td>
                         <td class="corp-td">
                           <a
@@ -600,6 +611,14 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 </tbody>
               </table>
             </div>
+
+            <.pagination
+              page={@documents_page.page}
+              page_size={@documents_page.page_size}
+              total_entries={@documents_page.total_entries}
+              total_pages={@documents_page.total_pages}
+              event="paginate_documents"
+            />
           </div>
 
           <div class="flex items-center justify-between">
@@ -657,12 +676,16 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                     class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"
                     phx-drop-target={@uploads.claim_document.ref}
                   >
-                    <.live_file_input upload={@uploads.claim_document} class="hidden" />
+                    <.live_file_input
+                      upload={@uploads.claim_document}
+                      id={@uploads.claim_document.ref}
+                      class="upload-file-input"
+                    />
                     <label
                       for={@uploads.claim_document.ref}
-                      class="cursor-pointer text-blue-600 hover:underline font-medium"
+                      class="upload-btn"
                     >
-                      Click to upload
+                      <.icon name="hero-arrow-up-tray" class="w-4 h-4" /> Click to upload
                     </label>
                   </div>
 
@@ -771,5 +794,21 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
       <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
     </button>
     """
+  end
+
+  defp next_discharge_date(nil), do: nil
+  defp next_discharge_date(""), do: nil
+
+  defp next_discharge_date(%Date{} = hospitalization_date) do
+    hospitalization_date
+    |> Date.add(1)
+    |> Date.to_iso8601()
+  end
+
+  defp next_discharge_date(hospitalization_date) when is_binary(hospitalization_date) do
+    case Date.from_iso8601(hospitalization_date) do
+      {:ok, date} -> next_discharge_date(date)
+      _ -> nil
+    end
   end
 end

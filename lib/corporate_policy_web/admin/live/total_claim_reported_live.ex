@@ -369,6 +369,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                     <th class="corp-th">Claim ID</th>
                     <th class="corp-th">Policy ID</th>
                     <th class="corp-th">Portal ID</th>
+                    <th class="corp-th">Submitted By</th>
                     <th class="corp-th">Action</th>
                     <th class="corp-th">User ID</th>
                     <th class="corp-th">Timestamp</th>
@@ -379,7 +380,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                 <tbody>
                   <%= if @selected_claim.logs == [] do %>
                     <tr class="corp-empty-row">
-                      <td colspan="8" class="corp-empty-cell">No logs available for this claim.</td>
+                      <td colspan="9" class="corp-empty-cell">No logs available for this claim.</td>
                     </tr>
                   <% else %>
                     <%= for {log, index} <- Enum.with_index(@selected_claim.logs, 1) do %>
@@ -388,6 +389,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                         <td class="corp-td">{log.claim_id}</td>
                         <td class="corp-td">{log.policy_id}</td>
                         <td class="corp-td">{log.portal_id}</td>
+                        <td class="corp-td">{blank_dash(log.submitted_by)}</td>
                         <td class="corp-td">{log.action}</td>
                         <td class="corp-td">{blank_dash(log.user_id)}</td>
                         <td class="corp-td">{format_datetime(log.inserted_at)}</td>

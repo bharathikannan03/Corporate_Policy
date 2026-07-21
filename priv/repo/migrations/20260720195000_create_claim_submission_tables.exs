@@ -31,6 +31,7 @@ defmodule CorporatePolicy.Repo.Migrations.CreateClaimSubmissionTables do
       add :remarks, :text
       add :claim_status, :string, default: "Draft", null: false
       add :submitted_at, :utc_datetime_usec
+      add :submitted_by, :bigint
       add :created_by, references(:users, on_delete: :nothing)
       add :updated_by, references(:users, on_delete: :nothing)
       add :deleted_at, :utc_datetime_usec
@@ -65,10 +66,11 @@ defmodule CorporatePolicy.Repo.Migrations.CreateClaimSubmissionTables do
     create_if_not_exists index(:master_claim_submission_documents, [:claim_id])
     create_if_not_exists index(:master_claim_submission_documents, [:policy_id])
 
-    create_if_not_exists table(:master_claim_logs) do
+    create_if_not_exists table(:trp_claim_submission_logs) do
       add :claim_id, references(:master_claim_submission, on_delete: :delete_all), null: false
       add :policy_id, :integer, null: false
       add :portal_id, :integer, null: false
+      add :submitted_by, :bigint
       add :action, :string, null: false
       add :remarks, :text
       add :user_id, references(:users, on_delete: :nothing)
@@ -76,8 +78,8 @@ defmodule CorporatePolicy.Repo.Migrations.CreateClaimSubmissionTables do
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end
 
-    create_if_not_exists index(:master_claim_logs, [:claim_id])
-    create_if_not_exists index(:master_claim_logs, [:policy_id])
-    create_if_not_exists index(:master_claim_logs, [:portal_id])
+    create_if_not_exists index(:trp_claim_submission_logs, [:claim_id])
+    create_if_not_exists index(:trp_claim_submission_logs, [:policy_id])
+    create_if_not_exists index(:trp_claim_submission_logs, [:portal_id])
   end
 end

@@ -406,6 +406,99 @@ defmodule CorporatePolicyWeb.CoreComponents do
     """
   end
 
+  attr :page, :integer, required: true
+  attr :page_size, :integer, required: true
+  attr :total_entries, :integer, required: true
+  attr :total_pages, :integer, required: true
+  attr :event, :string, default: "paginate"
+  attr :target, :any, default: nil
+  attr :class, :string, default: nil
+
+  def pagination(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :page_numbers,
+        CorporatePolicyWeb.Pagination.page_window(assigns.page, assigns.total_pages)
+      )
+
+    ~H"""
+    <div class={[
+      "flex flex-col gap-4 border-t border-gray-200 p-4 md:flex-row md:items-center md:justify-between",
+      @class
+    ]}>
+      <div class="text-sm text-gray-500">
+        Showing {showing_start(@page, @page_size, @total_entries)} to {showing_end(
+          @page,
+          @page_size,
+          @total_entries
+        )} of {@total_entries} entries
+        <span class="ml-2 text-gray-400">Page {@page} of {@total_pages}</span>
+      </div>
+
+      <div :if={@total_pages > 1} class="join self-start md:self-auto">
+        <button
+          type="button"
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page="1"
+          class="join-item btn btn-sm btn-outline btn-secondary"
+          disabled={@page <= 1}
+        >
+          First
+        </button>
+
+        <button
+          type="button"
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@page - 1}
+          class="join-item btn btn-sm btn-outline btn-secondary"
+          disabled={@page <= 1}
+        >
+          Previous
+        </button>
+
+        <button
+          :for={page_number <- @page_numbers}
+          type="button"
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={page_number}
+          class={[
+            "join-item btn btn-sm min-w-10",
+            if(page_number == @page, do: "btn-primary", else: "btn-outline btn-secondary")
+          ]}
+        >
+          {page_number}
+        </button>
+
+        <button
+          type="button"
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@page + 1}
+          class="join-item btn btn-sm btn-outline btn-secondary"
+          disabled={@page >= @total_pages}
+        >
+          Next
+        </button>
+
+        <button
+          type="button"
+          phx-click={@event}
+          phx-target={@target}
+          phx-value-page={@total_pages}
+          class="join-item btn btn-sm btn-outline btn-secondary"
+          disabled={@page >= @total_pages}
+        >
+          Last
+        </button>
+      </div>
+    </div>
+    """
+  end
+
   @doc """
   Renders a data list.
 
@@ -460,6 +553,12 @@ defmodule CorporatePolicyWeb.CoreComponents do
     <span class={[@name, @class]} />
     """
   end
+
+  defp showing_start(_page, _page_size, 0), do: 0
+  defp showing_start(page, page_size, _total_entries), do: (page - 1) * page_size + 1
+
+  defp showing_end(_page, _page_size, 0), do: 0
+  defp showing_end(page, page_size, total_entries), do: min(page * page_size, total_entries)
 
   ## JS Commands
 

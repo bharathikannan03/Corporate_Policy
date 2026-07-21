@@ -1,6 +1,7 @@
 defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
   alias CorporatePolicy.Claims
   alias CorporatePolicy.Claims.MasterClaimSubmission
+  alias CorporatePolicy.StringUtils
 
   defmacro __using__(opts) do
     portal = Keyword.fetch!(opts, :portal)
@@ -43,7 +44,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           |> assign(:claim, claim)
           |> assign(
             :current_step,
-            if(claim && params["step"] == "documents", do: "documents", else: "details")
+            if(claim && StringUtils.equal?(params["step"], "documents"),
+              do: "documents",
+              else: "details"
+            )
           )
           |> assign(:claim_statuses, Claims.claim_statuses())
           |> assign(:document_requirements, Claims.document_requirements())
@@ -330,7 +334,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         selected_employee_code = claim_params["employee_code"]
 
         patient_options =
-          if selected_policy_id && selected_employee_code,
+          if selected_policy_id && not StringUtils.blank?(selected_employee_code),
             do: Claims.list_patient_options(selected_policy_id, selected_employee_code),
             else: []
 
@@ -410,12 +414,12 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           |> reset_dependent_fields(existing)
 
         selected_policy_id = parse_int(merged["ref_policy_id"])
-        employee_code = merged["employee_code"]
-        patient_name = merged["patient_name"]
-        pincode = Map.get(merged, "pincode", "") |> String.trim()
+        employee_code = StringUtils.normalize(merged["employee_code"])
+        patient_name = StringUtils.normalize(merged["patient_name"])
+        pincode = StringUtils.normalize(Map.get(merged, "pincode", ""))
 
         patient_options =
-          if selected_policy_id && employee_code != "" do
+          if selected_policy_id && not StringUtils.blank?(employee_code) do
             Claims.list_patient_options(selected_policy_id, employee_code)
           else
             []
@@ -435,13 +439,18 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
 
       defp reset_dependent_fields(merged, existing) do
         corporate_changed? =
-          Map.get(existing, "ref_corporate_id", "") != Map.get(merged, "ref_corporate_id", "")
+          StringUtils.normalize(Map.get(existing, "ref_corporate_id", "")) !=
+            StringUtils.normalize(Map.get(merged, "ref_corporate_id", ""))
 
         policy_changed? =
-          Map.get(existing, "ref_policy_id", "") != Map.get(merged, "ref_policy_id", "")
+          StringUtils.normalize(Map.get(existing, "ref_policy_id", "")) !=
+            StringUtils.normalize(Map.get(merged, "ref_policy_id", ""))
 
         employee_changed? =
-          Map.get(existing, "employee_code", "") != Map.get(merged, "employee_code", "")
+          not StringUtils.equal?(
+            Map.get(existing, "employee_code", ""),
+            Map.get(merged, "employee_code", "")
+          )
 
         merged =
           if corporate_changed? do
@@ -475,15 +484,22 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       defp maybe_autoselect_patient(merged, []), do: merged
 
       defp maybe_autoselect_patient(merged, patient_options) do
-        current_patient_name = Map.get(merged, "patient_name", "")
+        current_patient_name = StringUtils.normalize(Map.get(merged, "patient_name", ""))
 
         selected_patient =
           cond do
             current_patient_name != "" and
-                Enum.any?(patient_options, &(&1.employee_name == current_patient_name)) ->
-              Enum.find(patient_options, &(&1.employee_name == current_patient_name))
+                Enum.any?(
+                  patient_options,
+                  &StringUtils.equal?(&1.employee_name, current_patient_name)
+                ) ->
+              Enum.find(
+                patient_options,
+                &StringUtils.equal?(&1.employee_name, current_patient_name)
+              )
 
-            self_patient = Enum.find(patient_options, &(&1.relationship == "Self")) ->
+            self_patient =
+                Enum.find(patient_options, &StringUtils.equal?(&1.relationship, "Self")) ->
               self_patient
 
             length(patient_options) == 1 ->
@@ -503,11 +519,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       defp maybe_apply_employee_details(merged, nil), do: merged
 
       defp maybe_apply_employee_details(merged, selected_policy_id) do
-        employee_code = Map.get(merged, "employee_code", "")
-        patient_name = Map.get(merged, "patient_name", "")
+        employee_code = StringUtils.normalize(Map.get(merged, "employee_code", ""))
+        patient_name = StringUtils.normalize(Map.get(merged, "patient_name", ""))
 
         employee =
-          if employee_code != "" && patient_name != "" do
+          if not StringUtils.blank?(employee_code) && not StringUtils.blank?(patient_name) do
             Claims.get_policy_employee(selected_policy_id, employee_code, patient_name)
           end
 
@@ -526,10 +542,15 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         |> Map.put("state", "")
       end
 
-      defp maybe_apply_location(params, pincode, last_pincode) when pincode == last_pincode,
-        do: params
+      defp maybe_apply_location(params, pincode, last_pincode) do
+        if pincode == StringUtils.normalize(last_pincode) do
+          params
+        else
+          do_apply_location(params, pincode)
+        end
+      end
 
-      defp maybe_apply_location(params, pincode, _last_pincode) do
+      defp do_apply_location(params, pincode) do
         if String.length(pincode) == 6 do
           case Claims.get_location_by_pincode(pincode) do
             %{city: city, state: state} ->
@@ -566,7 +587,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       end
 
       defp parse_int(value) when is_integer(value), do: value
-      defp parse_int(value) when is_binary(value) and value != "", do: String.to_integer(value)
+
+      defp parse_int(value) when is_binary(value) and value != "",
+        do: value |> String.trim() |> String.to_integer()
+
       defp parse_int(_value), do: nil
 
       defp upload_filename(entry) do

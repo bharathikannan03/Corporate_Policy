@@ -1,5 +1,6 @@
 defmodule CorporatePolicy.DataUploadService do
   alias CorporatePolicy.Repo
+  alias CorporatePolicy.StringUtils
 
   alias CorporatePolicy.Policies.{
     MasterPolicyDataUpload,
@@ -301,27 +302,7 @@ defmodule CorporatePolicy.DataUploadService do
     cleaned =
       endorsement_type
       |> clean_string()
-      |> String.downcase()
-      |> String.replace(~r/[\s-]+/, "_")
-
-    normalized =
-      case cleaned do
-        "addition" -> "employee_addition"
-        "add" -> "employee_addition"
-        "emp_addition" -> "employee_addition"
-        "employee_addition" -> "employee_addition"
-        "dependent_addition" -> "dependent_addition"
-        "dependant_addition" -> "dependent_addition"
-        "dep_addition" -> "dependent_addition"
-        "deletion" -> "employee_deletion"
-        "del" -> "employee_deletion"
-        "emp_deletion" -> "employee_deletion"
-        "employee_deletion" -> "employee_deletion"
-        "dependent_deletion" -> "dependent_deletion"
-        "dependant_deletion" -> "dependent_deletion"
-        "dep_deletion" -> "dependent_deletion"
-        other -> other
-      end
+      |> StringUtils.enum_key()
 
     if normalized in @supported_endorsement_types do
       normalized
@@ -447,7 +428,7 @@ defmodule CorporatePolicy.DataUploadService do
       cleaned == "" ->
         raise "Invalid data: Relationship is missing for record (Employee Code: #{emp_code}). Upload aborted."
 
-      String.downcase(cleaned) in ["self", "employee"] ->
+      StringUtils.in?(cleaned, ["self", "employee"]) ->
         "Employee"
 
       true ->

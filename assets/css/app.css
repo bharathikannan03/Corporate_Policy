@@ -831,6 +831,48 @@ body {
   color: #ffffff;
 }
 
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s,
+    transform 0.15s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.btn-primary:focus-visible,
+.btn-success:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 2px solid rgba(29, 78, 216, 0.24);
+  outline-offset: 2px;
+}
+
+.btn-primary:disabled,
+.btn-success:disabled,
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -849,6 +891,14 @@ body {
 
 .btn-secondary:hover {
   background: #e2e8f0;
+}
+
+.corp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .corp-table-card {
@@ -874,6 +924,30 @@ body {
   letter-spacing: 0.5px;
   background: #f8fafc;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.corp-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.corp-sort-button:hover {
+  color: #475569;
+}
+
+.corp-sort-button:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.24);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .corp-tr {
@@ -1242,6 +1316,26 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+}
+
+.corp-date-trigger {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.corp-date-trigger-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .corp-input[type="date"]::-webkit-calendar-picker-indicator {

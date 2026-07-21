@@ -646,13 +646,15 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           />
         </div>
         
-        <div class="corp-field-group corp-field-group--full flex justify-end gap-4 mt-4">
+        <div class="corp-field-group corp-field-group--full corp-form-actions">
           <button type="button" phx-click="cancel" class="btn btn-secondary">
             Cancel
           </button>
           
           <button type="submit" class="btn btn-primary">
-            {if @edit_mode, do: "Save Changes", else: "Create Policy & Next"}
+            <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @edit_mode,
+              do: "Save Changes",
+              else: "Create Policy & Next"}
           </button>
         </div>
       </.form>

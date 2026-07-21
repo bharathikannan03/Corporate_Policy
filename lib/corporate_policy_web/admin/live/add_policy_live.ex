@@ -57,6 +57,11 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
   end
 
   @impl true
+  def handle_info({:put_flash, kind, msg}, socket) do
+    {:noreply, put_flash(socket, kind, msg)}
+  end
+
+  @impl true
   def handle_info({:step_completed, step, policy}, socket) do
     next_step_index = Enum.find_index(@steps, fn s -> s == step end) + 1
     next_step = Enum.at(@steps, next_step_index)

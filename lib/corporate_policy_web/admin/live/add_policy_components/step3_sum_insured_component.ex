@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
   use CorporatePolicyWeb, :live_component
 
   alias CorporatePolicy.Policies
+  alias CorporatePolicyWeb.Pagination
 
   @impl true
   def update(assigns, socket) do
@@ -16,6 +17,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
       |> assign(:sum_insureds, sum_insureds)
       |> assign(:policy_identifiers, policy_identifiers)
       |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))
+      |> assign_sum_insureds_page(sum_insureds)
 
     {:ok, socket}
   end
@@ -45,6 +47,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         {:noreply,
          socket
          |> assign(:sum_insureds, updated_list)
+         |> assign_sum_insureds_page(updated_list)
          |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))}
     end
   end
@@ -53,7 +56,16 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
   def handle_event("remove_sum_insured", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
     updated_list = Enum.reject(socket.assigns.sum_insureds, &(&1.id == id))
-    {:noreply, assign(socket, :sum_insureds, updated_list)}
+
+    {:noreply,
+     socket
+     |> assign(:sum_insureds, updated_list)
+     |> assign_sum_insureds_page(updated_list)}
+  end
+
+  @impl true
+  def handle_event("paginate_table", %{"page" => page}, socket) do
+    {:noreply, assign_sum_insureds_page(socket, socket.assigns.sum_insureds, page)}
   end
 
   @impl true
@@ -142,7 +154,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
                 </td>
               </tr>
             <% else %>
-              <%= for si <- @sum_insureds do %>
+              <%= for si <- @sum_insureds_page.entries do %>
                 <tr class="corp-tr hover:bg-slate-50 transition-colors">
                   <td class="corp-td p-4 border-b font-medium">
                     {si.policy_feature_identifier}
@@ -171,16 +183,32 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         </table>
       </div>
       
+      <.pagination
+        page={@sum_insureds_page.page}
+        page_size={@sum_insureds_page.page_size}
+        total_entries={@sum_insureds_page.total_entries}
+        total_pages={@sum_insureds_page.total_pages}
+        event="paginate_table"
+        target={@myself}
+      />
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
         
-        <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-primary">
+        <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>
       </div>
     </div>
     """
+  end
+
+  defp assign_sum_insureds_page(socket, sum_insureds, page \\ nil) do
+    current_page =
+      page ||
+        if(socket.assigns[:sum_insureds_page], do: socket.assigns.sum_insureds_page.page, else: 1)
+
+    assign(socket, :sum_insureds_page, Pagination.paginate_list(sum_insureds, current_page))
   end
 end

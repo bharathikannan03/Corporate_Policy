@@ -1,6 +1,8 @@
 defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
   use CorporatePolicyWeb, :live_component
 
+  alias CorporatePolicyWeb.Pagination
+
   @impl true
   def update(assigns, socket) do
     corporates = [
@@ -42,6 +44,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
       |> assign(:form, to_form(%{"corporate_id" => "", "cd_account_id" => ""}))
       |> assign(:show_add_modal, false)
       |> allow_upload(:cd_csv, accept: ~w(.csv), max_entries: 1)
+      |> assign_cd_statements_page(statements)
 
     {:ok, socket}
   end
@@ -128,6 +131,10 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
            mocked_statement,
            mocked_statement_2 | socket.assigns.cd_statements
          ])
+         |> assign_cd_statements_page([
+           mocked_statement,
+           mocked_statement_2 | socket.assigns.cd_statements
+         ])
          |> assign(:show_add_modal, false)
          |> put_flash(:info, "CD Statement CSV uploaded successfully.")}
 
@@ -145,7 +152,16 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
   def handle_event("remove_statement", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
     updated_list = Enum.reject(socket.assigns.cd_statements, &(&1.id == id))
-    {:noreply, assign(socket, :cd_statements, updated_list)}
+
+    {:noreply,
+     socket
+     |> assign(:cd_statements, updated_list)
+     |> assign_cd_statements_page(updated_list)}
+  end
+
+  @impl true
+  def handle_event("paginate_table", %{"page" => page}, socket) do
+    {:noreply, assign_cd_statements_page(socket, socket.assigns.cd_statements, page)}
   end
 
   @impl true
@@ -218,9 +234,9 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                 </td>
               </tr>
             <% else %>
-              <%= for {stmt, index} <- Enum.with_index(@cd_statements, 1) do %>
+              <%= for {stmt, index} <- Enum.with_index(@cd_statements_page.entries, 1) do %>
                 <tr style="font-size: 0.875rem;">
-                  <td>{index}</td>
+                  <td>{(@cd_statements_page.page - 1) * @cd_statements_page.page_size + index}</td>
                   
                   <td class="font-medium">{stmt.policy_number}</td>
                   
@@ -273,12 +289,20 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
         </table>
       </div>
       
+      <.pagination
+        page={@cd_statements_page.page}
+        page_size={@cd_statements_page.page_size}
+        total_entries={@cd_statements_page.total_entries}
+        total_pages={@cd_statements_page.total_pages}
+        event="paginate_table"
+        target={@myself}
+      />
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
         
-        <button type="button" phx-click="save_step7" phx-target={@myself} class="btn btn-primary">
+        <button type="button" phx-click="save_step7" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Complete Policy"}
         </button>
       </div>
@@ -447,5 +471,16 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
       <% end %>
     </div>
     """
+  end
+
+  defp assign_cd_statements_page(socket, statements, page \\ nil) do
+    current_page =
+      page ||
+        if(socket.assigns[:cd_statements_page],
+          do: socket.assigns.cd_statements_page.page,
+          else: 1
+        )
+
+    assign(socket, :cd_statements_page, Pagination.paginate_list(statements, current_page))
   end
 end

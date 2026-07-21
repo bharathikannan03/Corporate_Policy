@@ -251,12 +251,24 @@ defmodule CorporatePolicyWeb.Layouts do
             href={~p"/admin/claims-intimation"}
             active={@active_path == "/admin/claims-intimation"}
           />
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-paper-airplane"
             label="Claims Submission"
-            href={~p"/admin/claims-submission"}
-            active={@active_path == "/admin/claims-submission"}
-          />
+            open={String.starts_with?(@active_path, "/admin/claims-submission")}
+          >
+            <.sidebar_child_item
+              label="All Submissions"
+              href={~p"/admin/claims-submission"}
+              active={@active_path == "/admin/claims-submission"}
+              id="sidebar-claims-submission-all"
+            />
+            <.sidebar_child_item
+              label="Add Claim"
+              href={~p"/admin/claims-submission/add"}
+              active={@active_path == "/admin/claims-submission/add"}
+              id="sidebar-claims-submission-add"
+            />
+          </.sidebar_group>
         </nav>
       </aside>
        <%!-- Main content area --%>
@@ -374,8 +386,8 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-calendar"
             label="Enrollment"
-            href="#"
-            active={@active_path == "/corporate/enrollment"}
+            href={~p"/corporate/enrollment-details"}
+            active={String.starts_with?(@active_path, "/corporate/enrollment")}
           />
           <.corp_nav_item
             icon="hero-clipboard-document-list"
@@ -416,7 +428,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-user-group"
             label="Employee"
-            href="#"
+            href={~p"/corporate/employee"}
             active={@active_path == "/corporate/employee"}
           />
           <.corp_nav_item

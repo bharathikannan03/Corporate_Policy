@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
   use CorporatePolicyWeb, :live_component
 
   alias CorporatePolicy.EscalationMatrices
+  alias CorporatePolicyWeb.Pagination
 
   @levels [
     {1, "Level 1 (First Contact)"},
@@ -22,6 +23,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
       |> assign(:available_users, available_users)
       |> assign(:levels, @levels)
       |> assign(:form, to_form(%{"escalation_level_id" => "", "user_id" => ""}))
+      |> assign_matrices_page(matrices)
 
     {:ok, socket}
   end
@@ -56,6 +58,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         {:noreply,
          socket
          |> assign(:matrices, updated_list)
+         |> assign_matrices_page(updated_list)
          |> assign(:form, to_form(%{"escalation_level_id" => "", "user_id" => ""}))}
       end
     else
@@ -68,7 +71,16 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
   def handle_event("remove_matrix", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
     updated_list = Enum.reject(socket.assigns.matrices, &(&1.id == id))
-    {:noreply, assign(socket, :matrices, updated_list)}
+
+    {:noreply,
+     socket
+     |> assign(:matrices, updated_list)
+     |> assign_matrices_page(updated_list)}
+  end
+
+  @impl true
+  def handle_event("paginate_table", %{"page" => page}, socket) do
+    {:noreply, assign_matrices_page(socket, socket.assigns.matrices, page)}
   end
 
   @impl true
@@ -150,7 +162,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
                 </td>
               </tr>
             <% else %>
-              <%= for matrix <- @matrices do %>
+              <%= for matrix <- @matrices_page.entries do %>
                 <tr class="corp-tr hover:bg-slate-50 transition-colors">
                   <td class="corp-td p-4 border-b font-medium">{matrix.level}</td>
                   
@@ -177,16 +189,31 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         </table>
       </div>
       
+      <.pagination
+        page={@matrices_page.page}
+        page_size={@matrices_page.page_size}
+        total_entries={@matrices_page.total_entries}
+        total_pages={@matrices_page.total_pages}
+        event="paginate_table"
+        target={@myself}
+      />
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
         
-        <button type="button" phx-click="save_step5" phx-target={@myself} class="btn btn-primary">
+        <button type="button" phx-click="save_step5" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>
       </div>
     </div>
     """
+  end
+
+  defp assign_matrices_page(socket, matrices, page \\ nil) do
+    current_page =
+      page || if(socket.assigns[:matrices_page], do: socket.assigns.matrices_page.page, else: 1)
+
+    assign(socket, :matrices_page, Pagination.paginate_list(matrices, current_page))
   end
 end

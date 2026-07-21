@@ -3,6 +3,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
 
   alias CorporatePolicy.Policies
   alias CorporatePolicy.Corporates
+  alias CorporatePolicyWeb.Pagination
 
   @impl true
   def update(assigns, socket) do
@@ -31,6 +32,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
       |> assign(:form_data, %{})
       |> assign(:form, to_form(%{}, as: :feature))
       |> assign(:show_form, false)
+      |> assign_mapped_features_page(mapped_features)
 
     {:ok, socket}
   end
@@ -75,10 +77,16 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
     {:noreply,
      socket
      |> assign(:mapped_features, mapped_features)
+     |> assign_mapped_features_page(mapped_features)
      |> assign(:show_form, false)
      |> assign(:form_data, %{})
      |> assign(:form, to_form(%{}, as: :feature))
      |> put_flash(:info, "Policy Features saved successfully")}
+  end
+
+  @impl true
+  def handle_event("paginate_table", %{"page" => page}, socket) do
+    {:noreply, assign_mapped_features_page(socket, socket.assigns.mapped_features, page)}
   end
 
   @impl true
@@ -141,7 +149,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               </div>
             <% end %>
             
-            <div class="corp-field-group corp-field-group--full flex justify-end gap-4 mt-4">
+            <div class="corp-field-group corp-field-group--full corp-form-actions">
               <button
                 type="button"
                 phx-click="hide_form"
@@ -179,7 +187,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               </thead>
               
               <tbody>
-                <%= for mf <- @mapped_features do %>
+                <%= for mf <- @mapped_features_page.entries do %>
                   <tr class="corp-tr hover:bg-slate-50 transition-colors">
                     <td class="corp-td p-4 border-b">
                       {mf.feature_identifier}
@@ -219,12 +227,20 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           </div>
         </div>
         
+        <.pagination
+          page={@mapped_features_page.page}
+          page_size={@mapped_features_page.page_size}
+          total_entries={@mapped_features_page.total_entries}
+          total_pages={@mapped_features_page.total_pages}
+          event="paginate_table"
+          target={@myself}
+        />
         <div class="flex justify-end gap-4 mt-6">
           <button
             type="button"
             phx-click="next_step"
             phx-target={@myself}
-            class="btn btn-primary"
+            class="btn btn-success"
           >
             Next <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />
           </button>
@@ -232,5 +248,16 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
       <% end %>
     </div>
     """
+  end
+
+  defp assign_mapped_features_page(socket, mapped_features, page \\ nil) do
+    current_page =
+      page ||
+        if(socket.assigns[:mapped_features_page],
+          do: socket.assigns.mapped_features_page.page,
+          else: 1
+        )
+
+    assign(socket, :mapped_features_page, Pagination.paginate_list(mapped_features, current_page))
   end
 end

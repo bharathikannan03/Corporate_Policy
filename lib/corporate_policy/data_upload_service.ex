@@ -230,7 +230,8 @@ defmodule CorporatePolicy.DataUploadService do
           if source_type == "Endorsement", do: normalize_endorsement_type!(end_type), else: nil
 
         if source_type == "Endorsement" and deletion_type?(normalized_endorsement_type) do
-          if String.downcase(relationship_value) in ["employee", "self"] do
+          if String.downcase(relationship_value) in ["employee", "self"] and
+               normalized_endorsement_type == "dependent_deletion" do
             raise "Invalid data: Deletion requested for primary employee (Employee Code: #{emp_code}). Upload aborted."
           end
 
@@ -299,19 +300,35 @@ defmodule CorporatePolicy.DataUploadService do
   defp deletion_type?(_), do: false
 
   defp normalize_endorsement_type!(endorsement_type) do
-    normalized =
+    type =
       endorsement_type
       |> clean_string()
       |> StringUtils.enum_key()
+      |> case do
+        "addition" -> "employee_addition"
+        "add" -> "employee_addition"
+        "emp_addition" -> "employee_addition"
+        "employee_addition" -> "employee_addition"
+        "dependent_addition" -> "dependent_addition"
+        "dependant_addition" -> "dependent_addition"
+        "dep_addition" -> "dependent_addition"
+        "deletion" -> "employee_deletion"
+        "del" -> "employee_deletion"
+        "emp_deletion" -> "employee_deletion"
+        "employee_deletion" -> "employee_deletion"
+        "dependent_deletion" -> "dependent_deletion"
+        "dependant_deletion" -> "dependent_deletion"
+        "dep_deletion" -> "dependent_deletion"
+        other -> other
+      end
 
-    if normalized in @supported_endorsement_types do
-      normalized
+    if type in @supported_endorsement_types do
+      type
     else
       raise "Invalid endorsement_type. Only employee_addition, dependent_addition, employee_deletion, and dependent_deletion are supported."
     end
   end
 
-  
   defp deactivate_inception_member(policy_id, employee_code, relationship, now_utc) do
     case Repo.get_by(MasterInceptionDataUpload,
            ref_policy_id: policy_id,

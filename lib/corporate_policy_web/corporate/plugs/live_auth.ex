@@ -1,10 +1,6 @@
 defmodule CorporatePolicyWeb.Corporate.LiveAuth do
   import Phoenix.LiveView
   import Phoenix.Component
-<<<<<<< HEAD
-=======
-
->>>>>>> 221ea173375eccab6c4cfaf365ecf16c3dd59249
   alias CorporatePolicy.Accounts
 
   def on_mount(:default, _params, session, socket) do

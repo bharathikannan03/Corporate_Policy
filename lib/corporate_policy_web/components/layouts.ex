@@ -416,7 +416,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-document-duplicate"
             label="Documents"
-            href="#"
+            href={~p"/corporate/documents"}
             active={@active_path == "/corporate/documents"}
           />
           <.corp_nav_item

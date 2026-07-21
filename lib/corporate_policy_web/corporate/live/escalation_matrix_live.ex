@@ -224,75 +224,23 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
       active_policy_number={@active_policy_number}
       active_path={@active_path}
     >
-      <div class="space-y-6">
-        <%!-- Title Banner Card --%>
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-6 text-center">
-          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Escalation Matrix</h1>
-        </div>
-
-        <%!-- Header Policy Sub-Bar & Tabs --%>
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-6 space-y-4">
-          <%!-- Corporate & FY Info --%>
-          <div class="text-center">
-            <h2 class="text-lg font-bold text-slate-900">
-              {@corporate_name}
-              <span class="text-sm font-normal text-slate-500 ml-2">(Financial Year: {@current_fy_name})</span>
-            </h2>
-          </div>
-
-          <%!-- Policy Types Tabs (e.g. GMC, GPA) --%>
-          <div class="flex items-center space-x-6 border-b border-slate-200 pb-2">
-            <%= for type <- @policy_types do %>
-              <button
-                type="button"
-                phx-click="select_policy_type"
-                phx-value-type={type}
-                class={[
-                  "flex items-center space-x-2 pb-2 text-sm font-semibold transition-all cursor-pointer relative",
-                  if(@active_policy_type == type,
-                    do: "text-blue-600 border-b-2 border-blue-600",
-                    else: "text-slate-600 hover:text-slate-900"
-                  )
-                ]}
-              >
-                <span>{type}</span>
-                <.icon name="hero-user-group" class="w-4 h-4" />
-              </button>
-            <% end %>
-          </div>
-
-          <%!-- Policy Number Tabs (e.g. PG11260000000094) --%>
-          <div class="flex items-center space-x-6 pt-1">
-            <%= for num <- @policy_numbers do %>
-              <button
-                type="button"
-                phx-click="select_policy_number"
-                phx-value-number={num}
-                class={[
-                  "text-sm font-semibold transition-all cursor-pointer pb-1",
-                  if(@active_policy_number == num,
-                    do: "text-blue-600 border-b-2 border-blue-600",
-                    else: "text-slate-500 hover:text-slate-800"
-                  )
-                ]}
-              >
-                {num}
-              </button>
-            <% end %>
-          </div>
+      <div class="space-y-4 my-4">
+        <%!-- Title Bar --%>
+        <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">Escalation Matrix</h2>
         </div>
 
         <%!-- Escalation Matrix Cards Display --%>
-        <div class="space-y-4">
+        <div>
           <%= if Enum.empty?(@escalation_matrices) do %>
-            <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-12 text-center text-slate-500">
+            <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-12 text-center text-slate-500">
               <.icon name="hero-exclamation-circle" class="w-12 h-12 mx-auto text-slate-300 mb-3" />
               <p class="text-base font-medium">No escalation matrix configured for this policy.</p>
             </div>
           <% else %>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               <%= for matrix <- @escalation_matrices do %>
-                <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-5 relative overflow-hidden transition-all duration-200 hover:shadow-md hover:border-slate-300 flex flex-col justify-between">
+                <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-5 relative overflow-hidden transition-all duration-200 hover:shadow-md hover:border-gray-300 flex flex-col justify-between">
                   <%!-- Level Tag --%>
                   <div class="absolute top-0 right-0 bg-amber-400 text-slate-900 font-bold text-[11px] px-3 py-1 rounded-bl-lg shadow-xs uppercase tracking-wider">
                     {matrix[:level] || "Level #{matrix[:escalation_level_id]}"}

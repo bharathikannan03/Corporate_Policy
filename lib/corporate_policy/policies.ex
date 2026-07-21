@@ -21,6 +21,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
   alias CorporatePolicy.Policies.MasterInceptionDataUpload
   alias CorporatePolicy.Policies.MasterEndorsementDataUpload
+  alias CorporatePolicy.Policies.MasterTotalClaimReport
 
   @page_size 15
 
@@ -1218,4 +1219,240 @@ defmodule CorporatePolicy.Policies do
       match_name and match_code and match_sum and match_mob and match_email and match_search
     end)
   end
+
+  # === Total Claim Report Functions ===
+
+  @total_claim_page_size 10
+
+  def list_total_claim_reports_paginated(policy_id, params \\ %{}) do
+    page = positive_int(Map.get(params, "page", 1), 1)
+    search = StringUtils.normalize(Map.get(params, "search", ""))
+
+    base_query =
+      from r in MasterTotalClaimReport,
+        where: r.ref_policy_id == ^policy_id and is_nil(r.deleted_at)
+
+    query =
+      if search != "" do
+        search_pattern = "%#{search}%"
+
+        from r in base_query,
+          where:
+            ilike(r.employee_code, ^search_pattern) or
+              ilike(r.employee_name, ^search_pattern) or
+              ilike(r.patient_name, ^search_pattern) or
+              ilike(r.insurance_claim_no, ^search_pattern) or
+              ilike(r.tpa_claim_no, ^search_pattern) or
+              ilike(r.hospital_name, ^search_pattern) or
+              ilike(r.claim_status, ^search_pattern) or
+              ilike(r.claim_type, ^search_pattern)
+      else
+        base_query
+      end
+
+    total_entries = Repo.aggregate(query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), @total_claim_page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      query
+      |> order_by([r], desc: r.id)
+      |> offset(^((page - 1) * @total_claim_page_size))
+      |> limit(^@total_claim_page_size)
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: @total_claim_page_size,
+      total_entries: total_entries,
+      total_pages: total_pages,
+      search: search
+    }
+  end
+
+  def list_total_claim_reports_for_export(policy_id) do
+    from(r in MasterTotalClaimReport,
+      where: r.ref_policy_id == ^policy_id and is_nil(r.deleted_at),
+      order_by: [desc: r.id]
+    )
+    |> Repo.all()
+  end
+
+  def export_total_claims_csv(policy_id) do
+    claims = list_total_claim_reports_for_export(policy_id)
+
+    headers = [
+      "EMPLOYEE CODE",
+      "EMPLOYEE NAME",
+      "BENEFICIARY NAME",
+      "RELATION",
+      "CLAIM TYPE",
+      "CLAIM STATUS",
+      "CLAIM NO",
+      "TPA CLAIM NO",
+      "HOSPITALIZATION DATE",
+      "HOSPITAL NAME",
+      "DISCHARGE DATE",
+      "AMOUNT CLAIMED",
+      "AMOUNT SANCTIONED",
+      "CLAIM PAID AMOUNT",
+      "PATIENT GENDER",
+      "HOSPITAL STATE",
+      "NETWORK STATUS",
+      "TREATMENT TYPE",
+      "LEVEL OF CARE",
+      "CAUSE",
+      "CITY",
+      "AGE",
+      "CLAIM FILE SUBMITTED DT",
+      "CLAIM SETTLED DATE",
+      "DISEASE CATEGORY",
+      "CLAIM REGISTERED DATE",
+      "INTIMATION METHOD",
+      "SUM INSURED",
+      "TDS AMOUNT",
+      "DEDUCTION AMOUNT",
+      "DEDUCTION REASON",
+      "DEFICIENCY INTIMATED DATE",
+      "DEFICIENCY SUBMISSION DATE",
+      "ICD CODE",
+      "CLOSE REASONS",
+      "DEFICIENCY REASON",
+      "CLAIM SUB STATUS"
+    ]
+
+    rows =
+      Enum.map(claims, fn c ->
+        [
+          c.employee_code || "",
+          c.employee_name || "",
+          c.patient_name || "",
+          c.relationship || "",
+          c.claim_type || "",
+          c.claim_status || "",
+          c.insurance_claim_no || "",
+          c.tpa_claim_no || "",
+          c.date_of_hospitalization || "",
+          c.hospital_name || "",
+          c.date_of_discharge || "",
+          to_string(c.amount_claimed || ""),
+          to_string(c.amount_sanctioned || ""),
+          to_string(c.claim_paid_amount || ""),
+          c.patient_gender || "",
+          c.hospital_state || "",
+          c.network_status || "",
+          c.treatment_type || "",
+          c.level_of_care || "",
+          c.cause || "",
+          c.city || "",
+          to_string(c.age || ""),
+          c.claim_file_submitted_dt || "",
+          c.claim_settled_date || "",
+          c.disease_category || "",
+          c.claim_registered_date || "",
+          c.intimation_method || "",
+          to_string(c.sum_insured || ""),
+          to_string(c.tds_amount || ""),
+          to_string(c.deduction_amount || ""),
+          c.deduction_reason || "",
+          c.deficiency_intimated_date || "",
+          c.deficiency_submission_date || "",
+          c.icd_code || "",
+          c.close_reasons || "",
+          c.deficiency_reason || "",
+          c.claim_sub_status || ""
+        ]
+      end)
+
+    NimbleCSV.RFC4180.dump_to_iodata([headers | rows]) |> IO.iodata_to_binary()
+  end
+
+  def get_total_claim_summary(nil), do: default_claim_summary()
+
+  def get_total_claim_summary(policy_id) do
+    claims =
+      from(r in MasterTotalClaimReport,
+        where: r.ref_policy_id == ^policy_id and is_nil(r.deleted_at)
+      )
+      |> Repo.all()
+
+    Enum.reduce(
+      claims,
+      %{
+        paid_amount: 0.0,
+        paid_count: 0,
+        process_amount: 0.0,
+        process_count: 0,
+        rejected_amount: 0.0,
+        rejected_count: 0,
+        reported_amount: 0.0,
+        reported_count: 0
+      },
+      fn claim, acc ->
+        status = (claim.claim_status || "") |> String.trim() |> String.downcase()
+        claimed = claim.amount_claimed || 0.0
+        paid = claim.claim_paid_amount || claim.amount_sanctioned || claimed
+
+        acc = %{
+          acc
+          | reported_amount: acc.reported_amount + claimed,
+            reported_count: acc.reported_count + 1
+        }
+
+        cond do
+          status in ["paid", "settled", "claim paid"] or String.contains?(status, "paid") or
+              String.contains?(status, "settle") ->
+            %{
+              acc
+              | paid_amount: acc.paid_amount + paid,
+                paid_count: acc.paid_count + 1
+            }
+
+          status in ["under process", "in process", "processing", "pending"] or
+            String.contains?(status, "process") or String.contains?(status, "pending") ->
+            %{
+              acc
+              | process_amount: acc.process_amount + claimed,
+                process_count: acc.process_count + 1
+            }
+
+          status in ["closed", "rejected", "close", "reject"] or String.contains?(status, "close") or
+              String.contains?(status, "reject") ->
+            %{
+              acc
+              | rejected_amount: acc.rejected_amount + claimed,
+                rejected_count: acc.rejected_count + 1
+            }
+
+          true ->
+            acc
+        end
+      end
+    )
+  end
+
+  defp default_claim_summary do
+    %{
+      paid_amount: 0.0,
+      paid_count: 0,
+      process_amount: 0.0,
+      process_count: 0,
+      rejected_amount: 0.0,
+      rejected_count: 0,
+      reported_amount: 0.0,
+      reported_count: 0
+    }
+  end
+
+  defp positive_int(val, _default) when is_integer(val) and val > 0, do: val
+
+  defp positive_int(val, default) when is_binary(val) do
+    case Integer.parse(val) do
+      {int, _} when int > 0 -> int
+      _ -> default
+    end
+  end
+
+  defp positive_int(_val, default), do: default
 end

@@ -1,6 +1,8 @@
 defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
   use CorporatePolicyWeb, :live_component
 
+  alias CorporatePolicyWeb.Pagination
+
   @impl true
   def update(assigns, socket) do
     documents = assigns[:documents] || []
@@ -30,6 +32,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         to_form(%{"document_type_id" => "", "document_name_id" => "", "note" => ""})
       )
       |> allow_upload(:policy_doc, accept: ~w(.pdf), max_entries: 1)
+      |> assign_documents_page(documents)
 
     {:ok, socket}
   end
@@ -90,6 +93,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         {:noreply,
          socket
          |> assign(:documents, [new_doc | socket.assigns.documents])
+         |> assign_documents_page([new_doc | socket.assigns.documents])
          |> assign(
            :form,
            to_form(%{"document_type_id" => "", "document_name_id" => "", "note" => ""})
@@ -109,7 +113,16 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
   def handle_event("remove_document", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
     updated_list = Enum.reject(socket.assigns.documents, &(&1.id == id))
-    {:noreply, assign(socket, :documents, updated_list)}
+
+    {:noreply,
+     socket
+     |> assign(:documents, updated_list)
+     |> assign_documents_page(updated_list)}
+  end
+
+  @impl true
+  def handle_event("paginate_table", %{"page" => page}, socket) do
+    {:noreply, assign_documents_page(socket, socket.assigns.documents, page)}
   end
 
   @impl true
@@ -300,9 +313,9 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
                 </td>
               </tr>
             <% else %>
-              <%= for {doc, index} <- Enum.with_index(@documents, 1) do %>
+              <%= for {doc, index} <- Enum.with_index(@documents_page.entries, 1) do %>
                 <tr>
-                  <td>{index}</td>
+                  <td>{(@documents_page.page - 1) * @documents_page.page_size + index}</td>
 
                   <td>{doc.document_type}</td>
 
@@ -331,22 +344,34 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
           </tbody>
         </table>
       </div>
-      <!-- Pagination Controls for Table (Mocked) -->
-      <div class="flex justify-between items-center mb-8 bg-gray-50 p-2 rounded-b-lg border-t-0">
-        <button class="btn btn-sm btn-primary">Previous</button>
-        <button class="btn btn-sm btn-primary">Next</button>
-      </div>
+
+      <.pagination
+        page={@documents_page.page}
+        page_size={@documents_page.page_size}
+        total_entries={@documents_page.total_entries}
+        total_pages={@documents_page.total_pages}
+        event="paginate_table"
+        target={@myself}
+        class="mb-8 bg-gray-50 rounded-b-lg"
+      />
 
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
 
-        <button type="button" phx-click="save_step6" phx-target={@myself} class="btn btn-primary">
+        <button type="button" phx-click="save_step6" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>
       </div>
     </div>
     """
+  end
+
+  defp assign_documents_page(socket, documents, page \\ nil) do
+    current_page =
+      page || if(socket.assigns[:documents_page], do: socket.assigns.documents_page.page, else: 1)
+
+    assign(socket, :documents_page, Pagination.paginate_list(documents, current_page))
   end
 end

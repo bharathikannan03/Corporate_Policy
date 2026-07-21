@@ -1,6 +1,8 @@
 defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
   use CorporatePolicyWeb, :live_view
 
+  alias CorporatePolicy.Policies
+
   @impl true
   def mount(_params, session, socket) do
     current_user =
@@ -9,14 +11,17 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
         id -> CorporatePolicy.Accounts.get_user(id)
       end
 
-    policies = CorporatePolicy.Policies.list_policies()
-
     {:ok,
      socket
      |> assign(:page_title, "Policy Details")
      |> assign(:current_user, current_user)
-     |> assign(:policies, policies)
-     |> assign(:active_path, "/admin/policy-details")}
+     |> assign(:active_path, "/admin/policy-details")
+     |> load_policies(%{})}
+  end
+
+  @impl true
+  def handle_event("paginate", %{"page" => page}, socket) do
+    {:noreply, load_policies(socket, %{"page" => page})}
   end
 
   @impl true
@@ -65,7 +70,7 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
               </thead>
 
               <tbody id="policies-tbody">
-                <%= if @policies == [] do %>
+                <%= if @policies_page.entries == [] do %>
                   <tr class="corp-empty-row" id="policies-empty-row">
                     <td colspan="7" class="corp-empty-cell">
                       <div class="corp-empty-state" id="corp-empty-state">
@@ -83,7 +88,7 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
                     </td>
                   </tr>
                 <% else %>
-                  <%= for policy <- @policies do %>
+                  <%= for policy <- @policies_page.entries do %>
                     <tr class="corp-tr" id={"policy-#{policy.id}"}>
                       <td class="corp-td corp-td--name">
                         {if policy.corporate, do: policy.corporate.corporate_name, else: "-"}
@@ -142,9 +147,22 @@ defmodule CorporatePolicyWeb.Admin.PolicyDetailsLive do
               </tbody>
             </table>
           </div>
+
+          <.pagination
+            page={@policies_page.page}
+            page_size={@policies_page.page_size}
+            total_entries={@policies_page.total_entries}
+            total_pages={@policies_page.total_pages}
+            event="paginate"
+          />
         </div>
       </div>
     </Layouts.admin>
     """
+  end
+
+  defp load_policies(socket, params) do
+    page = Map.get(params, "page", 1)
+    assign(socket, :policies_page, Policies.list_policies_paginated(page: page))
   end
 end

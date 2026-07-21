@@ -18,7 +18,11 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.MasterPolicyFeatureTemplateField
   alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
 
+  @page_size 15
+
   # === Policy Listing ===
+
+  def page_size, do: @page_size
 
   def list_policies do
     Repo.all(Policy)
@@ -32,6 +36,42 @@ defmodule CorporatePolicy.Policies do
       :family_definition_ref,
       :intimate_claim_visibility_ref
     ])
+  end
+
+  def list_policies_paginated(opts \\ []) do
+    page = opts |> Keyword.get(:page, 1) |> normalize_page()
+
+    base_query =
+      from p in Policy,
+        order_by: [desc: p.id]
+
+    total_entries = Repo.aggregate(base_query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      base_query
+      |> offset(^((page - 1) * @page_size))
+      |> limit(^@page_size)
+      |> preload([
+        :corporate,
+        :financial_year_ref,
+        :line_of_business_ref,
+        :policy_type_ref,
+        :insurer_ref,
+        :tpa_ref,
+        :family_definition_ref,
+        :intimate_claim_visibility_ref
+      ])
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: @page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
   end
 
   def list_policies_by_fy(fy_id) when fy_id == 0 or is_nil(fy_id) do
@@ -662,4 +702,15 @@ defmodule CorporatePolicy.Policies do
     |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
     |> Repo.insert()
   end
+
+  defp normalize_page(value) when is_integer(value) and value > 0, do: value
+
+  defp normalize_page(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {page, ""} when page > 0 -> page
+      _ -> 1
+    end
+  end
+
+  defp normalize_page(_value), do: 1
 end

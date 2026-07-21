@@ -57,6 +57,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
             max_entries: 1,
             max_file_size: Claims.max_upload_size()
           )
+          |> sync_documents_page()
           |> load_reference_data()
           |> sync_form()
 
@@ -115,6 +116,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         {:noreply, assign(socket, :show_upload_modal, false)}
       end
 
+      def handle_event("paginate_documents", %{"page" => page}, socket) do
+        {:noreply, sync_documents_page(socket, page)}
+      end
+
       def handle_event("remove_upload_entry", %{"ref" => ref}, socket) do
         {:noreply, cancel_upload(socket, :claim_document, ref)}
       end
@@ -158,6 +163,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                  |> assign(:documents, Claims.list_claim_documents(claim.id))
                  |> assign(:document_form, to_form(%{"document_name" => ""}, as: :document))
                  |> assign(:show_upload_modal, false)
+                 |> sync_documents_page()
                  |> put_flash(:info, "Document uploaded successfully.")}
 
               {:error, %Ecto.Changeset{} = changeset} ->
@@ -183,6 +189,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
               {:noreply,
                socket
                |> assign(:documents, Claims.list_claim_documents(socket.assigns.claim.id))
+               |> sync_documents_page()
                |> put_flash(:info, "Document deleted successfully.")}
 
             {:error, _reason} ->
@@ -239,7 +246,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                 employees={@employees}
                 patient_options={@patient_options}
                 document_form={@document_form}
-                documents={@documents}
+                documents_page={@documents_page}
                 uploads={@uploads}
                 show_upload_modal={@show_upload_modal}
                 document_requirements={@document_requirements}
@@ -268,7 +275,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                   employees={@employees}
                   patient_options={@patient_options}
                   document_form={@document_form}
-                  documents={@documents}
+                  documents_page={@documents_page}
                   uploads={@uploads}
                   show_upload_modal={@show_upload_modal}
                   document_requirements={@document_requirements}
@@ -324,6 +331,18 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         params = socket.assigns.form_params
         changeset = Claims.change_claim(socket.assigns.claim || %MasterClaimSubmission{}, params)
         assign(socket, :form, to_form(changeset, as: :claim))
+      end
+
+      defp sync_documents_page(socket, page \\ nil) do
+        current_page =
+          page ||
+            if(socket.assigns[:documents_page], do: socket.assigns.documents_page.page, else: 1)
+
+        assign(
+          socket,
+          :documents_page,
+          CorporatePolicyWeb.Pagination.paginate_list(socket.assigns.documents, current_page)
+        )
       end
 
       defp claim_to_params(claim) do

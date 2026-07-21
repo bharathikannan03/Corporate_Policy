@@ -171,42 +171,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         </table>
       </div>
 
-      <div class="flex items-center justify-between p-4 border-t border-gray-200">
-        <div class="text-sm text-gray-500">
-          Showing {if @claims_page.total_entries == 0,
-            do: 0,
-            else: (@claims_page.page - 1) * @claims_page.page_size + 1} to {min(
-            @claims_page.page * @claims_page.page_size,
-            @claims_page.total_entries
-          )} of {@claims_page.total_entries} entries
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            phx-click="paginate"
-            phx-value-page={@claims_page.page - 1}
-            class="btn btn-sm btn-secondary"
-            disabled={@claims_page.page <= 1}
-          >
-            Previous
-          </button>
-
-          <span class="text-sm font-medium px-3 py-1 border rounded-md">
-            {@claims_page.page} / {@claims_page.total_pages}
-          </span>
-
-          <button
-            type="button"
-            phx-click="paginate"
-            phx-value-page={@claims_page.page + 1}
-            class="btn btn-sm btn-primary"
-            disabled={@claims_page.page >= @claims_page.total_pages}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <.pagination
+        page={@claims_page.page}
+        page_size={@claims_page.page_size}
+        total_entries={@claims_page.total_entries}
+        total_pages={@claims_page.total_pages}
+        event="paginate"
+      />
     </div>
     """
   end
@@ -219,7 +190,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :employees, :list, default: []
   attr :patient_options, :list, default: []
   attr :document_form, :map, required: true
-  attr :documents, :list, default: []
+  attr :documents_page, :map, required: true
   attr :uploads, :map, required: true
   attr :show_upload_modal, :boolean, default: false
   attr :document_requirements, :list, default: []
@@ -558,7 +529,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 </thead>
 
                 <tbody>
-                  <%= if @documents == [] do %>
+                  <%= if @documents_page.entries == [] do %>
                     <tr class="corp-empty-row">
                       <td colspan="5" class="corp-empty-cell">
                         <div class="corp-empty-state">
@@ -568,9 +539,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                       </td>
                     </tr>
                   <% else %>
-                    <%= for {document, index} <- Enum.with_index(@documents, 1) do %>
+                    <%= for {document, index} <- Enum.with_index(@documents_page.entries, 1) do %>
                       <tr class="corp-tr">
-                        <td class="corp-td">{index}</td>
+                        <td class="corp-td">
+                          {(@documents_page.page - 1) * @documents_page.page_size + index}
+                        </td>
                         <td class="corp-td">{document.document_name}</td>
                         <td class="corp-td">
                           <a
@@ -600,6 +573,14 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 </tbody>
               </table>
             </div>
+
+            <.pagination
+              page={@documents_page.page}
+              page_size={@documents_page.page_size}
+              total_entries={@documents_page.total_entries}
+              total_pages={@documents_page.total_pages}
+              event="paginate_documents"
+            />
           </div>
 
           <div class="flex items-center justify-between">

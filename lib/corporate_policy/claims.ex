@@ -5,6 +5,7 @@ defmodule CorporatePolicy.Claims do
   alias CorporatePolicy.Corporates
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
   alias CorporatePolicy.Repo
+  alias CorporatePolicy.StringUtils
 
   @page_size 15
   @min_documents 3
@@ -36,10 +37,10 @@ defmodule CorporatePolicy.Claims do
 
   def list_claims(user, portal, params \\ %{}) do
     page = positive_int(Map.get(params, "page", 1), 1)
-    search = String.trim(Map.get(params, "search", ""))
-    status = Map.get(params, "status", "")
+    search = StringUtils.normalize(Map.get(params, "search", ""))
+    status = normalize_claim_status(Map.get(params, "status", ""))
     sort_by = Map.get(params, "sort_by", "inserted_at")
-    sort_dir = Map.get(params, "sort_dir", "desc")
+    sort_dir = normalize_sort_dir(Map.get(params, "sort_dir", "desc"))
 
     query =
       MasterClaimSubmission
@@ -314,21 +315,29 @@ defmodule CorporatePolicy.Claims do
   end
 
   def list_patient_options(policy_id, employee_code) do
+    employee_code = StringUtils.normalize(employee_code)
+
     Repo.all(
       from e in TrnMappingLiveEmployee,
         where:
-          e.ref_policy_id == ^policy_id and e.employee_code == ^employee_code and
+          e.ref_policy_id == ^policy_id and
+            fragment("lower(trim(?))", e.employee_code) == ^StringUtils.downcase(employee_code) and
             is_nil(e.deleted_at),
         order_by: [asc: e.relationship, asc: e.employee_name]
     )
   end
 
   def get_policy_employee(policy_id, employee_code, patient_name) do
+    employee_code = StringUtils.normalize(employee_code)
+    patient_name = StringUtils.normalize(patient_name)
+
     Repo.one(
       from e in TrnMappingLiveEmployee,
         where:
-          e.ref_policy_id == ^policy_id and e.employee_code == ^employee_code and
-            e.employee_name == ^patient_name and is_nil(e.deleted_at),
+          e.ref_policy_id == ^policy_id and
+            fragment("lower(trim(?))", e.employee_code) == ^StringUtils.downcase(employee_code) and
+            fragment("lower(trim(?))", e.employee_name) == ^StringUtils.downcase(patient_name) and
+            is_nil(e.deleted_at),
         limit: 1
     )
   end
@@ -462,7 +471,7 @@ defmodule CorporatePolicy.Claims do
   defp maybe_filter_search(query, ""), do: query
 
   defp maybe_filter_search(query, search) do
-    like = "%#{search}%"
+    like = "%#{StringUtils.normalize(search)}%"
 
     where(
       query,
@@ -477,7 +486,10 @@ defmodule CorporatePolicy.Claims do
   end
 
   defp maybe_filter_status(query, ""), do: query
-  defp maybe_filter_status(query, status), do: where(query, [c], c.claim_status == ^status)
+
+  defp maybe_filter_status(query, status) do
+    where(query, [c], fragment("lower(trim(?))", c.claim_status) == ^StringUtils.downcase(status))
+  end
 
   defp sort_expression(sort_by, sort_dir) do
     direction = if sort_dir == "asc", do: :asc, else: :desc
@@ -498,6 +510,8 @@ defmodule CorporatePolicy.Claims do
   defp normalize_reference_fields(attrs) do
     attrs
     |> stringify_keys()
+    |> normalize_string_fields()
+    |> normalize_claim_status_field()
     |> Map.update("ref_policy_id", nil, &parse_int/1)
     |> Map.update("ref_corporate_id", nil, &parse_int/1)
   end
@@ -600,7 +614,10 @@ defmodule CorporatePolicy.Claims do
   end
 
   defp parse_int(value) when is_integer(value), do: value
-  defp parse_int(value) when is_binary(value) and value != "", do: String.to_integer(value)
+
+  defp parse_int(value) when is_binary(value) and value != "",
+    do: value |> String.trim() |> String.to_integer()
+
   defp parse_int(_value), do: nil
 
   defp positive_int(value, _default) when is_integer(value) and value > 0, do: value
@@ -632,4 +649,53 @@ defmodule CorporatePolicy.Claims do
   defp is_nil_or_blank(nil), do: true
   defp is_nil_or_blank(""), do: true
   defp is_nil_or_blank(_value), do: false
+
+  defp normalize_string_fields(attrs) do
+    Enum.reduce(
+      [
+        "claim_number",
+        "intimation_number",
+        "corporate_name",
+        "policy_number",
+        "policy_type",
+        "insurer_name",
+        "tpa_name",
+        "employee_code",
+        "employee_name",
+        "patient_name",
+        "relationship",
+        "claim_reason",
+        "claim_type",
+        "hospital_name",
+        "hospital_address",
+        "city",
+        "state",
+        "pincode",
+        "treatment_details",
+        "remarks"
+      ],
+      attrs,
+      fn field, acc ->
+        Map.update(acc, field, nil, fn
+          value when is_binary(value) -> StringUtils.normalize(value)
+          value -> value
+        end)
+      end
+    )
+  end
+
+  defp normalize_claim_status_field(attrs) do
+    case Map.fetch(attrs, "claim_status") do
+      {:ok, value} -> Map.put(attrs, "claim_status", normalize_claim_status(value))
+      :error -> attrs
+    end
+  end
+
+  defp normalize_claim_status(value) do
+    StringUtils.canonicalize(value, @claim_statuses) || StringUtils.normalize(value)
+  end
+
+  defp normalize_sort_dir(value) do
+    if StringUtils.equal?(value, "asc"), do: "asc", else: "desc"
+  end
 end

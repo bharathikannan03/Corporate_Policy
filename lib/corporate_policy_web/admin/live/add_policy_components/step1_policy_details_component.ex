@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
   use CorporatePolicyWeb, :live_component
 
   alias CorporatePolicy.Policies
+  alias CorporatePolicy.StringUtils
 
   @health_gmc_pt_values [
     "GMC",
@@ -28,11 +29,11 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
       if not Map.has_key?(socket.assigns, :corporates) do
         line_of_businesses =
           Policies.list_line_of_businesses()
-          |> Enum.filter(&(&1.line_of_business_value in @line_of_business_values))
+          |> Enum.filter(&StringUtils.in?(&1.line_of_business_value, @line_of_business_values))
 
         claim_visibilities =
           Policies.list_claim_visibilities()
-          |> Enum.filter(&(&1.name in @intimate_claim_visibility_values))
+          |> Enum.filter(&StringUtils.in?(&1.name, @intimate_claim_visibility_values))
 
         socket
         |> assign(:corporates, Policies.list_corporates())
@@ -98,8 +99,11 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
     lob_name = if lob, do: lob.line_of_business_value, else: ""
     pt_name = if pt, do: pt.policy_type_value, else: ""
 
-    show_tpa_family = lob_name == "Health" and pt_name in @health_gmc_pt_values
-    show_sum_insured_type = lob_name == "Health" and pt_name == "GPA"
+    show_tpa_family =
+      StringUtils.equal?(lob_name, "Health") and StringUtils.in?(pt_name, @health_gmc_pt_values)
+
+    show_sum_insured_type =
+      StringUtils.equal?(lob_name, "Health") and StringUtils.equal?(pt_name, "GPA")
 
     socket
     |> assign(:show_policy_number, have_policy_number)

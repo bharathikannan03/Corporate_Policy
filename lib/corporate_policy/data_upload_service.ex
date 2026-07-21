@@ -299,7 +299,7 @@ defmodule CorporatePolicy.DataUploadService do
   defp deletion_type?(_), do: false
 
   defp normalize_endorsement_type!(endorsement_type) do
-    cleaned =
+    normalized =
       endorsement_type
       |> clean_string()
       |> StringUtils.enum_key()

@@ -2112,6 +2112,17 @@
     width: 1.5rem;
     height: 1.5rem;
   }
+  .hero-calendar-days {
+    --hero-calendar-days: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20aria-hidden%3D%22true%22%20data-slot%3D%22icon%22%3E%20%20%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M6.75%203v2.25M17.25%203v2.25M3%2018.75V7.5a2.25%202.25%200%200%201%202.25-2.25h13.5A2.25%202.25%200%200%201%2021%207.5v11.25m-18%200A2.25%202.25%200%200%200%205.25%2021h13.5A2.25%202.25%200%200%200%2021%2018.75m-18%200v-7.5A2.25%202.25%200%200%201%205.25%209h13.5A2.25%202.25%200%200%201%2021%2011.25v7.5m-9-6h.008v.008H12v-.008ZM12%2015h.008v.008H12V15Zm0%202.25h.008v.008H12v-.008ZM9.75%2015h.008v.008H9.75V15Zm0%202.25h.008v.008H9.75v-.008ZM7.5%2015h.008v.008H7.5V15Zm0%202.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0%202.25h.008v.008h-.008V15Zm0%202.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0%202.25h.008v.008H16.5V15Z%22%2F%3E%3C%2Fsvg%3E');
+    -webkit-mask: var(--hero-calendar-days);
+    mask: var(--hero-calendar-days);
+    mask-repeat: no-repeat;
+    background-color: currentColor;
+    vertical-align: middle;
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
   .hero-chart-bar {
     --hero-chart-bar: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke-width%3D%221.5%22%20stroke%3D%22currentColor%22%20aria-hidden%3D%22true%22%20data-slot%3D%22icon%22%3E%20%20%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M3%2013.125C3%2012.504%203.504%2012%204.125%2012h2.25c.621%200%201.125.504%201.125%201.125v6.75C7.5%2020.496%206.996%2021%206.375%2021h-2.25A1.125%201.125%200%200%201%203%2019.875v-6.75ZM9.75%208.625c0-.621.504-1.125%201.125-1.125h2.25c.621%200%201.125.504%201.125%201.125v11.25c0%20.621-.504%201.125-1.125%201.125h-2.25a1.125%201.125%200%200%201-1.125-1.125V8.625ZM16.5%204.125c0-.621.504-1.125%201.125-1.125h2.25C20.496%203%2021%203.504%2021%204.125v15.75c0%20.621-.504%201.125-1.125%201.125h-2.25a1.125%201.125%200%200%201-1.125-1.125V4.125Z%22%2F%3E%3C%2Fsvg%3E');
     -webkit-mask: var(--hero-chart-bar);
@@ -3089,10 +3100,6 @@
   .border-t {
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
-  }
-  .border-t-0 {
-    border-top-style: var(--tw-border-style);
-    border-top-width: 0px;
   }
   .border-r {
     border-right-style: var(--tw-border-style);
@@ -5297,6 +5304,24 @@ html, body {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+}
+.corp-date-trigger {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  z-index: 3;
+}
+.corp-date-trigger-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 .corp-input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0;

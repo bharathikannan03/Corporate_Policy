@@ -676,12 +676,16 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                     class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center"
                     phx-drop-target={@uploads.claim_document.ref}
                   >
-                    <.live_file_input upload={@uploads.claim_document} class="hidden" />
+                    <.live_file_input
+                      upload={@uploads.claim_document}
+                      id={@uploads.claim_document.ref}
+                      class="upload-file-input"
+                    />
                     <label
                       for={@uploads.claim_document.ref}
-                      class="cursor-pointer text-blue-600 hover:underline font-medium"
+                      class="upload-btn"
                     >
-                      Click to upload
+                      <.icon name="hero-arrow-up-tray" class="w-4 h-4" /> Click to upload
                     </label>
                   </div>
 

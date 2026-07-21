@@ -2635,12 +2635,6 @@
   .w-32 {
     width: calc(var(--spacing) * 32);
   }
-  .w-24 {
-    width: calc(var(--spacing) * 24);
-  }
-  .w-32 {
-    width: calc(var(--spacing) * 32);
-  }
   .w-40 {
     width: calc(var(--spacing) * 40);
   }
@@ -3966,21 +3960,6 @@
   .xl\:py-32 {
     @media (width >= 80rem) {
       padding-block: calc(var(--spacing) * 32);
-    }
-  }
-  .\[\&\:\:-webkit-calendar-picker-indicator\]\:absolute {
-    &::-webkit-calendar-picker-indicator {
-      position: absolute;
-    }
-  }
-  .\[\&\:\:-webkit-calendar-picker-indicator\]\:w-full {
-    &::-webkit-calendar-picker-indicator {
-      width: 100%;
-    }
-  }
-  .\[\&\:\:-webkit-calendar-picker-indicator\]\:opacity-0 {
-    &::-webkit-calendar-picker-indicator {
-      opacity: 0%;
     }
   }
   .\[\&\:\:-webkit-calendar-picker-indicator\]\:absolute {

@@ -32,6 +32,7 @@ defmodule CorporatePolicyWeb.Router do
     scope "/admin", CorporatePolicyWeb.Admin, as: :admin do
       pipe_through :browser
 
+      get "/", SessionController, :new
       get "/login", SessionController, :new
       post "/login", SessionController, :create
       delete "/logout", SessionController, :delete
@@ -80,6 +81,7 @@ defmodule CorporatePolicyWeb.Router do
     scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
       pipe_through :browser
 
+      get "/", CorporateSessionController, :new
       get "/login", CorporateSessionController, :new
       post "/login", CorporateSessionController, :create
       delete "/logout", CorporateSessionController, :delete

@@ -9,6 +9,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyDetailsComponent do
   attr :selected_policy, :map, default: nil
   attr :member_counts, :map, default: %{employees_count: 0, dependents_count: 0, lives_count: 0}
   attr :show_details, :boolean, default: true
+  attr :show_member_cards, :boolean, default: true
 
   def policy_details(assigns) do
     ~H"""
@@ -23,8 +24,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyDetailsComponent do
           <.icon
             name={if @show_details, do: "hero-chevron-down", else: "hero-chevron-right"}
             class="w-4 h-4"
-          />
-          <span>Policy Details</span>
+          /> <span>Policy Details</span>
         </button>
 
         <%= if @show_details do %>
@@ -58,50 +58,57 @@ defmodule CorporatePolicyWeb.Corporate.PolicyDetailsComponent do
           </div>
         <% end %>
       </div>
-
       <%!-- 3 Summary Cards Row --%>
-      <div class="p-4 bg-[#2b6eb0]/90 rounded-lg shadow-xs">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <%!-- Employees Card --%>
-          <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-              <.icon name="hero-user" class="w-6 h-6" />
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-500">Employees</p>
-              <p class="text-sm font-semibold text-gray-700">
-                Total - <span class="font-bold text-gray-900">{@member_counts.employees_count}</span>
-              </p>
-            </div>
-          </div>
+      <%= if @show_member_cards do %>
+        <div class="p-4 bg-[#2b6eb0]/90 rounded-lg shadow-xs">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <%!-- Employees Card --%>
+            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
+              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
+                <.icon name="hero-user" class="w-6 h-6" />
+              </div>
 
-          <%!-- Dependents Card --%>
-          <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-              <.icon name="hero-user-group" class="w-6 h-6" />
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-500">Dependents</p>
-              <p class="text-sm font-semibold text-gray-700">
-                Total - <span class="font-bold text-gray-900">{@member_counts.dependents_count}</span>
-              </p>
-            </div>
-          </div>
+              <div>
+                <p class="text-xs font-medium text-gray-500">Employees</p>
 
-          <%!-- Lives Card --%>
-          <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
-            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
-              <.icon name="hero-users" class="w-6 h-6" />
+                <p class="text-sm font-semibold text-gray-700">
+                  Total -
+                  <span class="font-bold text-gray-900">{@member_counts.employees_count}</span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-xs font-medium text-gray-500">Lives</p>
-              <p class="text-sm font-semibold text-gray-700">
-                Total - <span class="font-bold text-gray-900">{@member_counts.lives_count}</span>
-              </p>
+            <%!-- Dependents Card --%>
+            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
+              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
+                <.icon name="hero-user-group" class="w-6 h-6" />
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-gray-500">Dependents</p>
+
+                <p class="text-sm font-semibold text-gray-700">
+                  Total -
+                  <span class="font-bold text-gray-900">{@member_counts.dependents_count}</span>
+                </p>
+              </div>
+            </div>
+            <%!-- Lives Card --%>
+            <div class="bg-white rounded-lg p-4 flex items-center space-x-4 shadow-xs">
+              <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white shrink-0">
+                <.icon name="hero-users" class="w-6 h-6" />
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-gray-500">Lives</p>
+
+                <p class="text-sm font-semibold text-gray-700">
+                  Total - <span class="font-bold text-gray-900">{@member_counts.lives_count}</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      <% end %>
     </div>
     """
   end

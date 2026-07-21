@@ -95,21 +95,43 @@ defmodule CorporatePolicy.DataUploadService do
 
   defp process_endorsement(rows, policy_id, user_id) do
     Enum.each(rows, fn row ->
-      [emp_code, emp_name, gender, rel, dob, age, mobile, email, sum_insured | rest] =
-        pad_row(row, 10)
+      padded = pad_row(row, 16)
+
+      emp_code = Enum.at(padded, 0) |> clean_string()
+      emp_name = Enum.at(padded, 1) |> clean_string()
+      gender = Enum.at(padded, 2) |> clean_string()
+      rel = Enum.at(padded, 3) |> clean_string()
+      dob = Enum.at(padded, 4) |> clean_string()
+      age = Enum.at(padded, 5) |> clean_string()
+      mobile = Enum.at(padded, 6) |> clean_string()
+      email = Enum.at(padded, 7) |> clean_string()
+      sum_insured = Enum.at(padded, 8) |> clean_string()
+      doj = Enum.at(padded, 9) |> clean_string()
+      end_no = Enum.at(padded, 10) |> clean_string()
+      end_date = Enum.at(padded, 11) |> clean_string()
+      end_type = Enum.at(padded, 12) |> clean_string()
+      dol = Enum.at(padded, 13) |> clean_string()
+      card_no = Enum.at(padded, 14) |> clean_string()
+      designation = Enum.at(padded, 15) |> clean_string()
 
       Repo.insert!(%MasterEndorsementDataUpload{
         ref_policy_id: policy_id,
-        employee_code: clean_string(emp_code),
-        employee_name: clean_string(emp_name),
-        gender: clean_string(gender),
-        relationship: clean_string(rel),
-        dob: clean_string(dob),
-        age: clean_string(age),
-        mobile_number: clean_string(mobile),
-        email: clean_string(email),
-        sum_insured: clean_string(sum_insured),
-        doj: clean_string(Enum.at(rest, 0))
+        employee_code: emp_code,
+        employee_name: emp_name,
+        gender: gender,
+        relationship: rel,
+        dob: dob,
+        age: age,
+        mobile_number: mobile,
+        email: email,
+        sum_insured: sum_insured,
+        doj: doj,
+        endorsement_number: end_no,
+        endorsement_date: end_date,
+        endorsement_type: end_type,
+        dol: dol,
+        member_card_number: card_no,
+        designation: designation
       })
     end)
 

@@ -148,7 +148,13 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     )
 
     assert length(Repo.all(MasterInceptionDataUpload)) == 1
-    assert length(Repo.all(MasterEndorsementDataUpload)) == 1
+    endorsements = Repo.all(MasterEndorsementDataUpload)
+    assert length(endorsements) == 1
+    end_rec = Enum.at(endorsements, 0)
+    assert end_rec.employee_code == "EMP002"
+    assert end_rec.endorsement_number == "END01"
+    assert end_rec.endorsement_date == "2024-01-01"
+    assert end_rec.endorsement_type == "Addition"
 
     employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1

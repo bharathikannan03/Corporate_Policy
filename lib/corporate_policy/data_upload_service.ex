@@ -229,6 +229,10 @@ defmodule CorporatePolicy.DataUploadService do
           if source_type == "Endorsement", do: normalize_endorsement_type!(end_type), else: nil
 
         if source_type == "Endorsement" and deletion_type?(normalized_endorsement_type) do
+          if String.downcase(relationship_value) in ["employee", "self"] do
+            raise "Invalid data: Deletion requested for primary employee (Employee Code: #{emp_code}). Upload aborted."
+          end
+
           deactivate_inception_member(policy_id, emp_code, relationship_value, now_utc)
           deactivate_live_member(policy_id, emp_code, relationship_value, now_utc)
 
@@ -294,10 +298,30 @@ defmodule CorporatePolicy.DataUploadService do
   defp deletion_type?(_), do: false
 
   defp normalize_endorsement_type!(endorsement_type) do
-    normalized =
+    cleaned =
       endorsement_type
       |> clean_string()
       |> String.downcase()
+      |> String.replace(~r/[\s-]+/, "_")
+
+    normalized =
+      case cleaned do
+        "addition" -> "employee_addition"
+        "add" -> "employee_addition"
+        "emp_addition" -> "employee_addition"
+        "employee_addition" -> "employee_addition"
+        "dependent_addition" -> "dependent_addition"
+        "dependant_addition" -> "dependent_addition"
+        "dep_addition" -> "dependent_addition"
+        "deletion" -> "employee_deletion"
+        "del" -> "employee_deletion"
+        "emp_deletion" -> "employee_deletion"
+        "employee_deletion" -> "employee_deletion"
+        "dependent_deletion" -> "dependent_deletion"
+        "dependant_deletion" -> "dependent_deletion"
+        "dep_deletion" -> "dependent_deletion"
+        other -> other
+      end
 
     if normalized in @supported_endorsement_types do
       normalized

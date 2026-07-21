@@ -158,7 +158,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert end_rec.relationship == "Employee"
     assert end_rec.endorsement_number == "END01"
     assert end_rec.endorsement_date == "2024-01-01"
-    assert end_rec.endorsement_type == "Addition"
+    assert end_rec.endorsement_type == "employee_addition"
 
     employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1

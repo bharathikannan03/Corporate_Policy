@@ -1,10 +1,7 @@
-defmodule CorporatePolicyWeb.Corporate.LiveAuth do
+defmodule CorporatePolicyWeb.Employee.LiveAuth do
   import Phoenix.LiveView
   import Phoenix.Component
-<<<<<<< HEAD
-=======
 
->>>>>>> 221ea173375eccab6c4cfaf365ecf16c3dd59249
   alias CorporatePolicy.Accounts
 
   def on_mount(:default, _params, session, socket) do
@@ -12,10 +9,10 @@ defmodule CorporatePolicyWeb.Corporate.LiveAuth do
       if user = Accounts.get_user(user_id) do
         {:cont, assign(socket, :current_user, user)}
       else
-        {:halt, redirect(socket, to: "/corporate/login")}
+        {:halt, redirect(socket, to: "/employee/login")}
       end
     else
-      {:halt, redirect(socket, to: "/corporate/login")}
+      {:halt, redirect(socket, to: "/employee/login")}
     end
   end
 end

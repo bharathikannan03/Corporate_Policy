@@ -20,6 +20,14 @@ defmodule CorporatePolicyWeb.Router do
     plug CorporatePolicyWeb.Admin.Plugs.AuthPlug
   end
 
+  pipeline :corporate_require_auth do
+    plug CorporatePolicyWeb.Corporate.Plugs.AuthPlug
+  end
+
+  pipeline :employee_require_auth do
+    plug CorporatePolicyWeb.Employee.Plugs.AuthPlug
+  end
+
   # ─── Public Root Route ──────────────────────────────────────────────────────
   scope "/", CorporatePolicyWeb.Admin do
     pipe_through :browser
@@ -66,13 +74,14 @@ defmodule CorporatePolicyWeb.Router do
 
         live "/total-claim-reported", TotalClaimReportedLive
         live "/claims-intimation", ClaimsIntimationLive
-        live "/claims-submission", ClaimsSubmissionLive
+        live "/claims-submission", ClaimsSubmissionIndexLive, :index
+        live "/claims-submission/add", ClaimSubmissionFormLive, :new
+        live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
       end
-    end
-  end
 
-  pipeline :corp_require_auth do
-    plug CorporatePolicyWeb.Corporate.Plugs.AuthPlug
+      get "/total-claim-reported/export", TotalClaimReportedExportController, :export
+      get "/claims-submission/export", ClaimSubmissionExportController, :export
+    end
   end
 
   # ─── 2. Corporate Portal Scope ───────────────────────────────────────────
@@ -86,13 +95,18 @@ defmodule CorporatePolicyWeb.Router do
     end
 
     scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
-      pipe_through [:browser, :corp_require_auth]
+      pipe_through [:browser, :corporate_require_auth]
 
       live_session :corporate_authenticated,
         on_mount: [{CorporatePolicyWeb.Corporate.LiveAuth, :default}],
         layout: {CorporatePolicyWeb.Layouts, :app} do
         live "/dashboard", DashboardLive
+        live "/claims-submission", ClaimsSubmissionIndexLive, :index
+        live "/claims-submission/add", ClaimSubmissionFormLive, :new
+        live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
       end
+
+      get "/claims-submission/export", ClaimSubmissionExportController, :export
     end
   end
 
@@ -101,7 +115,23 @@ defmodule CorporatePolicyWeb.Router do
     scope "/employee", CorporatePolicyWeb.Employee, as: :employee do
       pipe_through :browser
 
-      # Future Employee Portal routes go here
+      get "/login", EmployeeSessionController, :new
+      post "/login", EmployeeSessionController, :create
+      delete "/logout", EmployeeSessionController, :delete
+    end
+
+    scope "/employee", CorporatePolicyWeb.Employee, as: :employee do
+      pipe_through [:browser, :employee_require_auth]
+
+      live_session :employee_authenticated,
+        on_mount: [{CorporatePolicyWeb.Employee.LiveAuth, :default}],
+        layout: {CorporatePolicyWeb.Layouts, :app} do
+        live "/claims-submission", ClaimsSubmissionIndexLive, :index
+        live "/claims-submission/add", ClaimSubmissionFormLive, :new
+        live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
+      end
+
+      get "/claims-submission/export", ClaimSubmissionExportController, :export
     end
   end
 

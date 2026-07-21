@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   use CorporatePolicyWeb, :live_component
   import Ecto.Query
 
+  alias CorporatePolicy.StringUtils
   alias CorporatePolicyWeb.Pagination
 
   @impl true
@@ -140,7 +141,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   defp available_data_types(policy) do
     types = ["Inception Data", "Endorsement Data", "Claim Dumps"]
 
-    if policy && Map.get(policy, "line_of_business", "") |> String.downcase() == "health" do
+    if policy && StringUtils.equal?(Map.get(policy, "line_of_business", ""), "health") do
       types ++ ["Ecards"]
     else
       types

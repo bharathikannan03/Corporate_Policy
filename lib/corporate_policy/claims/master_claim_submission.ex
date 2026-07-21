@@ -4,6 +4,9 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
 
   alias CorporatePolicy.Claims.{ClaimLog, ClaimSubmissionDocument}
   alias CorporatePolicy.Policies.Policy
+  alias CorporatePolicy.StringUtils
+
+  @claim_statuses ["Draft", "Submitted", "Under Review", "Approved", "Rejected"]
 
   schema "master_claim_submission" do
     field :ref_corporate_id, :integer
@@ -66,15 +69,11 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
   def create_changeset(claim, attrs) do
     claim
     |> cast(attrs, @required_fields ++ @optional_fields)
+    |> normalize_string_fields()
+    |> normalize_claim_status()
     |> validate_required(@required_fields)
     |> validate_inclusion(:portal_id, [1, 2, 3])
-    |> validate_inclusion(:claim_status, [
-      "Draft",
-      "Submitted",
-      "Under Review",
-      "Approved",
-      "Rejected"
-    ])
+    |> validate_inclusion(:claim_status, @claim_statuses)
     |> validate_number(:estimated_amount, greater_than: 0)
     |> validate_length(:claim_reason, max: 500)
     |> validate_length(:hospital_address, max: 1000)
@@ -86,15 +85,11 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
   def update_changeset(claim, attrs) do
     claim
     |> cast(attrs, (@required_fields ++ @optional_fields) -- @locked_update_fields)
+    |> normalize_string_fields()
+    |> normalize_claim_status()
     |> validate_required(@update_required_fields)
     |> validate_inclusion(:portal_id, [1, 2, 3])
-    |> validate_inclusion(:claim_status, [
-      "Draft",
-      "Submitted",
-      "Under Review",
-      "Approved",
-      "Rejected"
-    ])
+    |> validate_inclusion(:claim_status, @claim_statuses)
     |> validate_number(:estimated_amount, greater_than: 0)
     |> validate_length(:claim_reason, max: 500)
     |> validate_length(:hospital_address, max: 1000)
@@ -102,7 +97,7 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
   end
 
   def status_badge_class(status) do
-    case status do
+    case StringUtils.canonicalize(status, @claim_statuses) do
       "Submitted" -> "badge badge-info"
       "Under Review" -> "badge badge-warning"
       "Approved" -> "badge badge-success"
@@ -125,5 +120,45 @@ defmodule CorporatePolicy.Claims.MasterClaimSubmission do
       true ->
         changeset
     end
+  end
+
+  defp normalize_string_fields(changeset) do
+    Enum.reduce(
+      [
+        :claim_number,
+        :intimation_number,
+        :corporate_name,
+        :policy_number,
+        :policy_type,
+        :insurer_name,
+        :tpa_name,
+        :employee_code,
+        :employee_name,
+        :patient_name,
+        :relationship,
+        :claim_reason,
+        :claim_type,
+        :hospital_name,
+        :hospital_address,
+        :city,
+        :state,
+        :pincode,
+        :treatment_details,
+        :remarks
+      ],
+      changeset,
+      fn field, acc ->
+        update_change(acc, field, fn
+          value when is_binary(value) -> StringUtils.normalize(value)
+          value -> value
+        end)
+      end
+    )
+  end
+
+  defp normalize_claim_status(changeset) do
+    update_change(changeset, :claim_status, fn status ->
+      StringUtils.canonicalize(status, @claim_statuses) || StringUtils.normalize(status)
+    end)
   end
 end

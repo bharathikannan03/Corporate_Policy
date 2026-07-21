@@ -3,6 +3,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
 
   alias CorporatePolicy.Claims
   alias CorporatePolicy.Claims.MasterClaimSubmission
+  alias CorporatePolicy.StringUtils
 
   attr :portal, :atom, required: true
   attr :current_user, :map, default: nil
@@ -88,7 +89,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <select name="status" class="corp-input">
               <option value="">All Statuses</option>
               <%= for status <- @status_options do %>
-                <option value={status} selected={@claims_page.status == status}>{status}</option>
+                <option value={status} selected={StringUtils.equal?(@claims_page.status, status)}>
+                  {status}
+                </option>
               <% end %>
             </select>
           </div>
@@ -315,7 +318,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               <%= for employee <- @employees do %>
                 <option
                   value={employee.employee_code}
-                  selected={to_string(@form[:employee_code].value || "") == employee.employee_code}
+                  selected={
+                    StringUtils.equal?(@form[:employee_code].value || "", employee.employee_code)
+                  }
                 >
                   {employee.employee_code}
                 </option>
@@ -337,7 +342,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               <%= for patient <- @patient_options do %>
                 <option
                   value={patient.employee_name}
-                  selected={to_string(@form[:patient_name].value || "") == patient.employee_name}
+                  selected={
+                    StringUtils.equal?(@form[:patient_name].value || "", patient.employee_name)
+                  }
                 >
                   {patient.employee_name} ({patient.relationship})
                 </option>
@@ -492,7 +499,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <select name="claim[claim_type]" class="corp-input" required>
               <option value="">Select Claim Type</option>
               <%= for type <- ["Cashless", "Reimbursement"] do %>
-                <option value={type} selected={@form[:claim_type].value == type}>{type}</option>
+                <option value={type} selected={StringUtils.equal?(@form[:claim_type].value, type)}>
+                  {type}
+                </option>
               <% end %>
             </select>
           </div>
@@ -501,7 +510,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <label class="corp-label">Claim Status</label>
             <select name="claim[claim_status]" class="corp-input">
               <%= for status <- @claim_statuses do %>
-                <option value={status} selected={@form[:claim_status].value == status}>
+                <option
+                  value={status}
+                  selected={StringUtils.equal?(@form[:claim_status].value, status)}
+                >
                   {status}
                 </option>
               <% end %>

@@ -4,6 +4,7 @@ defmodule CorporatePolicy.Policies do
   """
 
   import Ecto.Query, warn: false
+  alias CorporatePolicy.StringUtils
 
   alias CorporatePolicy.Repo
   alias CorporatePolicy.Policies.Policy
@@ -117,18 +118,21 @@ defmodule CorporatePolicy.Policies do
   def list_active_policies_by_corporate(corporate_id, fy_id \\ nil) do
     corporate = Repo.get(Corporate, corporate_id)
     corporate_name = corporate && corporate.corporate_name
+    normalized_corporate_name = StringUtils.downcase(corporate_name)
 
     query =
       if is_binary(corporate_name) and corporate_name != "" do
         from p in Policy,
           where:
-            (p.ref_corporate_id == ^corporate_id or p.corporate_name == ^corporate_name) and
-              p.status == 1 and not is_nil(p.policy_number) and p.policy_number != ""
+            (p.ref_corporate_id == ^corporate_id or
+               fragment("lower(trim(?))", p.corporate_name) == ^normalized_corporate_name) and
+              p.status == 1 and not is_nil(p.policy_number) and
+              fragment("trim(?) <> ''", p.policy_number)
       else
         from p in Policy,
           where:
             p.ref_corporate_id == ^corporate_id and p.status == 1 and not is_nil(p.policy_number) and
-              p.policy_number != ""
+              fragment("trim(?) <> ''", p.policy_number)
       end
 
     query =

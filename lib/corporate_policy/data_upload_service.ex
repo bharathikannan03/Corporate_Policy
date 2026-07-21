@@ -1,5 +1,6 @@
 defmodule CorporatePolicy.DataUploadService do
   alias CorporatePolicy.Repo
+  alias CorporatePolicy.StringUtils
 
   alias CorporatePolicy.Policies.{
     MasterPolicyDataUpload,
@@ -297,7 +298,7 @@ defmodule CorporatePolicy.DataUploadService do
     normalized =
       endorsement_type
       |> clean_string()
-      |> String.downcase()
+      |> StringUtils.enum_key()
 
     if normalized in @supported_endorsement_types do
       normalized
@@ -423,7 +424,7 @@ defmodule CorporatePolicy.DataUploadService do
       cleaned == "" ->
         raise "Invalid data: Relationship is missing for record (Employee Code: #{emp_code}). Upload aborted."
 
-      String.downcase(cleaned) in ["self", "employee"] ->
+      StringUtils.in?(cleaned, ["self", "employee"]) ->
         "Employee"
 
       true ->

@@ -4,6 +4,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
   alias CorporatePolicy.Accounts
   alias CorporatePolicy.Claims
   alias CorporatePolicy.Claims.MasterClaimSubmission
+  alias CorporatePolicy.StringUtils
 
   @impl true
   def mount(_params, session, socket) do
@@ -121,7 +122,9 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                 <select name="status" class="corp-input">
                   <option value="">All Statuses</option>
                   <%= for status <- @claim_statuses do %>
-                    <option value={status} selected={@claims_page.status == status}>{status}</option>
+                    <option value={status} selected={StringUtils.equal?(@claims_page.status, status)}>
+                      {status}
+                    </option>
                   <% end %>
                 </select>
               </div>

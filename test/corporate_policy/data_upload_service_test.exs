@@ -126,7 +126,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
 
     endorsement_csv = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,EndNo,EndDate,EndType
-    EMP002,Jane Smith,Female,Self,1992-05-15,32,9998887770,jane_updated@example.com,500000,2021-03-01,END01,2024-01-01,Addition
+    EMP002,Jane Smith,Female,Self,1992-05-15,32,9998887770,jane_updated@example.com,500000,2021-03-01,END01,2024-01-01,employee_addition
     """
 
     inc_path = Path.join(System.tmp_dir!(), "inc_#{policy.id}.csv")
@@ -158,7 +158,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert end_rec.relationship == "Employee"
     assert end_rec.endorsement_number == "END01"
     assert end_rec.endorsement_date == "2024-01-01"
-    assert end_rec.endorsement_type == "Addition"
+    assert end_rec.endorsement_type == "employee_addition"
 
     employee_records = Repo.all(TrnMappingLiveEmployee)
     assert length(employee_records) == 1
@@ -181,7 +181,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
 
     endorsement_deletion_csv = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,EndNo,EndDate,EndType
-    EMP004,Tommy Green,Male,Spouse,1984-06-20,40,9876500002,tommy@example.com,500000,2018-01-01,END02,2024-02-01,Dependant Deletion
+    EMP004,Tommy Green,Male,Spouse,1984-06-20,40,9876500002,tommy@example.com,500000,2018-01-01,END02,2024-02-01,dependent_deletion
     """
 
     inc_path = Path.join(System.tmp_dir!(), "inc_del_#{policy.id}.csv")
@@ -223,7 +223,7 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     assert log.deletion_category == "Dependant Deletion"
   end
 
-  test "process_upload throws error on deletion record with relationship = Employee or Self", %{
+  test "process_upload handles primary employee deletion in Endorsement Data", %{
     policy: policy
   } do
     inception_csv = """
@@ -231,15 +231,15 @@ defmodule CorporatePolicy.DataUploadServiceTest do
     EMP005,Charlie Brown,Male,Self,1995-09-09,28,9876500003,charlie@example.com,400000,2022-05-01
     """
 
-    invalid_deletion_csv = """
+    employee_deletion_csv = """
     Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,EndNo,EndDate,EndType
-    EMP005,Charlie Brown,Male,Self,1995-09-09,28,9876500003,charlie@example.com,400000,2022-05-01,END03,2024-03-01,Employee Deletion
+    EMP005,Charlie Brown,Male,Self,1995-09-09,28,9876500003,charlie@example.com,400000,2022-05-01,END03,2024-03-01,employee_deletion
     """
 
     inc_path = Path.join(System.tmp_dir!(), "inc_invalid_#{policy.id}.csv")
     invalid_path = Path.join(System.tmp_dir!(), "invalid_del_#{policy.id}.csv")
     File.write!(inc_path, inception_csv)
-    File.write!(invalid_path, invalid_deletion_csv)
+    File.write!(invalid_path, employee_deletion_csv)
 
     DataUploadService.process_upload(
       policy.id,
@@ -249,23 +249,23 @@ defmodule CorporatePolicy.DataUploadServiceTest do
       "inc.csv"
     )
 
-    assert_raise RuntimeError,
-                 ~r/Invalid data: Deletion requested for primary employee/,
-                 fn ->
-                   DataUploadService.process_upload(
-                     policy.id,
-                     "Endorsement Data",
-                     "Invalid Deletion",
-                     invalid_path,
-                     "invalid.csv"
-                   )
-                 end
+    DataUploadService.process_upload(
+      policy.id,
+      "Endorsement Data",
+      "Deletion",
+      invalid_path,
+      "invalid.csv"
+    )
 
-    # Confirm employee is still active and no deletion log was recorded
     emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP005")
-    assert emp.status == "active"
-    assert is_nil(emp.deleted_at)
-    assert length(Repo.all(TrnEndorsementDeletionLog)) == 0
+    assert emp.status == "inactive"
+    refute is_nil(emp.deleted_at)
+
+    log = Repo.one!(TrnEndorsementDeletionLog)
+    assert log.employee_code == "EMP005"
+    assert log.relationship == "Employee"
+    assert log.endorsement_type == "employee_deletion"
+    assert log.deletion_category == "Employee Deletion"
   end
 
   test "process_upload raises error when relationship is blank or missing", %{

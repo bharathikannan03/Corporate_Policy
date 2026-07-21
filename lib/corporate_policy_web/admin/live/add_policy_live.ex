@@ -57,6 +57,11 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
   end
 
   @impl true
+  def handle_info({:put_flash, kind, msg}, socket) do
+    {:noreply, put_flash(socket, kind, msg)}
+  end
+
+  @impl true
   def handle_info({:step_completed, step, policy}, socket) do
     next_step_index = Enum.find_index(@steps, fn s -> s == step end) + 1
     next_step = Enum.at(@steps, next_step_index)
@@ -125,7 +130,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                 <span class={["text-sm", text_color]}>{step_name}</span>
+                <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
@@ -185,7 +190,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-                  
+
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

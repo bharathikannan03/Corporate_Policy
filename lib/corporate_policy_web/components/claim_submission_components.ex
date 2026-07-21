@@ -517,11 +517,12 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             >{@form[:remarks].value || ""}</textarea>
           </div>
 
-          <div class="corp-field-group corp-field-group--full flex justify-end gap-4 mt-4">
+          <div class="corp-field-group corp-field-group--full corp-form-actions">
             <.link navigate={portal_path(@portal, "/claims-submission")} class="btn btn-secondary">
               Cancel
             </.link>
             <button type="submit" class="btn btn-primary">
+              <.icon name="hero-check" class="w-4 h-4 mr-1" />
               {if @claim, do: "Save Claim", else: "Save & Next"}
             </button>
           </div>
@@ -604,7 +605,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           <div class="flex items-center justify-between">
             <button type="button" phx-click="back_to_details" class="btn btn-secondary">Previous</button>
 
-            <button type="button" phx-click="submit_claim" class="btn btn-primary">
+            <button type="button" phx-click="submit_claim" class="btn btn-success">
               Complete
             </button>
           </div>
@@ -680,7 +681,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   <% end %>
                 </div>
 
-                <div class="flex justify-end gap-3">
+                <div class="corp-form-actions">
                   <button type="button" phx-click="close_upload_modal" class="btn btn-secondary">Cancel</button>
                   <button
                     type="submit"
@@ -764,7 +765,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
       phx-click="sort"
       phx-value-field={@sortable_field}
       phx-value-direction={@sortable_dir}
-      class="inline-flex items-center gap-1 font-semibold"
+      class="corp-sort-button"
     >
       {@sortable_label}
       <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />

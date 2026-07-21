@@ -19,6 +19,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
       socket
       |> assign(assigns)
       |> assign(:uploads_list, uploads_list)
+      |> assign(:error_message, nil)
       |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
       |> allow_upload(:data_file, accept: ~w(.csv .pdf .zip), max_entries: 1)
 
@@ -33,12 +34,9 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   @impl true
   def handle_event("save_upload", %{"data_type" => data_type, "remark" => remark}, socket) do
     if is_nil(socket.assigns.policy) do
-      {:noreply,
-       put_flash(
-         socket,
-         :error,
-         "Cannot upload data. Policy is missing or not saved properly. Please complete Step 1 first."
-       )}
+      err_msg = "Cannot upload data. Policy is missing or not saved properly. Please complete Step 1 first."
+      send(self(), {:put_flash, :error, err_msg})
+      {:noreply, socket |> assign(:error_message, err_msg) |> put_flash(:error, err_msg)}
     else
       policy_id = socket.assigns.policy.id
 
@@ -68,9 +66,12 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
                   order_by: [desc: u.inserted_at]
               )
 
+            send(self(), {:put_flash, :info, "Data uploaded successfully."})
+
             {:noreply,
              socket
              |> assign(:uploads_list, uploads_list)
+             |> assign(:error_message, nil)
              |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
              |> put_flash(:info, "Data uploaded successfully.")}
           rescue
@@ -78,16 +79,33 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               require Logger
               Logger.error("Failed to process upload: #{inspect(e)}")
 
+              error_msg =
+                case e do
+                  %RuntimeError{message: msg} ->
+                    msg
+
+                  %Postgrex.Error{postgres: %{message: msg}} when is_binary(msg) ->
+                    "Database error: " <> msg
+
+                  %Postgrex.Error{postgres: %{message: msg}} when not is_nil(msg) ->
+                    "Database error: " <> inspect(msg)
+
+                  _ ->
+                    "Failed to parse and save file: " <> Exception.message(e)
+                end
+
+              send(self(), {:put_flash, :error, error_msg})
+
               {:noreply,
-               put_flash(
-                 socket,
-                 :error,
-                 "Failed to parse and save file. Please check file format."
-               )}
+               socket
+               |> assign(:error_message, error_msg)
+               |> put_flash(:error, error_msg)}
           end
 
         _ ->
-          {:noreply, put_flash(socket, :error, "Failed to upload file.")}
+          err_msg = "Failed to upload file. Please select a valid file."
+          send(self(), {:put_flash, :error, err_msg})
+          {:noreply, socket |> assign(:error_message, err_msg) |> put_flash(:error, err_msg)}
       end
     end
   end
@@ -122,6 +140,21 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   def render(assigns) do
     ~H"""
     <div class="corp-form-card">
+      <%= if @error_message do %>
+        <div class="mb-6 p-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 flex-shrink-0 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              >
+              </path>
+            </svg>
+            <span class="font-semibold">{@error_message}</span>
+          </div>
+        </div>
+      <% end %>
       <!-- File Upload Form -->
       <.form
         for={@form}
@@ -138,17 +171,17 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               <option value="" disabled selected={@form[:data_type].value == ""}>
                 Select Data Type
               </option>
-              
+
               <%= for type <- available_data_types(@policy) do %>
                 <option value={type} selected={@form[:data_type].value == type}>{type}</option>
               <% end %>
             </select>
-            
+
             <p class="text-xs text-gray-400 mt-1">
               Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
             </p>
           </div>
-          
+
           <div>
             <label class="corp-label">Remark</label>
             <input
@@ -160,7 +193,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             />
           </div>
         </div>
-        
+
         <div class="mb-4">
           <label class="corp-label">Upload File <span class="text-red-500">*</span></label>
           <div
@@ -171,7 +204,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             <label for={@uploads.data_file.ref} class="cursor-pointer text-primary hover:underline">
               Click to browse
             </label>
-             <span class="text-gray-500"> or drag and drop here</span>
+            <span class="text-gray-500"> or drag and drop here</span>
           </div>
         </div>
         <!-- Preview pending uploads -->
@@ -192,7 +225,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
             </div>
           </div>
         <% end %>
-        
+
         <div class="flex justify-end mt-4">
           <button
             type="submit"
@@ -209,19 +242,19 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
           <thead>
             <tr>
               <th>#</th>
-              
+
               <th>FILE NAME</th>
-              
+
               <th>DATA TYPE</th>
-              
+
               <th>REMARK</th>
-              
+
               <th>STATUS</th>
-              
+
               <th>CREATED AT</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@uploads_list) do %>
               <tr>
@@ -241,19 +274,19 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               <%= for {upload, index} <- Enum.with_index(@uploads_list, 1) do %>
                 <tr>
                   <td>{index}</td>
-                  
+
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {upload.original_file_name}
                   </td>
-                  
+
                   <td>{upload.data_type}</td>
-                  
+
                   <td>{upload.remark}</td>
-                  
+
                   <td>
                     <span class="badge badge-success badge-sm text-white border-none bg-green-500">Uploaded</span>
                   </td>
-                  
+
                   <td class="whitespace-nowrap">
                     {Calendar.strftime(upload.inserted_at, "%d-%b-%Y %I:%M %p")}
                   </td>
@@ -268,12 +301,12 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         <button class="btn btn-sm btn-primary">Previous</button>
         <button class="btn btn-sm btn-primary">Next</button>
       </div>
-      
+
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step4" phx-target={@myself} class="btn btn-primary">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

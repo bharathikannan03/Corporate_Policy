@@ -433,7 +433,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
       phx-click="sort"
       phx-value-field={@sortable_field}
       phx-value-direction={@sortable_dir}
-      class="inline-flex items-center gap-1 font-semibold"
+      class="corp-sort-button"
     >
       {@sortable_label}
       <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />

@@ -34,14 +34,17 @@ defmodule CorporatePolicyWeb.Employee.MembersLive do
               <div class="employee-member-card-header">
                 <div>
                   <h3>{member.employee_name}</h3>
+                  
                   <p>{EmployeePortal.format_relationship(member.relationship)}</p>
                 </div>
-                <span class="employee-member-badge">{member.status}</span>
+                 <span class="employee-member-badge">{member.status}</span>
               </div>
-
+              
               <div class="employee-member-meta">
                 <p>DOB: {member.dob || "-"}</p>
+                
                 <p>Age: {member.age || "-"}</p>
+                
                 <p>Employee Code: {member.employee_code}</p>
               </div>
             </article>

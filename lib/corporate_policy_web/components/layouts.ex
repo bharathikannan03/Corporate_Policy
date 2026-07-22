@@ -187,7 +187,7 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
           
-          <.sidebar_item
+          <.sidebar_group
             icon="hero-banknotes"
             label="CD Statements"
             open={String.starts_with?(@active_path, "/admin/cd-statements")}
@@ -205,7 +205,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-cd-accounts"
             />
           </.sidebar_group>
-
+          
           <.sidebar_item
             icon="hero-cog-6-tooth"
             label="Roles Configuration"

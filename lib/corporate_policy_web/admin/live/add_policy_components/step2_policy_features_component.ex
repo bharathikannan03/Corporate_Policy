@@ -103,7 +103,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
         <%!-- Form View --%>
         <div class="flex justify-between items-center mb-6">
           <h3 class="text-lg font-semibold text-slate-800">Add Policy Feature</h3>
-          <span class="text-sm text-slate-500">Template: POLICY_001</span>
+           <span class="text-sm text-slate-500">Template: POLICY_001</span>
         </div>
         
         <%= if @template_fields == [] do %>

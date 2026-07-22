@@ -6,12 +6,12 @@
           <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
           <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
         </div>
-
+        
         <p>Insurance Broking and Advisory Service Pvt Ltd</p>
       </div>
-
+      
       <h1 class="employee-login-title">Employee Login</h1>
-
+      
       <.form for={@form} action={~p"/employee/login"} method="post" class="employee-login-form">
         <input
           type="hidden"
@@ -32,7 +32,7 @@
             required
           />
         </div>
-
+        
         <%= if @otp_sent do %>
           <div>
             <label class="employee-login-label">Enter OTP</label>
@@ -48,12 +48,12 @@
             />
           </div>
         <% end %>
-
+        
         <button type="submit" class="employee-login-submit">
           {if @otp_sent, do: "Login", else: "Generate OTP"}
         </button>
       </.form>
-
+      
       <p class="employee-login-note">
         Access is limited to active employee/self records mapped in the employee policy data.
       </p>

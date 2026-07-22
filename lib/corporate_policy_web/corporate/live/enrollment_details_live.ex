@@ -506,7 +506,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           </button>
         </div>
       </div>
-
+      
       <%= if @active_nav_tab == "list_view" do %>
         <PolicyDetailsComponent.policy_details
           selected_policy={@selected_policy}
@@ -527,8 +527,8 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           selected_policy={@selected_policy}
           member_counts={@member_counts}
           show_details={@show_policy_details}
-        /> <%!-- Employee Data Table Section (Image 2) --%>
-        /> <%!-- Employee Data Table Section (Image 2) --%>
+        /> <%!-- Employee Data Table Section (Image 2) --%> />
+        <%!-- Employee Data Table Section (Image 2) --%>
         <div class="bg-white rounded-lg border border-gray-200 shadow-xs mt-6 p-4">
           <%!-- Export Button Header --%>
           <div class="flex items-center justify-end mb-4">
@@ -588,29 +588,29 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               <thead>
                 <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
                   <th class="p-3">SI NO</th>
-
+                  
                   <th class="p-3">EMPLOYEE NAME</th>
-
+                  
                   <th class="p-3">EMPLOYEE CODE</th>
-
+                  
                   <th class="p-3">GENDER</th>
-
+                  
                   <th class="p-3">MEMBER ID</th>
-
+                  
                   <th class="p-3">SUM INSURED</th>
-
+                  
                   <th class="p-3 text-center">DEPENDENT</th>
-
+                  
                   <th class="p-3 text-center">CARDS</th>
-
+                  
                   <th class="p-3 text-center">INTIMATE</th>
-
+                  
                   <th class="p-3">EMPLOYEE MOBILE NUMBER</th>
-
+                  
                   <th class="p-3">EMPLOYEE EMAIL</th>
                 </tr>
               </thead>
-
+              
               <tbody class="divide-y divide-gray-200 bg-white">
                 <%= if @employees_page.entries == [] do %>
                   <tr>
@@ -624,17 +624,17 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                       <td class="p-3 text-gray-600 font-medium">
                         {(@employees_page.page - 1) * @employees_page.page_size + index}
                       </td>
-
+                      
                       <td class="p-3 font-semibold text-gray-800">{emp.employee_name}</td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.employee_code}</td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.gender || "-"}</td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.member_card_number || "-"}</td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.sum_insured || "-"}</td>
-
+                      
                       <td class="p-3 text-center">
                         <button
                           type="button"
@@ -647,7 +647,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>View Dependent</span>
                         </button>
                       </td>
-
+                      
                       <td class="p-3 text-center">
                         <button
                           type="button"
@@ -658,7 +658,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>View Card</span>
                         </button>
                       </td>
-
+                      
                       <td class="p-3 text-center">
                         <.link
                           navigate={
@@ -669,9 +669,9 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>Intimate Claim</span>
                         </.link>
                       </td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.mobile_number || "-"}</td>
-
+                      
                       <td class="p-3 text-gray-600">{emp.email || "-"}</td>
                     </tr>
                   <% end %>
@@ -689,7 +689,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 @employees_page.total_entries
               )} of {@employees_page.total_entries} entries
             </div>
-
+            
             <div class="flex items-center space-x-2">
               <button
                 type="button"
@@ -700,7 +700,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &lt;
               </button>
-
+              
               <%= for p <- 1..max(@employees_page.total_pages, 1) do %>
                 <button
                   type="button"
@@ -716,7 +716,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                   {p}
                 </button>
               <% end %>
-
+              
               <button
                 type="button"
                 disabled={@employees_page.page >= @employees_page.total_pages}
@@ -726,7 +726,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &gt;
               </button>
-
+              
               <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
                 15/page
               </span>

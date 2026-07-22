@@ -281,7 +281,7 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
               </div>
 
               <div class="corp-form-footer" id="corp-footer-details">
-                <button type="submit" name="action" value="next" class="btn-primary" id="btn-next">
+                <button type="submit" name="action" value="next" class="btn-success" id="btn-next">
                   Next
                 </button>
               </div>
@@ -391,7 +391,7 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
                   Back
                 </button>
 
-                <button type="submit" name="action" value="submit" class="btn-primary" id="btn-submit">
+                <button type="submit" name="action" value="submit" class="btn-success" id="btn-submit">
                   Submit
                 </button>
               </div>

@@ -73,6 +73,7 @@ defmodule CorporatePolicyWeb.Router do
   scope "/admin", CorporatePolicyWeb.Admin, as: :admin do
     pipe_through [:browser, :admin_portal_enabled]
 
+    get "/", SessionController, :new
     get "/login", SessionController, :new
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
@@ -121,6 +122,7 @@ defmodule CorporatePolicyWeb.Router do
   scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
     pipe_through [:browser, :corporate_portal_enabled]
 
+    get "/", CorporateSessionController, :new
     get "/login", CorporateSessionController, :new
     post "/login", CorporateSessionController, :create
     delete "/logout", CorporateSessionController, :delete
@@ -133,11 +135,18 @@ defmodule CorporatePolicyWeb.Router do
       on_mount: [{CorporatePolicyWeb.Corporate.LiveAuth, :default}],
       layout: {CorporatePolicyWeb.Layouts, :app} do
       live "/dashboard", DashboardLive
+      live "/enrollment-details", EnrollmentDetailsLive
+      live "/employee", EnrollmentDetailsLive
+      live "/claims", ClaimsLive
+      live "/escalation-matrix", EscalationMatrixLive
+      live "/documents", DocumentsLive
       live "/claims-submission", ClaimsSubmissionIndexLive, :index
       live "/claims-submission/add", ClaimSubmissionFormLive, :new
       live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
     end
 
+    get "/enrollment-details/export", EmployeeExportController, :export
+    get "/claims/export", TotalClaimReportExportController, :export
     get "/claims-submission/export", ClaimSubmissionExportController, :export
   end
 

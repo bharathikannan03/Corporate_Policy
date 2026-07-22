@@ -244,7 +244,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         <div class="flex justify-start mt-4">
           <button
             type="submit"
-            class="btn btn-primary"
+            class="btn btn-success"
             disabled={Enum.empty?(@uploads.policy_doc.entries)}
           >
             Submit
@@ -354,7 +354,6 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         target={@myself}
         class="mb-8 bg-gray-50 rounded-b-lg"
       />
-
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel

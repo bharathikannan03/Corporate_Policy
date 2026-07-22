@@ -252,7 +252,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
               </div>
 
               <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Add CD Account</button>
+                <button type="submit" class="btn btn-success">Add CD Account</button>
               </div>
             </.form>
 

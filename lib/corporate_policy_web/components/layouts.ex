@@ -205,6 +205,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-cd-accounts"
             />
           </.sidebar_group>
+
           <.sidebar_item
             icon="hero-cog-6-tooth"
             label="Roles Configuration"
@@ -398,14 +399,14 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-calendar"
             label="Enrollment"
-            href="#"
-            active={@active_path == "/corporate/enrollment"}
+            href={~p"/corporate/enrollment-details"}
+            active={String.starts_with?(@active_path, "/corporate/enrollment")}
           />
           <.corp_nav_item
             icon="hero-clipboard-document-list"
             label="Claims"
-            href="#"
-            active={@active_path == "/corporate/claims"}
+            href={~p"/corporate/claims"}
+            active={String.starts_with?(@active_path, "/corporate/claims")}
           />
           <.corp_nav_item
             icon="hero-building-office"
@@ -416,7 +417,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-chart-bar"
             label="Escalation Matrix"
-            href="#"
+            href={~p"/corporate/escalation-matrix"}
             active={@active_path == "/corporate/escalation-matrix"}
           />
           <.corp_nav_item
@@ -428,7 +429,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-document-duplicate"
             label="Documents"
-            href="#"
+            href={~p"/corporate/documents"}
             active={@active_path == "/corporate/documents"}
           />
           <.corp_nav_item
@@ -440,7 +441,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-user-group"
             label="Employee"
-            href="#"
+            href={~p"/corporate/employee"}
             active={@active_path == "/corporate/employee"}
           />
           <.corp_nav_item

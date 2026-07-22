@@ -655,9 +655,10 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
             Cancel
           </button>
 
-          <button type="submit" class="btn btn-primary">
-            <.icon name="hero-check" class="w-4 h-4 mr-1" />
-            {if @edit_mode, do: "Save Changes", else: "Create Policy & Next"}
+          <button type="submit" class="btn btn-success">
+            <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @edit_mode,
+              do: "Save Changes",
+              else: "Create Policy & Next"}
           </button>
         </div>
       </.form>

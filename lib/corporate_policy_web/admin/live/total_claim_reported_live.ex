@@ -86,6 +86,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
         <div class="corp-list-header" id="total-claim-reported-header">
           <div>
             <h1 class="corp-list-title">Claims Reported List</h1>
+
             <p class="corp-list-subtitle">
               Displays all details captured from the Claim Details form, including status and timestamps.
             </p>
@@ -121,6 +122,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                 <label class="corp-label">Status</label>
                 <select name="status" class="corp-input">
                   <option value="">All Statuses</option>
+
                   <%= for status <- @claim_statuses do %>
                     <option value={status} selected={StringUtils.equal?(@claims_page.status, status)}>
                       {status}
@@ -136,39 +138,65 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
               <thead>
                 <tr>
                   <th class="corp-th">SI NO</th>
+
                   <th class="corp-th">
                     {sortable_link(assigns, "Corporate Name", "corporate_name")}
                   </th>
+
                   <th class="corp-th">{sortable_link(assigns, "Policy Number", "policy_number")}</th>
+
                   <th class="corp-th">{sortable_link(assigns, "Employee Code", "employee_code")}</th>
+
                   <th class="corp-th">Employee Name</th>
+
                   <th class="corp-th">
                     {sortable_link(assigns, "Beneficiary Name", "patient_name")}
                   </th>
+
                   <th class="corp-th">Relation</th>
+
                   <th class="corp-th">Claim Type</th>
+
                   <th class="corp-th">{sortable_link(assigns, "Claim Status", "claim_status")}</th>
+
                   <th class="corp-th">{sortable_link(assigns, "Claim No", "claim_number")}</th>
+
                   <th class="corp-th">Intimation No</th>
+
                   <th class="corp-th">
                     {sortable_link(assigns, "Hospitalization Date", "hospitalization_date")}
                   </th>
+
                   <th class="corp-th">
                     {sortable_link(assigns, "Discharge Date", "discharge_date")}
                   </th>
+
                   <th class="corp-th">Hospital Name</th>
+
                   <th class="corp-th">Amount Claimed</th>
+
                   <th class="corp-th">Claim Reason</th>
+
                   <th class="corp-th">Hospital Address</th>
+
                   <th class="corp-th">City</th>
+
                   <th class="corp-th">State</th>
+
                   <th class="corp-th">Pincode</th>
+
                   <th class="corp-th">Treatment Details</th>
+
                   <th class="corp-th">Remarks</th>
+
                   <th class="corp-th">Portal</th>
+
                   <th class="corp-th">{sortable_link(assigns, "Submitted At", "submitted_at")}</th>
+
                   <th class="corp-th">{sortable_link(assigns, "Created At", "inserted_at")}</th>
+
                   <th class="corp-th">Claim Docs</th>
+
                   <th class="corp-th">Logs</th>
                 </tr>
               </thead>
@@ -189,34 +217,59 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                       <td class="corp-td">
                         {(@claims_page.page - 1) * @claims_page.page_size + index}
                       </td>
+
                       <td class="corp-td">{claim.corporate_name}</td>
+
                       <td class="corp-td">{claim.policy_number}</td>
+
                       <td class="corp-td">{claim.employee_code}</td>
+
                       <td class="corp-td">{blank_dash(claim.employee_name)}</td>
+
                       <td class="corp-td">{claim.patient_name}</td>
+
                       <td class="corp-td">{blank_dash(claim.relationship)}</td>
+
                       <td class="corp-td">{claim.claim_type}</td>
+
                       <td class="corp-td">
                         <span class={MasterClaimSubmission.status_badge_class(claim.claim_status)}>
                           {claim.claim_status}
                         </span>
                       </td>
+
                       <td class="corp-td">{claim.claim_number}</td>
+
                       <td class="corp-td">{blank_dash(claim.intimation_number)}</td>
+
                       <td class="corp-td">{format_date(claim.hospitalization_date)}</td>
+
                       <td class="corp-td">{format_date(claim.discharge_date)}</td>
+
                       <td class="corp-td">{claim.hospital_name}</td>
+
                       <td class="corp-td">{format_amount(claim.estimated_amount)}</td>
+
                       <td class="corp-td">{blank_dash(claim.claim_reason)}</td>
+
                       <td class="corp-td">{blank_dash(claim.hospital_address)}</td>
+
                       <td class="corp-td">{blank_dash(claim.city)}</td>
+
                       <td class="corp-td">{blank_dash(claim.state)}</td>
+
                       <td class="corp-td">{blank_dash(claim.pincode)}</td>
+
                       <td class="corp-td">{blank_dash(claim.treatment_details)}</td>
+
                       <td class="corp-td">{blank_dash(claim.remarks)}</td>
+
                       <td class="corp-td">{portal_label(claim.portal_id)}</td>
+
                       <td class="corp-td">{format_datetime(claim.submitted_at)}</td>
+
                       <td class="corp-td">{format_datetime(claim.inserted_at)}</td>
+
                       <td class="corp-td">
                         <button
                           type="button"
@@ -227,6 +280,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                           View
                         </button>
                       </td>
+
                       <td class="corp-td">
                         <button
                           type="button"
@@ -289,6 +343,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
             <div class="flex items-start justify-between gap-4 mb-4">
               <div>
                 <h3 class="text-lg font-semibold">Claim Documents</h3>
+
                 <p class="text-sm text-gray-500">
                   {@selected_claim.claim_number} - {@selected_claim.patient_name}
                 </p>
@@ -308,8 +363,11 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                 <thead>
                   <tr>
                     <th class="corp-th">SI NO</th>
+
                     <th class="corp-th">Document Name</th>
+
                     <th class="corp-th">Attachment</th>
+
                     <th class="corp-th">Uploaded At</th>
                   </tr>
                 </thead>
@@ -323,7 +381,9 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                     <%= for {document, index} <- Enum.with_index(@selected_claim.documents, 1) do %>
                       <tr class="corp-tr">
                         <td class="corp-td">{index}</td>
+
                         <td class="corp-td">{document.document_name}</td>
+
                         <td class="corp-td">
                           <a
                             href={static_upload_path(document.file_path)}
@@ -333,6 +393,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                             {document.original_file_name}
                           </a>
                         </td>
+
                         <td class="corp-td">{format_datetime(document.inserted_at)}</td>
                       </tr>
                     <% end %>
@@ -350,6 +411,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
             <div class="flex items-start justify-between gap-4 mb-4">
               <div>
                 <h3 class="text-lg font-semibold">Claim Logs</h3>
+
                 <p class="text-sm text-gray-500">
                   Complete audit trail for {@selected_claim.claim_number}
                 </p>
@@ -369,13 +431,21 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                 <thead>
                   <tr>
                     <th class="corp-th">SI NO</th>
+
                     <th class="corp-th">Claim ID</th>
+
                     <th class="corp-th">Policy ID</th>
+
                     <th class="corp-th">Portal ID</th>
+
                     <th class="corp-th">Submitted By</th>
+
                     <th class="corp-th">Action</th>
+
                     <th class="corp-th">User ID</th>
+
                     <th class="corp-th">Timestamp</th>
+
                     <th class="corp-th">Remarks</th>
                   </tr>
                 </thead>
@@ -389,13 +459,21 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                     <%= for {log, index} <- Enum.with_index(@selected_claim.logs, 1) do %>
                       <tr class="corp-tr">
                         <td class="corp-td">{index}</td>
+
                         <td class="corp-td">{log.claim_id}</td>
+
                         <td class="corp-td">{log.policy_id}</td>
+
                         <td class="corp-td">{log.portal_id}</td>
+
                         <td class="corp-td">{blank_dash(log.submitted_by)}</td>
+
                         <td class="corp-td">{log.action}</td>
+
                         <td class="corp-td">{blank_dash(log.user_id)}</td>
+
                         <td class="corp-td">{format_datetime(log.inserted_at)}</td>
+
                         <td class="corp-td">{blank_dash(log.remarks)}</td>
                       </tr>
                     <% end %>
@@ -440,8 +518,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
       phx-value-direction={@sortable_dir}
       class="corp-sort-button"
     >
-      {@sortable_label}
-      <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
+      {@sortable_label} <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
     </button>
     """
   end

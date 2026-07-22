@@ -241,7 +241,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         <div class="flex justify-end mt-4">
           <button
             type="submit"
-            class="btn btn-outline btn-primary"
+            class="btn btn-outline btn-success"
             disabled={Enum.empty?(@uploads.data_file.entries)}
           >
             Upload Data
@@ -318,7 +318,6 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         target={@myself}
         class="mb-8 bg-gray-50 rounded-b-lg"
       />
-
       <div class="flex justify-end gap-4 mt-4 border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel

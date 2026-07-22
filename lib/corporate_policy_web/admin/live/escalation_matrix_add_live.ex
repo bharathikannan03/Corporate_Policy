@@ -254,7 +254,7 @@ defmodule CorporatePolicyWeb.Admin.EscalationMatrixAddLive do
             <div class="mt-8 flex justify-end">
               <button
                 type="submit"
-                class="btn-primary px-6 py-2.5 rounded-lg font-semibold shadow-md transition duration-200 hover:shadow-lg cursor-pointer"
+                class="btn-success px-6 py-2.5 rounded-lg font-semibold shadow-md transition duration-200 hover:shadow-lg cursor-pointer"
                 id="escalation-submit-btn"
               >
                 Submit

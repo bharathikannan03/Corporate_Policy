@@ -17,6 +17,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
       <div class="corp-list-header">
         <div>
           <h1 class="corp-list-title">{@page_title}</h1>
+
           <p class="corp-list-subtitle">
             Manage claim submissions for the {portal_label(@portal)}.
           </p>
@@ -53,7 +54,6 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           </.link>
         </div>
       </div>
-
       {render_slot(@inner_block)}
     </div>
     """
@@ -88,6 +88,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <label class="corp-label">Status</label>
             <select name="status" class="corp-input">
               <option value="">All Statuses</option>
+
               <%= for status <- @status_options do %>
                 <option value={status} selected={StringUtils.equal?(@claims_page.status, status)}>
                   {status}
@@ -119,17 +120,27 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           <thead>
             <tr>
               <th class="corp-th">SI No</th>
+
               <th class="corp-th">{sortable_link(assigns, "Claim Number", "claim_number")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Corporate Name", "corporate_name")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Policy Number", "policy_number")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Employee Code", "employee_code")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Patient Name", "patient_name")}</th>
+
               <th class="corp-th">
                 {sortable_link(assigns, "Hospitalization", "hospitalization_date")}
               </th>
+
               <th class="corp-th">{sortable_link(assigns, "Discharge", "discharge_date")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Status", "claim_status")}</th>
+
               <th class="corp-th">{sortable_link(assigns, "Created At", "inserted_at")}</th>
+
               <th class="corp-th text-right">Actions</th>
             </tr>
           </thead>
@@ -148,15 +159,25 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               <%= for {claim, index} <- Enum.with_index(@claims_page.entries, 1) do %>
                 <tr class="corp-tr">
                   <td class="corp-td">{(@claims_page.page - 1) * @claims_page.page_size + index}</td>
+
                   <td class="corp-td">{claim.claim_number}</td>
+
                   <td class="corp-td">{claim.corporate_name}</td>
+
                   <td class="corp-td">{claim.policy_number}</td>
+
                   <td class="corp-td">{claim.employee_code}</td>
+
                   <td class="corp-td">{claim.patient_name}</td>
+
                   <td class="corp-td">{format_date(claim.hospitalization_date)}</td>
+
                   <td class="corp-td">{format_date(claim.discharge_date)}</td>
+
                   <td class="corp-td"><.status_badge status={claim.claim_status} /></td>
+
                   <td class="corp-td">{format_datetime(claim.inserted_at)}</td>
+
                   <td class="corp-td">
                     <div class="corp-actions justify-end">
                       <.link
@@ -210,8 +231,8 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           {"details", 1, "Claim Details"},
           {"documents", 2, "Claim Document Upload"}
         ] do %>
-          <% is_active = @current_step == step_id %>
-          <% is_completed = @claim && step_id == "details" && @current_step == "documents" %>
+          <% is_active = @current_step == step_id %> <% is_completed =
+            @claim && step_id == "details" && @current_step == "documents" %>
           <div class={[
             "flex-1 flex items-center justify-center py-4 border-r last:border-r-0",
             is_active && "border-b-2 border-b-blue-500 bg-blue-50/30"
@@ -229,6 +250,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 {step_num}
               <% end %>
             </div>
+
             <span class={[
               "text-sm",
               if(is_active, do: "text-blue-500 font-semibold", else: "text-gray-600")
@@ -268,6 +290,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               disabled={readonly_field?(@claim, :ref_corporate_id)}
             >
               <option value="">Select Corporate Name</option>
+
               <%= for corporate <- @corporates do %>
                 <option
                   value={corporate.corporate_id}
@@ -293,6 +316,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               }
             >
               <option value="">Select Policy Number</option>
+
               <%= for policy <- @policies do %>
                 <option
                   value={policy.id}
@@ -315,6 +339,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               }
             >
               <option value="">Select Employee Code</option>
+
               <%= for employee <- @employees do %>
                 <option
                   value={employee.employee_code}
@@ -339,6 +364,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               }
             >
               <option value="">Select Patient Name</option>
+
               <%= for patient <- @patient_options do %>
                 <option
                   value={patient.employee_name}
@@ -498,6 +524,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <label class="corp-label">Claim Type <span class="corp-required">*</span></label>
             <select name="claim[claim_type]" class="corp-input" required>
               <option value="">Select Claim Type</option>
+
               <%= for type <- ["Cashless", "Reimbursement"] do %>
                 <option value={type} selected={StringUtils.equal?(@form[:claim_type].value, type)}>
                   {type}
@@ -521,8 +548,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           </div>
 
           <div class="corp-field-group corp-field-group--full">
-            <label class="corp-label">Treatment Details</label>
-            <textarea
+            <label class="corp-label">Treatment Details</label> <textarea
               name="claim[treatment_details]"
               class="corp-input min-h-28"
               placeholder="Enter treatment details"
@@ -530,8 +556,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           </div>
 
           <div class="corp-field-group corp-field-group--full">
-            <label class="corp-label">Remarks</label>
-            <textarea
+            <label class="corp-label">Remarks</label> <textarea
               name="claim[remarks]"
               class="corp-input min-h-28"
               placeholder="Enter any additional remarks"
@@ -542,9 +567,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <.link navigate={portal_path(@portal, "/claims-submission")} class="btn btn-secondary">
               Cancel
             </.link>
-            <button type="submit" class="btn btn-primary">
-              <.icon name="hero-check" class="w-4 h-4 mr-1" />
-              {if @claim, do: "Save Claim", else: "Save & Next"}
+
+            <button type="submit" class="btn btn-success">
+              <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @claim,
+                do: "Save Claim",
+                else: "Save & Next"}
             </button>
           </div>
         </.form>
@@ -553,6 +580,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-xl font-semibold">Claim Document Upload</h2>
+
               <p class="text-sm text-gray-500 mt-1">
                 Upload at least {@minimum_documents} supporting documents before submitting the claim.
               </p>
@@ -571,9 +599,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                 <thead>
                   <tr>
                     <th class="corp-th">SI NO</th>
+
                     <th class="corp-th">Document Name</th>
+
                     <th class="corp-th">Attachment Copy</th>
+
                     <th class="corp-th">Created At</th>
+
                     <th class="corp-th text-right">Action</th>
                   </tr>
                 </thead>
@@ -594,7 +626,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                         <td class="corp-td">
                           {(@documents_page.page - 1) * @documents_page.page_size + index}
                         </td>
+
                         <td class="corp-td">{document.document_name}</td>
+
                         <td class="corp-td">
                           <a
                             href={static_upload_path(document.file_path)}
@@ -604,7 +638,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                             Download Attachment
                           </a>
                         </td>
+
                         <td class="corp-td">{format_datetime(document.inserted_at)}</td>
+
                         <td class="corp-td">
                           <div class="corp-actions justify-end">
                             <button
@@ -635,7 +671,6 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
 
           <div class="flex items-center justify-between">
             <button type="button" phx-click="back_to_details" class="btn btn-secondary">Previous</button>
-
             <button type="button" phx-click="submit_claim" class="btn btn-success">
               Complete
             </button>
@@ -650,6 +685,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               <div class="flex items-start justify-between gap-4">
                 <div>
                   <h3 class="text-lg font-semibold">Upload Claim Document</h3>
+
                   <p class="text-sm text-gray-500">
                     Allowed types: PDF, PNG, JPG, JPEG. Maximum size: 8 MB per file.
                   </p>
@@ -674,6 +710,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   <label class="corp-label">Document Type <span class="corp-required">*</span></label>
                   <select name="document[document_name]" class="corp-input" required>
                     <option value="">Select document type</option>
+
                     <%= for name <- @document_requirements do %>
                       <option value={name} selected={@document_form[:document_name].value == name}>
                         {name}
@@ -720,7 +757,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   <button type="button" phx-click="close_upload_modal" class="btn btn-secondary">Cancel</button>
                   <button
                     type="submit"
-                    class="btn btn-primary"
+                    class="btn btn-success"
                     disabled={Enum.empty?(@uploads.claim_document.entries)}
                   >
                     Upload
@@ -802,8 +839,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
       phx-value-direction={@sortable_dir}
       class="corp-sort-button"
     >
-      {@sortable_label}
-      <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
+      {@sortable_label} <.icon name="hero-arrows-up-down" class="w-4 h-4 text-gray-400" />
     </button>
     """
   end

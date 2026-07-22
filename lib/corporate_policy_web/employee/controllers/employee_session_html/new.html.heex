@@ -3,11 +3,10 @@
     <div class="employee-login-shell">
       <div class="employee-login-brand">
         <div class="employee-login-logo">
-          <span class="employee-brand-v">V</span>
-          <span class="employee-brand-i">I</span>
-          <span class="employee-brand-b">B</span>
-          <span class="employee-brand-e">E</span>
+          <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
+          <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
         </div>
+
         <p>Insurance Broking and Advisory Service Pvt Ltd</p>
       </div>
 
@@ -19,7 +18,6 @@
           name="employee_auth[action]"
           value={if @otp_sent, do: "login", else: "request_otp"}
         />
-
         <div>
           <label class="employee-login-label">Phone Number</label>
           <input

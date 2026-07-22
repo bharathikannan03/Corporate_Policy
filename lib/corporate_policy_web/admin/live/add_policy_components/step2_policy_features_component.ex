@@ -159,7 +159,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                 Cancel
               </button>
 
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-success">
                 <.icon name="hero-check" class="w-4 h-4 mr-1" /> Save Features
               </button>
             </div>
@@ -235,7 +235,6 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           event="paginate_table"
           target={@myself}
         />
-
         <div class="flex justify-end gap-4 mt-6">
           <button
             type="button"

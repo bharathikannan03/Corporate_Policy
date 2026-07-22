@@ -338,7 +338,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
 
                       <button
                         type="submit"
-                        class="btn btn-primary"
+                        class="btn btn-success"
                         disabled={
                           Enum.empty?(@available_cd_accounts) or Enum.empty?(@uploads.cd_csv.entries)
                         }

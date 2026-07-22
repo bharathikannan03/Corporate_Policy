@@ -318,6 +318,9 @@ IO.puts("✓ md_document_names.exs")
 Code.eval_file("priv/repo/seeds/md_escalation_matrices.exs")
 IO.puts("✓ md_escalation_matrices.exs")
 
+Code.eval_file("priv/repo/seeds/master_policy_documents_seeds.exs")
+IO.puts("✓ master_policy_documents_seeds.exs")
+
 # There is an existing script for template fields, let's also run it if it exists
 if File.exists?("priv/repo/seeds_master_policy_feature_template_fields.exs") do
   Code.eval_file("priv/repo/seeds_master_policy_feature_template_fields.exs")

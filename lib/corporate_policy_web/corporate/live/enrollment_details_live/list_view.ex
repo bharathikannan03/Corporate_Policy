@@ -40,8 +40,10 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             <div class="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs">
               <.icon name="hero-user" class="w-5 h-5 text-white" />
             </div>
+            
             <div class="flex-1 min-w-0">
               <p class="text-xs font-semibold text-gray-800 truncate">Active list</p>
+              
               <div class="text-[11px] text-gray-600 mt-1">
                 <div class="flex items-center justify-between">
                   <span>Count -</span>
@@ -50,8 +52,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
               </div>
             </div>
           </button>
-
-          <%!-- Inception List Card --%>
+           <%!-- Inception List Card --%>
           <button
             type="button"
             phx-click="select_list_type"
@@ -65,8 +66,10 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             <div class="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs">
               <.icon name="hero-user" class="w-5 h-5 text-white" />
             </div>
+            
             <div class="flex-1 min-w-0">
               <p class="text-xs font-semibold text-gray-800 truncate">Inception list</p>
+              
               <div class="text-[11px] text-gray-600 mt-1">
                 <div class="flex items-center justify-between">
                   <span>Count -</span>
@@ -75,8 +78,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
               </div>
             </div>
           </button>
-
-          <%!-- Addition List Card --%>
+           <%!-- Addition List Card --%>
           <button
             type="button"
             phx-click="select_list_type"
@@ -90,8 +92,10 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             <div class="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs">
               <.icon name="hero-user" class="w-5 h-5 text-white" />
             </div>
+            
             <div class="flex-1 min-w-0">
               <p class="text-xs font-semibold text-gray-800 truncate">Addition list</p>
+              
               <div class="text-[11px] text-gray-600 mt-1">
                 <div class="flex items-center justify-between">
                   <span>Count -</span>
@@ -100,8 +104,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
               </div>
             </div>
           </button>
-
-          <%!-- Deletion List Card --%>
+           <%!-- Deletion List Card --%>
           <button
             type="button"
             phx-click="select_list_type"
@@ -115,8 +118,10 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             <div class="w-10 h-10 bg-[#3b82f6] rounded-lg flex items-center justify-center text-white shrink-0 shadow-2xs">
               <.icon name="hero-user" class="w-5 h-5 text-white" />
             </div>
+            
             <div class="flex-1 min-w-0">
               <p class="text-xs font-semibold text-gray-800 truncate">Deletion list</p>
+              
               <div class="text-[11px] text-gray-600 mt-1">
                 <div class="flex items-center justify-between">
                   <span>Count -</span>
@@ -127,15 +132,14 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
           </button>
         </div>
       </div>
-
-      <%!-- Data Table Section --%>
+       <%!-- Data Table Section --%>
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
         <%!-- Title and Export Button Header --%>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-bold text-gray-800 capitalize">
             {active_list_title(@active_list_type)} Data
           </h3>
-
+          
           <a
             href={
               ~p"/corporate/enrollment-details/export?policy_id=#{if @selected_policy, do: @selected_policy.id, else: ""}&list_type=#{@active_list_type}"
@@ -146,8 +150,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> <span>Export</span>
           </a>
         </div>
-
-        <%!-- Filter Bar Form --%>
+         <%!-- Filter Bar Form --%>
         <form phx-change="filter_list_view" id="list-view-table-filters" class="mb-3">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-xs">
             <input
@@ -187,30 +190,43 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             />
           </div>
         </form>
-
-        <%!-- Table Container --%>
+         <%!-- Table Container --%>
         <div class="overflow-x-auto border border-gray-200 rounded-md">
           <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead>
               <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
                 <th class="p-3">SI NO</th>
+                
                 <th class="p-3">EMPLOYEE NAME</th>
+                
                 <th class="p-3">EMPLOYEE ID</th>
+                
                 <th class="p-3">MEMBER ID</th>
+                
                 <th class="p-3">AGE</th>
+                
                 <th class="p-3">DOB</th>
+                
                 <th class="p-3">GENDER</th>
+                
                 <th class="p-3">RELATION</th>
+                
                 <th class="p-3">DATE OF JOINING</th>
+                
                 <th class="p-3">ENDORSEMENT NO</th>
+                
                 <th class="p-3">ENDORSEMENT DATE</th>
+                
                 <th class="p-3">SUMINSURED</th>
+                
                 <th class="p-3">POLICY NUMBER</th>
+                
                 <th class="p-3">EMPLOYEE MOBILE</th>
+                
                 <th class="p-3">EMPLOYEE EMAIL</th>
               </tr>
             </thead>
-
+            
             <tbody class="divide-y divide-gray-200 bg-white">
               <%= if @list_view_page.entries == [] do %>
                 <tr>
@@ -224,21 +240,35 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
                     <td class="p-3 text-gray-600 font-medium">
                       {(@list_view_page.page - 1) * @list_view_page.page_size + index}
                     </td>
+                    
                     <td class="p-3 font-semibold text-gray-800">{rec.employee_name || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.employee_code || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.member_card_number || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.age || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.dob || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.gender || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.relationship || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.doj || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.endorsement_number || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.endorsement_date || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.sum_insured || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">
                       {if @selected_policy, do: @selected_policy.policy_number, else: "-"}
                     </td>
+                    
                     <td class="p-3 text-gray-600">{rec.mobile_number || "-"}</td>
+                    
                     <td class="p-3 text-gray-600">{rec.email || "-"}</td>
                   </tr>
                 <% end %>
@@ -246,8 +276,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             </tbody>
           </table>
         </div>
-
-        <%!-- Pagination Footer (10 / page) --%>
+         <%!-- Pagination Footer (10 / page) --%>
         <div class="flex flex-col sm:flex-row items-center justify-between mt-4 text-xs text-gray-600 gap-3">
           <div>
             Showing {if @list_view_page.total_entries == 0,
@@ -257,7 +286,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
               @list_view_page.total_entries
             )} of {@list_view_page.total_entries} entries
           </div>
-
+          
           <div class="flex items-center space-x-2">
             <button
               type="button"
@@ -268,7 +297,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             >
               &lt;
             </button>
-
+            
             <%= for p <- 1..max(@list_view_page.total_pages, 1) do %>
               <button
                 type="button"
@@ -284,7 +313,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
                 {p}
               </button>
             <% end %>
-
+            
             <button
               type="button"
               disabled={@list_view_page.page >= @list_view_page.total_pages}
@@ -294,7 +323,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive.ListView do
             >
               &gt;
             </button>
-
+            
             <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
               10/page
             </span>

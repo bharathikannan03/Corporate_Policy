@@ -461,7 +461,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       <%!-- Top White Header Bar with Navigation Tabs (Image 1 Navbar) --%>
       <div class="bg-white rounded-lg p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between border border-gray-200 shadow-xs gap-3">
         <h2 class="text-xl font-bold text-gray-800">Enrollment Details</h2>
-
+        
         <div class="flex items-center space-x-2">
           <button
             type="button"
@@ -476,7 +476,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           >
             Enrollment Details
           </button>
-
+          
           <button
             type="button"
             phx-click="select_nav_tab"
@@ -490,7 +490,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           >
             List View
           </button>
-
+          
           <button
             type="button"
             phx-click="select_nav_tab"
@@ -506,6 +506,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           </button>
         </div>
       </div>
+      
       <%= if @active_nav_tab == "list_view" do %>
         <PolicyDetailsComponent.policy_details
           selected_policy={@selected_policy}
@@ -526,8 +527,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           selected_policy={@selected_policy}
           member_counts={@member_counts}
           show_details={@show_policy_details}
-        />
-        <%!-- Employee Data Table Section (Image 2) --%>
+        /> <%!-- Employee Data Table Section (Image 2) --%>
         <div class="bg-white rounded-lg border border-gray-200 shadow-xs mt-6 p-4">
           <%!-- Export Button Header --%>
           <div class="flex items-center justify-end mb-4">
@@ -541,7 +541,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> <span>Export</span>
             </a>
           </div>
-          <%!-- Filter Bar Form --%>
+           <%!-- Filter Bar Form --%>
           <form phx-change="filter_employees" id="employee-table-filters" class="mb-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-xs">
               <input
@@ -581,24 +581,35 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               />
             </div>
           </form>
-          <%!-- Table Container --%>
+           <%!-- Table Container --%>
           <div class="overflow-x-auto border border-gray-200 rounded-md">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
                   <th class="p-3">SI NO</th>
+                  
                   <th class="p-3">EMPLOYEE NAME</th>
+                  
                   <th class="p-3">EMPLOYEE CODE</th>
+                  
                   <th class="p-3">GENDER</th>
+                  
                   <th class="p-3">MEMBER ID</th>
+                  
                   <th class="p-3">SUM INSURED</th>
+                  
                   <th class="p-3 text-center">DEPENDENT</th>
+                  
                   <th class="p-3 text-center">CARDS</th>
+                  
                   <th class="p-3 text-center">INTIMATE</th>
+                  
                   <th class="p-3">EMPLOYEE MOBILE NUMBER</th>
+                  
                   <th class="p-3">EMPLOYEE EMAIL</th>
                 </tr>
               </thead>
+              
               <tbody class="divide-y divide-gray-200 bg-white">
                 <%= if @employees_page.entries == [] do %>
                   <tr>
@@ -612,11 +623,17 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                       <td class="p-3 text-gray-600 font-medium">
                         {(@employees_page.page - 1) * @employees_page.page_size + index}
                       </td>
+                      
                       <td class="p-3 font-semibold text-gray-800">{emp.employee_name}</td>
+                      
                       <td class="p-3 text-gray-600">{emp.employee_code}</td>
+                      
                       <td class="p-3 text-gray-600">{emp.gender || "-"}</td>
+                      
                       <td class="p-3 text-gray-600">{emp.member_card_number || "-"}</td>
+                      
                       <td class="p-3 text-gray-600">{emp.sum_insured || "-"}</td>
+                      
                       <td class="p-3 text-center">
                         <button
                           type="button"
@@ -629,6 +646,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>View Dependent</span>
                         </button>
                       </td>
+                      
                       <td class="p-3 text-center">
                         <button
                           type="button"
@@ -639,6 +657,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>View Card</span>
                         </button>
                       </td>
+                      
                       <td class="p-3 text-center">
                         <.link
                           navigate={
@@ -649,7 +668,9 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                           <span>Intimate Claim</span>
                         </.link>
                       </td>
+                      
                       <td class="p-3 text-gray-600">{emp.mobile_number || "-"}</td>
+                      
                       <td class="p-3 text-gray-600">{emp.email || "-"}</td>
                     </tr>
                   <% end %>
@@ -657,7 +678,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               </tbody>
             </table>
           </div>
-          <%!-- Pagination Footer (15 / page) --%>
+           <%!-- Pagination Footer (15 / page) --%>
           <div class="flex flex-col sm:flex-row items-center justify-between mt-4 text-xs text-gray-600 gap-3">
             <div>
               Showing {if @employees_page.total_entries == 0,
@@ -667,6 +688,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 @employees_page.total_entries
               )} of {@employees_page.total_entries} entries
             </div>
+            
             <div class="flex items-center space-x-2">
               <button
                 type="button"
@@ -677,6 +699,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &lt;
               </button>
+              
               <%= for p <- 1..max(@employees_page.total_pages, 1) do %>
                 <button
                   type="button"
@@ -692,6 +715,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                   {p}
                 </button>
               <% end %>
+              
               <button
                 type="button"
                 disabled={@employees_page.page >= @employees_page.total_pages}
@@ -701,6 +725,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &gt;
               </button>
+              
               <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
                 15/page
               </span>
@@ -708,14 +733,14 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           </div>
         </div>
       <% end %>
-      <%!-- Family Dependent Modal Popup (Image 3) --%>
+       <%!-- Family Dependent Modal Popup (Image 3) --%>
       <%= if @show_dependents_modal do %>
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 overflow-hidden border border-gray-200 animate-fade-in">
             <%!-- Modal Header --%>
             <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
               <h3 class="text-base font-bold text-gray-800">Family Dependent</h3>
-
+              
               <button
                 type="button"
                 phx-click="close_dependents_modal"
@@ -724,7 +749,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 <.icon name="hero-x-mark" class="w-5 h-5" />
               </button>
             </div>
-            <%!-- Search Box --%>
+             <%!-- Search Box --%>
             <div class="flex justify-end mb-4">
               <div class="relative w-64">
                 <.icon
@@ -741,27 +766,27 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 />
               </div>
             </div>
-            <%!-- Dependents Table --%>
+             <%!-- Dependents Table --%>
             <div class="overflow-x-auto border border-gray-100 rounded-lg">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
                     <th class="p-3">Relation</th>
-
+                    
                     <th class="p-3">Name</th>
-
+                    
                     <th class="p-3">Gender</th>
-
+                    
                     <th class="p-3">DOB</th>
-
+                    
                     <th class="p-3">Age</th>
-
+                    
                     <th class="p-3">Mobile Number</th>
-
+                    
                     <th class="p-3">Email</th>
                   </tr>
                 </thead>
-
+                
                 <tbody class="divide-y divide-gray-100 bg-white">
                   <%= if @dependents_page.entries == [] do %>
                     <tr>
@@ -773,17 +798,17 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                     <%= for dep <- @dependents_page.entries do %>
                       <tr class="hover:bg-gray-50">
                         <td class="p-3 text-gray-700">{dep.relationship}</td>
-
+                        
                         <td class="p-3 font-medium text-gray-900">{dep.employee_name}</td>
-
+                        
                         <td class="p-3 text-gray-600">{dep.gender || "-"}</td>
-
+                        
                         <td class="p-3 text-gray-600">{dep.dob || "-"}</td>
-
+                        
                         <td class="p-3 text-gray-600">{dep.age || "-"}</td>
-
+                        
                         <td class="p-3 text-gray-600">{dep.mobile_number || "-"}</td>
-
+                        
                         <td class="p-3 text-gray-600">{dep.email || "-"}</td>
                       </tr>
                     <% end %>
@@ -791,7 +816,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
                 </tbody>
               </table>
             </div>
-            <%!-- Modal Pagination Footer (10 / page) --%>
+             <%!-- Modal Pagination Footer (10 / page) --%>
             <div class="flex items-center justify-end mt-4 text-xs text-gray-600 space-x-2">
               <button
                 type="button"
@@ -802,11 +827,11 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &lt;
               </button>
-
+              
               <span class="px-2.5 py-1 border border-blue-600 rounded-md bg-white font-medium text-blue-600">
                 {@dependents_page.page}
               </span>
-
+              
               <button
                 type="button"
                 disabled={@dependents_page.page >= @dependents_page.total_pages}
@@ -816,7 +841,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
               >
                 &gt;
               </button>
-
+              
               <span class="ml-2 border border-gray-300 rounded-md px-2 py-1 bg-white font-medium text-gray-700">
                 10/page
               </span>

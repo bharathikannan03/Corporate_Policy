@@ -3,6 +3,7 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
 
   attr :current_user, :map, required: true
   attr :policy, :map, default: nil
+  attr :policy_options, :list, default: []
   attr :active_path, :string, default: "/employee/dashboard"
   attr :page_title, :string, required: true
   slot :inner_block, required: true
@@ -12,18 +13,26 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
       assigns
       |> assign(:nav_items, nav_items())
       |> assign(:quick_links, quick_links())
+      |> assign(
+        :display_policy_options,
+        display_policy_options(assigns.policy_options, assigns.policy)
+      )
+      |> assign(:current_policy_label, current_policy_label(assigns.policy))
+      |> assign(:selected_policy_id, selected_policy_id(assigns.policy))
 
     ~H"""
     <div class="employee-shell">
       <header class="employee-topbar">
         <div class="employee-brand">
-          <div class="employee-brand-mark">
-            <span class="employee-brand-v">V</span>
-            <span class="employee-brand-i">I</span>
-            <span class="employee-brand-b">B</span>
-            <span class="employee-brand-e">E</span>
+          <div class="employee-brand-lockup">
+            <span class="employee-brand-icon">
+              <.icon name="hero-shield-check" class="w-5 h-5" />
+            </span>
+            <div>
+              <div class="employee-brand-mark">Employee Portal</div>
+              <p class="employee-brand-tag">Benefits, Members, and Claims</p>
+            </div>
           </div>
-          <p class="employee-brand-tag">Insurance Broking and Advisory Service</p>
         </div>
 
         <div class="employee-topbar-actions">
@@ -32,9 +41,13 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
             <span class="employee-greeting-name">{@current_user.full_name}</span>
           </div>
 
-          <.link href={~p"/employee/logout"} method="delete" class="employee-logout-btn">
-            <.icon name="hero-arrow-path-rounded-square" class="w-4 h-4" /> Logout
-          </.link>
+          <form action={~p"/employee/logout"} method="post">
+            <input type="hidden" name="_method" value="delete" />
+            <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
+            <button type="submit" class="employee-logout-btn">
+              <.icon name="hero-arrow-path-rounded-square" class="w-4 h-4" /> Logout
+            </button>
+          </form>
         </div>
       </header>
 
@@ -48,23 +61,45 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
             </p>
           </div>
 
+          <div class="employee-hero-actions">
+            <%= if @current_policy_label != "" do %>
+              <span class="employee-current-policy-badge">{@current_policy_label}</span>
+            <% end %>
+          </div>
+        </section>
+
+        <section class="employee-policy-strip">
           <div class="employee-policy-pillset">
-            <span class="employee-policy-pill employee-policy-pill--active">
-              {policy_label(@policy)}
-            </span>
+            <%= for policy_option <- @display_policy_options do %>
+              <.link
+                navigate={with_policy_query(@active_path, policy_option.id)}
+                class={employee_policy_type_class(policy_option, @policy)}
+              >
+                <span class="employee-policy-pill-icon">
+                  <.icon name={policy_type_icon(policy_option.policy_type)} class="w-4 h-4" />
+                </span>
+                {policy_type_label(policy_option)}
+              </.link>
+            <% end %>
           </div>
         </section>
 
         <section class="employee-nav-card">
           <div class="employee-nav-grid">
             <%= for item <- @nav_items do %>
-              <.link navigate={item.href} class={employee_nav_class(@active_path == item.href)}>
+              <.link
+                navigate={with_policy_query(item.href, @selected_policy_id)}
+                class={employee_nav_class(@active_path == item.href)}
+              >
                 <span class="employee-nav-icon-wrap">
                   <.icon name={item.icon} class="w-4 h-4" />
                 </span>
+
                 <div>
                   <p class="employee-nav-title">{item.label}</p>
-                  <p class="employee-nav-subtitle">{item.subtitle}</p>
+                  <%= if item.subtitle do %>
+                    <p class="employee-nav-subtitle">{item.subtitle}</p>
+                  <% end %>
                 </div>
               </.link>
             <% end %>
@@ -72,7 +107,10 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
 
           <div class="employee-quick-links">
             <%= for item <- @quick_links do %>
-              <.link navigate={item.href} class="employee-quick-link">
+              <.link
+                navigate={with_policy_query(item.href, @selected_policy_id)}
+                class="employee-quick-link"
+              >
                 <.icon name={item.icon} class="w-4 h-4" /> {item.label}
               </.link>
             <% end %>
@@ -97,8 +135,10 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
       <div class="employee-info-icon">
         <.icon name={@icon} class="w-6 h-6" />
       </div>
+
       <div>
         <p class="employee-info-label">{@title}</p>
+
         <p class="employee-info-value">{@value}</p>
       </div>
     </article>
@@ -114,7 +154,9 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
       <div class="employee-empty-icon">
         <.icon name="hero-wrench-screwdriver" class="w-8 h-8" />
       </div>
+
       <h3 class="employee-empty-title">{@title}</h3>
+
       <p class="employee-empty-text">{@message}</p>
     </div>
     """
@@ -171,20 +213,52 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
   defp employee_nav_class(true), do: "employee-nav-item employee-nav-item--active"
   defp employee_nav_class(false), do: "employee-nav-item"
 
-  defp policy_label(nil), do: "Policy"
+  defp display_policy_options([], nil), do: []
+  defp display_policy_options([], policy), do: [policy]
 
-  defp policy_label(policy) do
-    [policy.policy_type, policy.policy_number]
-    |> Enum.reject(&is_nil_or_blank/1)
-    |> Enum.join(" • ")
-    |> case do
-      "" -> "Policy"
-      label -> label
+  defp display_policy_options(policy_options, _policy), do: Enum.reject(policy_options, &is_nil/1)
+
+  defp employee_policy_type_class(policy_option, policy) do
+    if String.trim(policy_type_label(policy)) != "" and
+         selected_policy_id(policy_option) == selected_policy_id(policy) do
+      "employee-policy-pill employee-policy-pill--active"
+    else
+      "employee-policy-pill"
     end
   end
 
-  defp is_nil_or_blank(nil), do: true
-  defp is_nil_or_blank(""), do: true
-  defp is_nil_or_blank(value) when is_binary(value), do: String.trim(value) == ""
-  defp is_nil_or_blank(_value), do: false
+  defp policy_type_icon(policy_type) do
+    case String.downcase(String.trim(to_string(policy_type))) do
+      "gmc" -> "hero-heart"
+      "gpa" -> "hero-shield-check"
+      "gtl" -> "hero-user-group"
+      _ -> "hero-sparkles"
+    end
+  end
+
+  defp policy_type_label(nil), do: ""
+
+  defp policy_type_label(%{policy_type: policy_type}),
+    do: String.trim(to_string(policy_type || ""))
+
+  defp current_policy_label(nil), do: ""
+
+  defp current_policy_label(policy) do
+    [policy_type_label(policy), Map.get(policy, :policy_number)]
+    |> Enum.map(&String.trim(to_string(&1 || "")))
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join(" | ")
+  end
+
+  defp selected_policy_id(nil), do: nil
+  defp selected_policy_id(%{id: id}) when is_integer(id), do: id
+  defp selected_policy_id(%{ref_policy_id: id}) when is_integer(id), do: id
+  defp selected_policy_id(_value), do: nil
+
+  defp with_policy_query(path, nil), do: path
+
+  defp with_policy_query(path, policy_id) do
+    separator = if String.contains?(path, "?"), do: "&", else: "?"
+    "#{path}#{separator}policy_id=#{policy_id}"
+  end
 end

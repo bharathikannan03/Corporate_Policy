@@ -2,12 +2,8 @@
   <div class="employee-login-card">
     <div class="employee-login-shell">
       <div class="employee-login-brand">
-        <div class="employee-login-logo">
-          <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
-          <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
-        </div>
-
-        <p>Insurance Broking and Advisory Service Pvt Ltd</p>
+        <div class="employee-login-logo">Employee Portal</div>
+        <p>Secure access for policy benefits, members, and claims</p>
       </div>
 
       <h1 class="employee-login-title">Employee Login</h1>
@@ -36,22 +32,48 @@
         <%= if @otp_sent do %>
           <div>
             <label class="employee-login-label">Enter OTP</label>
-            <input
-              type="text"
-              name="employee_auth[otp]"
-              value={@form[:otp].value || ""}
-              class="employee-login-input"
-              placeholder="Enter OTP"
-              inputmode="numeric"
-              maxlength="6"
-              required
-            />
+            <div
+              id="employee-otp-secret-field"
+              class="employee-secret-field"
+              phx-hook="PasswordToggle"
+            >
+              <input
+                type="password"
+                name="employee_auth[otp]"
+                value={@form[:otp].value || ""}
+                class="employee-login-input employee-login-input--secret"
+                placeholder="Enter OTP"
+                inputmode="numeric"
+                maxlength="6"
+                required
+                data-password-toggle-target="input"
+              />
+              <button
+                type="button"
+                class="employee-secret-toggle"
+                aria-label="Show OTP"
+                aria-pressed="false"
+                data-password-toggle-target="button"
+              >
+                <span data-password-toggle-target="show-icon">
+                  <.icon name="hero-eye" class="w-5 h-5" />
+                </span>
+                <span class="hidden" data-password-toggle-target="hide-icon">
+                  <.icon name="hero-eye-slash" class="w-5 h-5" />
+                </span>
+              </button>
+            </div>
           </div>
         <% end %>
 
-        <button type="submit" class="employee-login-submit">
-          {if @otp_sent, do: "Login", else: "Generate OTP"}
-        </button>
+        <div class="employee-form-actions">
+          <button
+            type="submit"
+            class="btn btn-success employee-primary-action employee-login-submit"
+          >
+            {if @otp_sent, do: "Login", else: "Generate OTP"}
+          </button>
+        </div>
       </.form>
 
       <p class="employee-login-note">

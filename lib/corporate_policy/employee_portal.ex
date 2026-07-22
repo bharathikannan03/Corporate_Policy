@@ -1,6 +1,7 @@
 defmodule CorporatePolicy.EmployeePortal do
   import Ecto.Query, warn: false
 
+  alias CorporatePolicy.Accounts.User
   alias CorporatePolicy.EscalationMatrices.EscalationMatrix
   alias CorporatePolicy.Policies
 
@@ -91,7 +92,7 @@ defmodule CorporatePolicy.EmployeePortal do
       relationship: StringUtils.normalize(employee.relationship),
       ref_corporate_id: employee.ref_corporate_id,
       ref_policy_id: employee.ref_policy_id,
-      user_id: nil
+      user_id: resolve_employee_user_id(employee)
     }
   end
 
@@ -115,6 +116,29 @@ defmodule CorporatePolicy.EmployeePortal do
   def valid_mobile_number?(mobile_number), do: String.length(mobile_number) == 10
 
   def get_policy_details(policy_id), do: Policies.get_policy_with_preloads(policy_id)
+
+  def select_policy_for_employee(
+        %SessionEmployee{} = employee,
+        requested_policy_id,
+        policies \\ nil
+      ) do
+    policies = policies || list_policies_for_employee(employee)
+    requested_policy_id = parse_int(requested_policy_id)
+
+    Enum.find(policies, &(&1.id == requested_policy_id)) ||
+      Enum.find(policies, &(&1.id == employee.ref_policy_id)) ||
+      List.first(policies)
+  end
+
+  def scoped_employee_for_policy(%SessionEmployee{} = employee, %Policy{} = policy) do
+    %SessionEmployee{
+      employee
+      | ref_policy_id: policy.id,
+        ref_corporate_id: policy.ref_corporate_id
+    }
+  end
+
+  def scoped_employee_for_policy(%SessionEmployee{} = employee, _policy), do: employee
 
   def list_members(%SessionEmployee{} = employee) do
     Repo.all(
@@ -201,15 +225,29 @@ defmodule CorporatePolicy.EmployeePortal do
   end
 
   def list_policy_types_for_employee(%SessionEmployee{} = employee) do
-    employee.ref_policy_id
-    |> get_policy_details()
-    |> case do
-      %Policy{policy_type: policy_type} when not is_nil(policy_type) and policy_type != "" ->
-        [policy_type]
+    employee
+    |> list_policies_for_employee()
+    |> Enum.map(&StringUtils.normalize(&1.policy_type))
+    |> Enum.reject(&blank?/1)
+    |> Enum.uniq_by(&StringUtils.downcase/1)
+  end
 
-      _ ->
-        ["GMC"]
-    end
+  def list_policies_for_employee(%SessionEmployee{} = employee) do
+    Repo.all(
+      from e in TrnMappingLiveEmployee,
+        join: p in Policy,
+        on: p.id == e.ref_policy_id,
+        where:
+          fragment("lower(trim(?))", e.employee_code) ==
+            ^StringUtils.downcase(employee.employee_code) and
+            fragment("trim(coalesce(?, '')) <> ''", e.employee_code) and
+            fragment("lower(trim(?))", e.status) == "active" and
+            fragment("lower(trim(?))", e.relationship) in ["employee", "self"] and
+            is_nil(e.deleted_at) and p.status == 1,
+        order_by: [asc: p.policy_type, asc: p.policy_number],
+        distinct: p.id,
+        select: p
+    )
   end
 
   def format_relationship(value) do
@@ -247,4 +285,40 @@ defmodule CorporatePolicy.EmployeePortal do
   defp blank?(""), do: true
   defp blank?(value) when is_binary(value), do: String.trim(value) == ""
   defp blank?(_value), do: false
+
+  defp parse_int(value) when is_integer(value), do: value
+
+  defp parse_int(value) when is_binary(value) and value != "" do
+    value
+    |> String.trim()
+    |> Integer.parse()
+    |> case do
+      {int, _} -> int
+      :error -> nil
+    end
+  end
+
+  defp parse_int(_value), do: nil
+
+  defp resolve_employee_user_id(%TrnMappingLiveEmployee{} = employee) do
+    employee_code = StringUtils.normalize(employee.employee_code)
+    mobile_number = normalize_mobile_number(employee.mobile_number)
+    email = StringUtils.normalize(employee.email)
+
+    Repo.one(
+      from u in User,
+        where:
+          is_nil(u.deleted_at) and
+            u.ref_corporate_id == ^employee.ref_corporate_id and
+            (fragment("lower(trim(coalesce(?, '')))", u.corporate_username) ==
+               ^StringUtils.downcase(employee_code) or
+               fragment("regexp_replace(coalesce(?, ''), '[^0-9]', '', 'g')", u.mobile_no) ==
+                 ^mobile_number or
+               fragment("lower(trim(coalesce(?, '')))", u.email_address) ==
+                 ^StringUtils.downcase(email)),
+        order_by: [asc: u.id],
+        limit: 1,
+        select: u.id
+    )
+  end
 end

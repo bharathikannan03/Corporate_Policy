@@ -648,20 +648,38 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc """
-  Returns distinct policy_identifier values from master_policy_feature_templates
-  for the Sum Insured step dropdown. Filters by template_id matching the policy type.
+  Returns distinct policy_identifier values from mapping_policy_feature_templates_corporates_policies
+  or master_policy_feature_templates for the Sum Insured step dropdown.
   """
   def list_policy_identifiers_for_policy(nil), do: [%{template_id: 1, policy_identifier: "GMC"}]
 
   def list_policy_identifiers_for_policy(policy) do
-    template_id = get_template_id_for_policy(policy)
+    policy_id = policy && policy.id
 
-    Repo.all(
-      from t in "master_policy_feature_templates",
-        where: t.template_id == ^template_id and t.status == 1,
-        select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
-        order_by: [asc: t.template_id]
-    )
+    mapped =
+      if policy_id do
+        list_mapped_features_by_policy(policy_id)
+      else
+        []
+      end
+
+    if mapped != [] do
+      Enum.map(mapped, fn m ->
+        %{
+          template_id: get_template_id_for_policy(policy),
+          policy_identifier: m.feature_identifier
+        }
+      end)
+    else
+      template_id = get_template_id_for_policy(policy)
+
+      Repo.all(
+        from t in "master_policy_feature_templates",
+          where: t.template_id == ^template_id and t.status == 1,
+          select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
+          order_by: [asc: t.template_id]
+      )
+    end
   end
 
   @doc """
@@ -692,18 +710,34 @@ defmodule CorporatePolicy.Policies do
   defp template_id_from_policy_type(_), do: 1
 
   @doc "Fetches mapped features for a policy, extracting the distinct Feature Identifiers."
-  def list_mapped_features_by_policy(nil), do: []
-
   def list_mapped_features_by_policy(policy_id) do
     Repo.all(
       from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
         where:
           m.ref_policy_id == ^policy_id and
-            m.ref_policy_feature_template_field_name == "Feature Identifier",
+            (m.ref_policy_feature_template_field_name in [
+               "Feature Identifier",
+               "Policy Identifier"
+             ] or
+               m.ref_policy_feature_template_field_id == 1) and
+            (is_nil(m.status) or m.status >= 0),
         select: %{
           id: m.policy_feature_template_field_value_id,
           feature_identifier: m.policy_feature_template_field_value
-        }
+        },
+        distinct: true
+    )
+  end
+
+  @doc "Fetches all mapped feature rows for a specific feature entry."
+  def get_mapped_feature_details(policy_id, feature_id) do
+    Repo.all(
+      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+        where:
+          m.ref_policy_id == ^policy_id and
+            (m.ref_policyidentifier_id == ^feature_id or
+               m.policy_feature_template_field_value_id == ^feature_id) and
+            (is_nil(m.status) or m.status >= 0)
     )
   end
 
@@ -712,6 +746,24 @@ defmodule CorporatePolicy.Policies do
     %MappingPolicyFeatureTemplatesCorporatesPolicy{}
     |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc "Updates an existing mapped feature row."
+  def update_mapped_feature(%MappingPolicyFeatureTemplatesCorporatesPolicy{} = mapping, attrs) do
+    mapping
+    |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc "Deletes all mapped feature rows for a given feature ID."
+  def delete_mapped_feature(policy_id, feature_id) do
+    from(m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+      where:
+        m.ref_policy_id == ^policy_id and
+          (m.ref_policyidentifier_id == ^feature_id or
+             m.policy_feature_template_field_value_id == ^feature_id)
+    )
+    |> Repo.delete_all()
   end
 
   defp normalize_page(value) when is_integer(value) and value > 0, do: value

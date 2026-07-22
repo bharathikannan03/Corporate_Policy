@@ -6,13 +6,20 @@ defmodule CorporatePolicyWeb.Employee.ContactMatrixLive do
   alias CorporatePolicy.EmployeePortal
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     current_user = socket.assigns.current_user
+    policy_options = EmployeePortal.list_policies_for_employee(current_user)
+
+    policy =
+      EmployeePortal.select_policy_for_employee(current_user, params["policy_id"], policy_options)
+
+    current_user = EmployeePortal.scoped_employee_for_policy(current_user, policy)
 
     {:ok,
      socket
      |> assign(:current_user, current_user)
-     |> assign(:policy, EmployeePortal.get_policy_details(current_user.ref_policy_id))
+     |> assign(:policy, policy)
+     |> assign(:policy_options, policy_options)
      |> assign(:contacts, EmployeePortal.list_contact_matrix(current_user.ref_policy_id))
      |> assign(:active_path, "/employee/contact-matrix")
      |> assign(:page_title, "Contact Matrix")}
@@ -25,6 +32,7 @@ defmodule CorporatePolicyWeb.Employee.ContactMatrixLive do
       <.shell
         current_user={@current_user}
         policy={@policy}
+        policy_options={@policy_options}
         active_path={@active_path}
         page_title={@page_title}
       >
@@ -38,11 +46,16 @@ defmodule CorporatePolicyWeb.Employee.ContactMatrixLive do
             <%= for contact <- @contacts do %>
               <article class="employee-contact-card">
                 <div class="employee-contact-level">{contact.level}</div>
+
                 <h3>{contact.name}</h3>
+
                 <p>{contact.type || "Policy Support"}</p>
+
                 <ul>
                   <li>Phone: {contact.mobile_number || contact.phone_number || "-"}</li>
+
                   <li>Email: {contact.email_id || "-"}</li>
+
                   <li>Alt Email: {contact.alt_email_id || "-"}</li>
                 </ul>
               </article>

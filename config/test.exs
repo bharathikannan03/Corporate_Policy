@@ -22,6 +22,7 @@ config :corporate_policy, CorporatePolicyWeb.Endpoint,
 
 # In test we don't send emails
 config :corporate_policy, CorporatePolicy.Mailer, adapter: Swoosh.Adapters.Test
+config :corporate_policy, :mail_queue_enabled, false
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

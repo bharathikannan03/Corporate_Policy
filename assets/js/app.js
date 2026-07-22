@@ -107,13 +107,44 @@ const DatePickerTrigger = {
   },
 };
 
+const PasswordToggle = {
+  mounted() {
+    this.input = this.el.querySelector('[data-password-toggle-target="input"]');
+    this.button = this.el.querySelector('[data-password-toggle-target="button"]');
+    this.showIcon = this.el.querySelector('[data-password-toggle-target="show-icon"]');
+    this.hideIcon = this.el.querySelector('[data-password-toggle-target="hide-icon"]');
+
+    if (!this.input || !this.button) return;
+
+    this.handleClick = () => {
+      const revealing = this.input.type === "password";
+      this.input.type = revealing ? "text" : "password";
+      this.button.setAttribute("aria-pressed", revealing ? "true" : "false");
+      this.button.setAttribute("aria-label", revealing ? "Hide OTP" : "Show OTP");
+
+      if (this.showIcon && this.hideIcon) {
+        this.showIcon.classList.toggle("hidden", revealing);
+        this.hideIcon.classList.toggle("hidden", !revealing);
+      }
+    };
+
+    this.button.addEventListener("click", this.handleClick);
+  },
+
+  destroyed() {
+    if (this.button && this.handleClick) {
+      this.button.removeEventListener("click", this.handleClick);
+    }
+  },
+};
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { RenewalsChart, DatePickerTrigger, ...colocatedHooks },
+  hooks: { RenewalsChart, DatePickerTrigger, PasswordToggle, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

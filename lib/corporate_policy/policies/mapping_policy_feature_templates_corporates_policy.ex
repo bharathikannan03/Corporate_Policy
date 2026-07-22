@@ -47,8 +47,7 @@ defmodule CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
       :ref_coporate_id,
       :ref_policy_id,
       :ref_policy_feature_template_field_id,
-      :ref_policy_feature_template_field_type_id,
-      :policy_feature_template_field_visibility_role_ids
+      :ref_policy_feature_template_field_type_id
     ])
   end
 end

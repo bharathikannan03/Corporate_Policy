@@ -280,6 +280,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
           >
             <.icon name="hero-chevron-left" class="w-4 h-4" /> Back To CD Statement
           </.link>
+
           <.link
             :if={@standalone?}
             navigate={~p"/admin/cd-statements"}
@@ -311,7 +312,6 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                         required
                         class="corp-input"
                       />
-
                       <.input
                         field={@form[:cd_number]}
                         type="select"
@@ -322,7 +322,6 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                         disabled={Enum.empty?(@available_cd_accounts)}
                         class="corp-input"
                       />
-
                       <.link
                         navigate={
                           if @policy do
@@ -355,6 +354,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                         Download Sample CSV
                       </.link>
                     </div>
+
                     <div
                       class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center bg-gray-50"
                       phx-drop-target={@uploads.cd_csv.ref}
@@ -368,6 +368,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                         >
                           Drag and drop a file here or click
                         </label>
+
                         <p :if={Enum.empty?(@available_cd_accounts)} class="text-sm text-red-600">
                           No CD Number exists for the selected corporate. Please create one first.
                         </p>
@@ -382,10 +383,12 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                       <div class="flex items-center justify-between bg-white border rounded-lg p-3 mt-4">
                         <div>
                           <p class="font-medium">{entry.client_name}</p>
+
                           <%= for err <- upload_errors(@uploads.cd_csv, entry) do %>
                             <p class="text-sm text-error">{Phoenix.Naming.humanize(err)}</p>
                           <% end %>
                         </div>
+
                         <div class="flex items-center gap-3">
                           <span class="text-sm text-success">{entry.progress}%</span>
                           <button
@@ -405,6 +408,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
             <div class="mt-10">
               <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
                 <h2 class="text-lg font-semibold">Upload History</h2>
+
                 <input
                   type="text"
                   name="search"
@@ -422,6 +426,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                     <thead>
                       <tr>
                         <th class="corp-th">#</th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -433,6 +438,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                             <.sort_icon active={@sort_by == "cd_number"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -447,7 +453,9 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                             />
                           </button>
                         </th>
+
                         <th class="corp-th">Status</th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -459,9 +467,11 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                             <.sort_icon active={@sort_by == "inserted_at"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th text-right">Actions</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       <%= if @uploads_page.entries == [] do %>
                         <tr class="corp-empty-row">
@@ -475,7 +485,9 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                             <td class="corp-td">
                               {(@uploads_page.page - 1) * @uploads_page.page_size + index}
                             </td>
+
                             <td class="corp-td">{upload.cd_number}</td>
+
                             <td class="corp-td">
                               <%= if upload.data_upload_file do %>
                                 <.link
@@ -490,14 +502,17 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                                 -
                               <% end %>
                             </td>
+
                             <td class="corp-td">
                               <span class={status_badge_class(upload.status)}>{status_label(
                                 upload.status
                               )}</span>
                             </td>
+
                             <td class="corp-td whitespace-nowrap">
                               {Calendar.strftime(upload.inserted_at, "%d-%m-%Y %H:%M")}
                             </td>
+
                             <td class="corp-td">
                               <div class="flex justify-end">
                                 <button
@@ -536,22 +551,29 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
           <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[85vh] overflow-hidden">
             <div class="flex items-center justify-between px-6 py-4 border-b">
               <h3 class="text-lg font-semibold">Upload Error Details</h3>
+
               <button type="button" phx-click="close_errors" class="btn btn-sm btn-ghost">Close</button>
             </div>
+
             <div class="overflow-x-auto max-h-[70vh] p-6">
               <table class="table table-zebra">
                 <thead>
                   <tr>
                     <th>Row</th>
+
                     <th>Column</th>
+
                     <th>Error</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   <%= for error <- @selected_upload_errors do %>
                     <tr>
                       <td>{error.row}</td>
+
                       <td>{error.column_name}</td>
+
                       <td>{error.errors}</td>
                     </tr>
                   <% end %>

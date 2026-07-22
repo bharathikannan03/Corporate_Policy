@@ -6,14 +6,20 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
   alias CorporatePolicy.EmployeePortal
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     current_user = socket.assigns.current_user
-    policy = EmployeePortal.get_policy_details(current_user.ref_policy_id)
+    policy_options = EmployeePortal.list_policies_for_employee(current_user)
+
+    policy =
+      EmployeePortal.select_policy_for_employee(current_user, params["policy_id"], policy_options)
+
+    current_user = EmployeePortal.scoped_employee_for_policy(current_user, policy)
 
     {:ok,
      socket
      |> assign(:current_user, current_user)
      |> assign(:policy, policy)
+     |> assign(:policy_options, policy_options)
      |> assign(
        :coverage_cards,
        EmployeePortal.list_policy_feature_cards(current_user.ref_policy_id)
@@ -29,6 +35,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
       <.shell
         current_user={@current_user}
         policy={@policy}
+        policy_options={@policy_options}
         active_path={@active_path}
         page_title={@page_title}
       >

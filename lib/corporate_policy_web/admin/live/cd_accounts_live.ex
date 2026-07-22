@@ -196,6 +196,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
           >
             <.icon name="hero-chevron-left" class="w-4 h-4" /> Back To CD Statement
           </.link>
+
           <.link
             :if={@standalone?}
             navigate={~p"/admin/cd-statements"}
@@ -221,7 +222,6 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                   class="corp-input"
                   placeholder="Enter CD Number"
                 />
-
                 <.input
                   field={@form[:corporate_id]}
                   type="select"
@@ -231,7 +231,6 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                   required
                   class="corp-input"
                 />
-
                 <.input
                   field={@form[:policy_id]}
                   type="select"
@@ -242,7 +241,6 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                   disabled={Enum.empty?(@policy_options)}
                   class="corp-input"
                 />
-
                 <.input
                   field={@form[:insurer_name]}
                   label="Insurer"
@@ -259,6 +257,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
             <div class="mt-10">
               <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
                 <h2 class="text-lg font-semibold">Existing CD Accounts</h2>
+
                 <input
                   type="text"
                   name="search"
@@ -276,6 +275,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                     <thead>
                       <tr>
                         <th class="corp-th">#</th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -287,6 +287,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                             <.sort_icon active={@sort_by == "cd_number"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -298,6 +299,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                             <.sort_icon active={@sort_by == "corporate_name"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -309,6 +311,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                             <.sort_icon active={@sort_by == "policy_number"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th">
                           <button
                             type="button"
@@ -320,9 +323,11 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                             <.sort_icon active={@sort_by == "insurer_name"} direction={@sort_dir} />
                           </button>
                         </th>
+
                         <th class="corp-th">Created At</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       <%= if @accounts_page.entries == [] do %>
                         <tr class="corp-empty-row">
@@ -334,10 +339,15 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                             <td class="corp-td">
                               {(@accounts_page.page - 1) * @accounts_page.page_size + index}
                             </td>
+
                             <td class="corp-td">{account.cd_number}</td>
+
                             <td class="corp-td">{account.corporate_name}</td>
+
                             <td class="corp-td">{account.policy_number}</td>
+
                             <td class="corp-td">{account.insurer_name}</td>
+
                             <td class="corp-td whitespace-nowrap">
                               {Calendar.strftime(account.inserted_at, "%d-%m-%Y")}
                             </td>

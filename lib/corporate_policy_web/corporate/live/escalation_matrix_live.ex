@@ -229,7 +229,7 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Escalation Matrix</h2>
         </div>
-         <%!-- Escalation Matrix Cards Display --%>
+        <%!-- Escalation Matrix Cards Display --%>
         <div>
           <%= if Enum.empty?(@escalation_matrices) do %>
             <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-12 text-center text-slate-500">
@@ -250,7 +250,7 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
                     <h3 class="text-base font-bold text-slate-800 pt-1 pr-16 mb-4">
                       {matrix[:fullname] || "N/A"}
                     </h3>
-                     <%!-- Details List --%>
+                    <%!-- Details List --%>
                     <div class="space-y-2.5 text-xs text-slate-600">
                       <%!-- Address --%>
                       <%= if matrix[:company_fulladdress] && matrix[:company_fulladdress] != "" do %>
@@ -259,21 +259,21 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
                           <span class="leading-relaxed font-normal">{matrix.company_fulladdress}</span>
                         </div>
                       <% end %>
-                       <%!-- Phone / Mobile --%>
+                      <%!-- Phone / Mobile --%>
                       <%= if (matrix[:mobile_number] && matrix[:mobile_number] != "") || (matrix[:phone_number] && matrix[:phone_number] != "") do %>
                         <div class="flex items-center space-x-2.5">
                           <.icon name="hero-phone" class="w-4 h-4 text-slate-400 shrink-0" />
                           <span class="font-normal">{matrix[:mobile_number] || matrix[:phone_number]}</span>
                         </div>
                       <% end %>
-                       <%!-- Email --%>
+                      <%!-- Email --%>
                       <%= if matrix[:email_id] && matrix[:email_id] != "" do %>
                         <div class="flex items-center space-x-2.5">
                           <.icon name="hero-envelope" class="w-4 h-4 text-slate-400 shrink-0" />
                           <span class="font-normal text-slate-700 truncate">{matrix.email_id}</span>
                         </div>
                       <% end %>
-                       <%!-- Role / Type --%>
+                      <%!-- Role / Type --%>
                       <%= if matrix[:type] && matrix[:type] != "" do %>
                         <div class="flex items-center space-x-2.5 pt-1 border-t border-slate-100 mt-2">
                           <.icon name="hero-briefcase" class="w-4 h-4 text-slate-400 shrink-0" />

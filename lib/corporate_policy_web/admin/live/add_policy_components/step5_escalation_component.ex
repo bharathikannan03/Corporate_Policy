@@ -134,7 +134,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         </div>
 
         <div>
-          <button type="submit" class="btn btn-outline btn-primary">
+          <button type="submit" class="btn btn-outline btn-success">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Assign
           </button>
         </div>

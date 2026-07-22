@@ -10,20 +10,17 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       use CorporatePolicyWeb, :live_view
 
       import CorporatePolicyWeb.ClaimSubmissionComponents
+      import CorporatePolicyWeb.Employee.PortalComponents
 
       @portal unquote(portal)
 
       @impl true
       def mount(params, session, socket) do
-        current_user =
-          case session["current_user_id"] do
-            nil -> socket.assigns[:current_user]
-            id -> CorporatePolicy.Accounts.get_user(id)
-          end
+        current_user = resolve_current_user(session, socket, @portal)
 
         claim =
           case socket.assigns.live_action do
-            :edit -> Claims.get_claim_with_details!(params["id"])
+            :edit -> Claims.get_accessible_claim!(params["id"], current_user, @portal)
             _ -> nil
           end
 
@@ -36,6 +33,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           socket
           |> assign(:portal, @portal)
           |> assign(:current_user, current_user)
+          |> assign(
+            :employee_policy,
+            if(@portal == :employee && current_user,
+              do: Claims.get_policy(current_user.ref_policy_id),
+              else: nil
+            )
+          )
           |> assign(
             :page_title,
             if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
@@ -247,37 +251,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       @impl true
       def render(var!(assigns)) do
         ~H"""
-        <%= if @portal == :admin do %>
-          <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
-            <.portal_shell
-              portal={@portal}
-              current_user={@current_user}
-              page_title={@page_title}
-              active_path={@active_path}
-            >
-              <.claim_form
-                portal={@portal}
-                claim={@claim}
-                form={@form}
-                corporates={@corporates}
-                policies={@policies}
-                employees={@employees}
-                patient_options={@patient_options}
-                document_form={@document_form}
-                documents_page={@documents_page}
-                uploads={@uploads}
-                show_upload_modal={@show_upload_modal}
-                document_requirements={@document_requirements}
-                claim_statuses={@claim_statuses}
-                current_step={@current_step}
-                edit_mode={@claim != nil}
-                minimum_documents={@minimum_documents}
-              />
-            </.portal_shell>
-          </Layouts.admin>
-        <% else %>
-          <Layouts.app flash={@flash}>
-            <div class="p-6">
+        <%= cond do %>
+          <% @portal == :admin -> %>
+            <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
               <.portal_shell
                 portal={@portal}
                 current_user={@current_user}
@@ -303,8 +279,72 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                   minimum_documents={@minimum_documents}
                 />
               </.portal_shell>
-            </div>
-          </Layouts.app>
+            </Layouts.admin>
+          <% @portal == :employee -> %>
+            <Layouts.app flash={@flash}>
+              <.shell
+                current_user={@current_user}
+                policy={@employee_policy}
+                active_path={@active_path}
+                page_title={@page_title}
+              >
+                <.portal_shell
+                  portal={@portal}
+                  current_user={@current_user}
+                  page_title={@page_title}
+                  active_path={@active_path}
+                >
+                  <.claim_form
+                    portal={@portal}
+                    claim={@claim}
+                    form={@form}
+                    corporates={@corporates}
+                    policies={@policies}
+                    employees={@employees}
+                    patient_options={@patient_options}
+                    document_form={@document_form}
+                    documents_page={@documents_page}
+                    uploads={@uploads}
+                    show_upload_modal={@show_upload_modal}
+                    document_requirements={@document_requirements}
+                    claim_statuses={@claim_statuses}
+                    current_step={@current_step}
+                    edit_mode={@claim != nil}
+                    minimum_documents={@minimum_documents}
+                  />
+                </.portal_shell>
+              </.shell>
+            </Layouts.app>
+          <% true -> %>
+            <Layouts.app flash={@flash}>
+              <div class="p-6">
+                <.portal_shell
+                  portal={@portal}
+                  current_user={@current_user}
+                  page_title={@page_title}
+                  active_path={@active_path}
+                >
+                  <.claim_form
+                    portal={@portal}
+                    claim={@claim}
+                    form={@form}
+                    corporates={@corporates}
+                    policies={@policies}
+                    employees={@employees}
+                    patient_options={@patient_options}
+                    document_form={@document_form}
+                    documents_page={@documents_page}
+                    uploads={@uploads}
+                    show_upload_modal={@show_upload_modal}
+                    document_requirements={@document_requirements}
+                    claim_statuses={@claim_statuses}
+                    current_step={@current_step}
+                    edit_mode={@claim != nil}
+                    minimum_documents={@minimum_documents}
+                  />
+                </.portal_shell>
+              </div>
+            </Layouts.app>
         <% end %>
         """
       end
@@ -329,7 +369,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
             else: policies
 
         employees =
-          if selected_policy_id, do: Claims.list_policy_employees(selected_policy_id), else: []
+          if selected_policy_id,
+            do: Claims.list_accessible_employee_codes(user, @portal, selected_policy_id),
+            else: []
 
         selected_employee_code = claim_params["employee_code"]
 
@@ -400,10 +442,18 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       defp default_claim_params(current_user) do
         base = %{"claim_status" => "Draft"}
 
-        if (@portal in [:corporate, :employee] and current_user) && current_user.ref_corporate_id do
-          Map.put(base, "ref_corporate_id", current_user.ref_corporate_id)
-        else
-          base
+        cond do
+          @portal == :employee and current_user ->
+            base
+            |> Map.put("ref_corporate_id", current_user.ref_corporate_id)
+            |> Map.put("ref_policy_id", current_user.ref_policy_id)
+            |> Map.put("employee_code", current_user.employee_code)
+
+          (@portal in [:corporate, :employee] and current_user) && current_user.ref_corporate_id ->
+            Map.put(base, "ref_corporate_id", current_user.ref_corporate_id)
+
+          true ->
+            base
         end
       end
 
@@ -604,6 +654,30 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           "#{Phoenix.Naming.humanize(field)} #{message}"
         end)
         |> Enum.join(", ")
+      end
+
+      defp resolve_current_user(session, socket, portal) do
+        if portal == :employee do
+          cond do
+            socket.assigns[:current_user] &&
+                Map.has_key?(socket.assigns.current_user, :ref_policy_id) ->
+              socket.assigns.current_user
+
+            employee_id = session["current_employee_id"] ->
+              case CorporatePolicy.EmployeePortal.get_authenticated_employee_session(employee_id) do
+                {:ok, employee} -> employee
+                _ -> socket.assigns[:current_user]
+              end
+
+            true ->
+              socket.assigns[:current_user]
+          end
+        else
+          case session["current_user_id"] do
+            nil -> socket.assigns[:current_user]
+            id -> CorporatePolicy.Accounts.get_user(id)
+          end
+        end
       end
     end
   end

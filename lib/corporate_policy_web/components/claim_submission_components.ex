@@ -567,7 +567,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             <.link navigate={portal_path(@portal, "/claims-submission")} class="btn btn-secondary">
               Cancel
             </.link>
-
+            
             <button type="submit" class="btn btn-primary">
               <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @claim,
                 do: "Save Claim",
@@ -757,7 +757,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   <button type="button" phx-click="close_upload_modal" class="btn btn-secondary">Cancel</button>
                   <button
                     type="submit"
-                    class="btn btn-primary"
+                    class="btn btn-success"
                     disabled={Enum.empty?(@uploads.claim_document.entries)}
                   >
                     Upload

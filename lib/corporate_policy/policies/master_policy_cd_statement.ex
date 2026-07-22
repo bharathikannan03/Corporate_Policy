@@ -8,14 +8,16 @@ defmodule CorporatePolicy.Policies.MasterPolicyCdStatement do
     field :cd_number, :string
     field :cd_account_id, :integer
     field :data_upload_file, :string
+    field :original_file_name, :string
     field :policy_id, :integer
+    field :status, :integer, default: 0
     field :is_dataupload, :boolean, default: true
-    field :deleted_at, :naive_datetime
+    field :deleted_at, :utc_datetime_usec
 
     belongs_to :creator, CorporatePolicy.Accounts.User, foreign_key: :created_by
     belongs_to :updater, CorporatePolicy.Accounts.User, foreign_key: :updated_by
 
-    timestamps()
+    timestamps(type: :utc_datetime_usec)
   end
 
   @doc false
@@ -27,7 +29,9 @@ defmodule CorporatePolicy.Policies.MasterPolicyCdStatement do
       :cd_number,
       :cd_account_id,
       :data_upload_file,
+      :original_file_name,
       :policy_id,
+      :status,
       :is_dataupload,
       :deleted_at,
       :created_by,
@@ -38,7 +42,9 @@ defmodule CorporatePolicy.Policies.MasterPolicyCdStatement do
       :corporate_id,
       :cd_number,
       :cd_account_id,
-      :data_upload_file
+      :data_upload_file,
+      :original_file_name
     ])
+    |> validate_inclusion(:status, [0, 1, 2])
   end
 end

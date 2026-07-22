@@ -186,6 +186,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                   id="step7"
                   policy={@policy}
                   edit_mode={@edit_mode}
+                  current_user={@current_user}
                 />
               <% _ -> %>
                 <div class="text-center p-10">

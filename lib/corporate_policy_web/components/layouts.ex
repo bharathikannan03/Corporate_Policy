@@ -190,9 +190,22 @@ defmodule CorporatePolicyWeb.Layouts do
           <.sidebar_item
             icon="hero-banknotes"
             label="CD Statements"
-            href={~p"/admin/cd-statements"}
-            active={@active_path == "/admin/cd-statements"}
-          />
+            open={String.starts_with?(@active_path, "/admin/cd-statements")}
+          >
+            <.sidebar_child_item
+              label="CD Statement"
+              href={~p"/admin/cd-statements/cd-statement"}
+              active={@active_path == "/admin/cd-statements/cd-statement"}
+              id="sidebar-cd-statement"
+            />
+            <.sidebar_child_item
+              label="CD Accounts"
+              href={~p"/admin/cd-statements/cd-accounts"}
+              active={@active_path == "/admin/cd-statements/cd-accounts"}
+              id="sidebar-cd-accounts"
+            />
+          </.sidebar_group>
+
           <.sidebar_item
             icon="hero-cog-6-tooth"
             label="Roles Configuration"

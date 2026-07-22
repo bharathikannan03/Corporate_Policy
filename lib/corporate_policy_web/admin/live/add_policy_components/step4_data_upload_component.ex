@@ -241,7 +241,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         <div class="flex justify-end mt-4">
           <button
             type="submit"
-            class="btn btn-outline btn-primary"
+            class="btn btn-outline btn-success"
             disabled={Enum.empty?(@uploads.data_file.entries)}
           >
             Upload Data

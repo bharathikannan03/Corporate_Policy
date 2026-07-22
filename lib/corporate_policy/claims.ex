@@ -83,6 +83,14 @@ defmodule CorporatePolicy.Claims do
 
   def get_claim!(id), do: Repo.get!(MasterClaimSubmission, id)
 
+  def get_accessible_claim!(id, user, portal) do
+    MasterClaimSubmission
+    |> where([c], c.id == ^id and is_nil(c.deleted_at))
+    |> accessible_to(user, portal)
+    |> Repo.one!()
+    |> Repo.preload([:policy, :documents, :logs])
+  end
+
   def get_claim_with_details!(id) do
     MasterClaimSubmission
     |> Repo.get!(id)
@@ -99,6 +107,7 @@ defmodule CorporatePolicy.Claims do
 
   def create_claim(attrs, user, portal) do
     submitted_by = resolve_submitted_by(user, portal, attrs)
+    actor_user_id = actor_user_id(user)
 
     attrs =
       attrs
@@ -108,67 +117,73 @@ defmodule CorporatePolicy.Claims do
       |> Map.put_new("claim_status", "Draft")
       |> Map.put_new("claim_number", generate_reference("CLM"))
       |> Map.put_new("intimation_number", generate_reference("INT"))
-      |> Map.put("created_by", user.id)
-      |> Map.put("updated_by", user.id)
+      |> Map.put("created_by", actor_user_id)
+      |> Map.put("updated_by", actor_user_id)
 
-    Repo.transaction(fn ->
-      case %MasterClaimSubmission{}
-           |> MasterClaimSubmission.create_changeset(attrs)
-           |> Repo.insert() do
-        {:ok, claim} ->
-          create_log!(
-            claim,
-            user.id,
-            portal_id_for(portal),
-            submitted_by,
-            "Created",
-            attrs["remarks"]
-          )
+    with :ok <- ensure_employee_claim_access(nil, attrs, user, portal) do
+      Repo.transaction(fn ->
+        case %MasterClaimSubmission{}
+             |> MasterClaimSubmission.create_changeset(attrs)
+             |> Repo.insert() do
+          {:ok, claim} ->
+            create_log!(
+              claim,
+              actor_user_id,
+              portal_id_for(portal),
+              submitted_by,
+              "Created",
+              attrs["remarks"]
+            )
 
-          Repo.preload(claim, [:documents, :logs])
+            Repo.preload(claim, [:documents, :logs])
 
-        {:error, changeset} ->
-          Repo.rollback(changeset)
-      end
-    end)
-    |> unwrap_transaction()
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+      |> unwrap_transaction()
+    end
   end
 
   def update_claim(%MasterClaimSubmission{} = claim, attrs, user, portal) do
     submitted_by = resolve_submitted_by(user, portal, claim)
+    actor_user_id = actor_user_id(user)
 
     attrs =
       attrs
       |> normalize_reference_fields()
       |> enrich_claim_metadata()
-      |> Map.put("updated_by", user.id)
+      |> Map.put("updated_by", actor_user_id)
 
-    Repo.transaction(fn ->
-      case claim
-           |> MasterClaimSubmission.update_changeset(attrs)
-           |> Repo.update() do
-        {:ok, updated_claim} ->
-          create_log!(
-            updated_claim,
-            user.id,
-            portal_id_for(portal),
-            submitted_by,
-            "Updated",
-            attrs["remarks"]
-          )
+    with :ok <- ensure_employee_claim_access(claim, attrs, user, portal) do
+      Repo.transaction(fn ->
+        case claim
+             |> MasterClaimSubmission.update_changeset(attrs)
+             |> Repo.update() do
+          {:ok, updated_claim} ->
+            create_log!(
+              updated_claim,
+              actor_user_id,
+              portal_id_for(portal),
+              submitted_by,
+              "Updated",
+              attrs["remarks"]
+            )
 
-          Repo.preload(updated_claim, [:documents, :logs])
+            Repo.preload(updated_claim, [:documents, :logs])
 
-        {:error, changeset} ->
-          Repo.rollback(changeset)
-      end
-    end)
-    |> unwrap_transaction()
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+      |> unwrap_transaction()
+    end
   end
 
   def submit_claim(%MasterClaimSubmission{} = claim, user, portal) do
     document_count = count_claim_documents(claim.id)
     submitted_by = resolve_submitted_by(user, portal, claim)
+    actor_user_id = actor_user_id(user)
 
     if document_count < @min_documents do
       {:error, :minimum_documents_not_met}
@@ -179,13 +194,13 @@ defmodule CorporatePolicy.Claims do
                "claim_status" => "Submitted",
                "submitted_at" => DateTime.utc_now(),
                "submitted_by" => submitted_by,
-               "updated_by" => user.id
+               "updated_by" => actor_user_id
              })
              |> Repo.update() do
           {:ok, submitted_claim} ->
             create_log!(
               submitted_claim,
-              user.id,
+              actor_user_id,
               portal_id_for(portal),
               submitted_by,
               "Submitted",
@@ -218,13 +233,14 @@ defmodule CorporatePolicy.Claims do
 
   def create_claim_document(%MasterClaimSubmission{} = claim, attrs, user, portal) do
     submitted_by = resolve_submitted_by(user, portal, claim)
+    actor_user_id = actor_user_id(user)
 
     attrs =
       attrs
       |> Map.put("claim_id", claim.id)
       |> Map.put("policy_id", claim.ref_policy_id)
-      |> Map.put("created_by", user.id)
-      |> Map.put("updated_by", user.id)
+      |> Map.put("created_by", actor_user_id)
+      |> Map.put("updated_by", actor_user_id)
 
     Repo.transaction(fn ->
       case %ClaimSubmissionDocument{}
@@ -233,7 +249,7 @@ defmodule CorporatePolicy.Claims do
         {:ok, document} ->
           create_log!(
             claim,
-            user.id,
+            actor_user_id,
             portal_id_for(portal),
             submitted_by,
             "Document Uploaded",
@@ -256,15 +272,16 @@ defmodule CorporatePolicy.Claims do
         portal
       ) do
     submitted_by = resolve_submitted_by(user, portal, claim)
+    actor_user_id = actor_user_id(user)
 
     Repo.transaction(fn ->
       case document
-           |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(), updated_by: user.id)
+           |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(), updated_by: actor_user_id)
            |> Repo.update() do
         {:ok, deleted_document} ->
           create_log!(
             claim,
-            user.id,
+            actor_user_id,
             portal_id_for(portal),
             submitted_by,
             "Document Deleted",
@@ -285,7 +302,7 @@ defmodule CorporatePolicy.Claims do
   end
 
   def list_accessible_corporates(user, portal) when portal in [:corporate, :employee] do
-    case user.ref_corporate_id do
+    case user && user.ref_corporate_id do
       nil ->
         []
 
@@ -301,9 +318,38 @@ defmodule CorporatePolicy.Claims do
     CorporatePolicy.Policies.list_active_policies()
   end
 
-  def list_accessible_policies(user, portal) when portal in [:corporate, :employee] do
+  def list_accessible_policies(user, :corporate) do
     CorporatePolicy.Policies.list_active_policies()
     |> Enum.filter(&(&1.ref_corporate_id == user.ref_corporate_id))
+  end
+
+  def list_accessible_policies(user, :employee) do
+    CorporatePolicy.Policies.list_active_policies()
+    |> Enum.filter(&(&1.id == user.ref_policy_id))
+  end
+
+  def list_accessible_employee_codes(_user, :admin, policy_id),
+    do: list_policy_employees(policy_id)
+
+  def list_accessible_employee_codes(user, :corporate, policy_id) do
+    if user && policy_id do
+      list_policy_employees(policy_id)
+    else
+      []
+    end
+  end
+
+  def list_accessible_employee_codes(user, :employee, policy_id) do
+    if user && policy_id == user.ref_policy_id do
+      [
+        %{
+          employee_code: user.employee_code,
+          employee_name: user.full_name
+        }
+      ]
+    else
+      []
+    end
   end
 
   def list_policy_employees(policy_id) do
@@ -465,7 +511,12 @@ defmodule CorporatePolicy.Claims do
   end
 
   defp accessible_to(query, user, :employee) do
-    where(query, [c], c.created_by == ^user.id)
+    where(
+      query,
+      [c],
+      c.ref_policy_id == ^user.ref_policy_id and
+        fragment("lower(trim(?))", c.employee_code) == ^StringUtils.downcase(user.employee_code)
+    )
   end
 
   defp maybe_filter_search(query, ""), do: query
@@ -578,13 +629,13 @@ defmodule CorporatePolicy.Claims do
   defp resolve_submitted_by(_user, :admin, _claim_or_attrs), do: 1
 
   defp resolve_submitted_by(user, :corporate, _claim_or_attrs) do
-    user && user.id
+    actor_user_id(user)
   end
 
   defp resolve_submitted_by(user, :employee, %MasterClaimSubmission{} = claim) do
     case get_policy_employee(claim.ref_policy_id, claim.employee_code, claim.patient_name) do
       %{id: emp_id} -> emp_id
-      _ -> user && user.id
+      _ -> employee_actor_id(user)
     end
   end
 
@@ -596,11 +647,62 @@ defmodule CorporatePolicy.Claims do
     if policy_id && employee_code && patient_name do
       case get_policy_employee(policy_id, employee_code, patient_name) do
         %{id: emp_id} -> emp_id
-        _ -> user && user.id
+        _ -> employee_actor_id(user)
       end
     else
-      user && user.id
+      employee_actor_id(user)
     end
+  end
+
+  defp actor_user_id(nil), do: nil
+  defp actor_user_id(%{user_id: user_id}) when is_integer(user_id), do: user_id
+  defp actor_user_id(%{id: id, employee_code: _employee_code}) when is_integer(id), do: nil
+  defp actor_user_id(%{id: id}) when is_integer(id), do: id
+  defp actor_user_id(_user), do: nil
+
+  defp employee_actor_id(%{employee_id: employee_id}) when is_integer(employee_id),
+    do: employee_id
+
+  defp employee_actor_id(%{id: id}) when is_integer(id), do: id
+  defp employee_actor_id(_user), do: nil
+
+  defp ensure_employee_claim_access(_claim, _attrs, _user, portal) when portal != :employee,
+    do: :ok
+
+  defp ensure_employee_claim_access(claim, attrs, user, :employee) do
+    policy_id = attrs["ref_policy_id"] || (claim && claim.ref_policy_id)
+    corporate_id = attrs["ref_corporate_id"] || (claim && claim.ref_corporate_id)
+    employee_code = attrs["employee_code"] || (claim && claim.employee_code)
+    patient_name = attrs["patient_name"] || (claim && claim.patient_name)
+
+    cond do
+      is_nil(user) ->
+        {:error, claim_access_error(claim, attrs, :employee_code, "is not authorized")}
+
+      policy_id != user.ref_policy_id ->
+        {:error,
+         claim_access_error(claim, attrs, :ref_policy_id, "does not belong to your account")}
+
+      corporate_id != user.ref_corporate_id ->
+        {:error,
+         claim_access_error(claim, attrs, :ref_corporate_id, "does not belong to your account")}
+
+      not StringUtils.equal?(employee_code, user.employee_code) ->
+        {:error,
+         claim_access_error(claim, attrs, :employee_code, "must match your employee code")}
+
+      is_nil(get_policy_employee(user.ref_policy_id, user.employee_code, patient_name)) ->
+        {:error,
+         claim_access_error(claim, attrs, :patient_name, "is not covered under your policy")}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp claim_access_error(claim, attrs, field, message) do
+    change_claim(claim || %MasterClaimSubmission{}, attrs)
+    |> Ecto.Changeset.add_error(field, message)
   end
 
   defp stringify_keys(map) do

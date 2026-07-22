@@ -244,7 +244,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         <div class="flex justify-start mt-4">
           <button
             type="submit"
-            class="btn btn-primary"
+            class="btn btn-success"
             disabled={Enum.empty?(@uploads.policy_doc.entries)}
           >
             Submit

@@ -128,7 +128,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         </div>
 
         <div>
-          <button type="submit" class="btn btn-outline btn-primary">
+          <button type="submit" class="btn btn-outline btn-success">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add
           </button>
         </div>

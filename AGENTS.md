@@ -104,6 +104,10 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 
 ### 2. Core CSS Utility Classes
 * **Layout Structure**: `.admin-layout`, `.admin-sidebar`, `.admin-main`, `.admin-topbar`, `.admin-content`.
+* **Employee Portal UI Direction**:
+  * Prefer a brighter, service-oriented look distinct from Admin/Corporate.
+  * Use blue/cyan primary actions with warm accent highlights instead of the Corporate Portal green gradient shell.
+  * Keep Employee pages card-based, mobile-first, and dashboard-oriented with rounded navigation blocks.
 * **Buttons**:
   * `.btn-primary`: Blue gradient background (`linear-gradient(135deg, #3b82f6, #1d4ed8)`).
   * `.btn-secondary`: Light gray background (`#f1f5f9`).

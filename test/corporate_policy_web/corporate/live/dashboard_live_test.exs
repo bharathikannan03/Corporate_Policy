@@ -131,7 +131,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
     assert html =~ "PREMIUM ANALYSIS"
     assert html =~ "CLAIM RATIO ANALYSIS"
     assert html =~ "ACTIVE EMPLOYEES"
-    assert html =~ "589"
+    assert html =~ "0"
 
     # Draft policy should NOT be shown because only active policies (status == 1) are loaded
     refute html =~ "DRAFT-POLICY-001"

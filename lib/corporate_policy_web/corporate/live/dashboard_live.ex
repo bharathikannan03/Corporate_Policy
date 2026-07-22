@@ -60,6 +60,8 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
+    policy_id = selected_policy && selected_policy.id
+    list_counts = Policies.get_policy_list_counts(policy_id)
 
     socket =
       socket
@@ -77,6 +79,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
       |> assign(:policy_numbers, policy_numbers)
       |> assign(:active_policy_number, active_policy_number)
       |> assign(:selected_policy, selected_policy)
+      |> assign(:list_counts, list_counts)
       |> assign(:active_path, "/corporate/dashboard")
 
     {:ok, socket}
@@ -89,6 +92,8 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
     active_policy_number = List.first(policy_numbers)
     selected_policy = get_selected_policy(policies, type, active_policy_number)
+    policy_id = selected_policy && selected_policy.id
+    list_counts = Policies.get_policy_list_counts(policy_id)
 
     socket =
       socket
@@ -96,6 +101,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
       |> assign(:policy_numbers, policy_numbers)
       |> assign(:active_policy_number, active_policy_number)
       |> assign(:selected_policy, selected_policy)
+      |> assign(:list_counts, list_counts)
 
     {:noreply, socket}
   end
@@ -105,11 +111,14 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     policies = socket.assigns.policies
     type = socket.assigns.active_policy_type
     selected_policy = get_selected_policy(policies, type, number)
+    policy_id = selected_policy && selected_policy.id
+    list_counts = Policies.get_policy_list_counts(policy_id)
 
     socket =
       socket
       |> assign(:active_policy_number, number)
       |> assign(:selected_policy, selected_policy)
+      |> assign(:list_counts, list_counts)
 
     {:noreply, socket}
   end
@@ -138,6 +147,8 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     policy_numbers = get_numbers_for_type(policies, active_policy_type)
     active_policy_number = List.first(policy_numbers)
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
+    policy_id = selected_policy && selected_policy.id
+    list_counts = Policies.get_policy_list_counts(policy_id)
 
     socket =
       socket
@@ -149,6 +160,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
       |> assign(:policy_numbers, policy_numbers)
       |> assign(:active_policy_number, active_policy_number)
       |> assign(:selected_policy, selected_policy)
+      |> assign(:list_counts, list_counts)
 
     {:noreply, socket}
   end
@@ -176,10 +188,10 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
           <div class="corp-info-icon-box corp-info-icon-box--blue">
             <.icon name="hero-document-text" class="w-6 h-6" />
           </div>
-          
+
           <div class="min-w-0">
             <p class="corp-info-label">Insurer Name</p>
-            
+
             <p class="corp-info-value truncate">
               {if @selected_policy,
                 do: @selected_policy.select_insurer || get_insurer_name(@selected_policy),
@@ -187,43 +199,43 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </p>
           </div>
         </div>
-         <%!-- Policy Number --%>
+        <%!-- Policy Number --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--red">
             <.icon name="hero-document" class="w-6 h-6" />
           </div>
-          
+
           <div class="min-w-0">
             <p class="corp-info-label">Policy Number</p>
-            
+
             <p class="corp-info-value truncate">
               {if @selected_policy, do: @selected_policy.policy_number, else: "2-81-25-00003017-000"}
             </p>
           </div>
         </div>
-         <%!-- Policy Period --%>
+        <%!-- Policy Period --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--green">
             <.icon name="hero-calendar" class="w-6 h-6" />
           </div>
-          
+
           <div class="min-w-0">
             <p class="corp-info-label">Policy Period</p>
-            
+
             <p class="corp-info-value truncate">
               {format_policy_period(@selected_policy)}
             </p>
           </div>
         </div>
-         <%!-- TPA --%>
+        <%!-- TPA --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--orange">
             <.icon name="hero-user-group" class="w-6 h-6" />
           </div>
-          
+
           <div class="min-w-0">
             <p class="corp-info-label">TPA</p>
-            
+
             <p class="corp-info-value truncate">
               {if @selected_policy,
                 do: @selected_policy.select_tpa || get_tpa_name(@selected_policy),
@@ -232,16 +244,16 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
           </div>
         </div>
       </div>
-       <%!-- Middle Row: Premium Analysis + Claim Ratio Analysis + Active Employees --%>
+      <%!-- Middle Row: Premium Analysis + Claim Ratio Analysis + Active Employees --%>
       <div class="corp-middle-grid">
         <%!-- Premium Analysis Card --%>
         <div class="corp-chart-card">
           <h3 class="corp-card-title">PREMIUM ANALYSIS</h3>
-           <%!-- Donut Chart SVG --%>
+          <%!-- Donut Chart SVG --%>
           <div class="relative w-44 h-44 my-2 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" stroke-width="4"></circle>
-              
+
               <circle
                 cx="18"
                 cy="18"
@@ -253,7 +265,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
                 stroke-dashoffset="0"
               >
               </circle>
-              
+
               <circle
                 cx="18"
                 cy="18"
@@ -265,7 +277,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
                 stroke-dashoffset="-35"
               >
               </circle>
-              
+
               <circle
                 cx="18"
                 cy="18"
@@ -279,32 +291,32 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
               </circle>
             </svg>
           </div>
-           <%!-- Legend --%>
+          <%!-- Legend --%>
           <div class="w-full space-y-1.5 text-xs text-gray-600 mt-2">
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-blue-500 rounded-xs inline-block"></span>
               <span>Inception Premium: ₹0</span>
             </div>
-            
+
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-amber-500 rounded-xs inline-block"></span>
               <span>Addition Premium: ₹0</span>
             </div>
-            
+
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-emerald-500 rounded-xs inline-block"></span>
               <span>Deletion Premium: ₹0</span>
             </div>
           </div>
         </div>
-         <%!-- Claim Ratio Analysis Card --%>
+        <%!-- Claim Ratio Analysis Card --%>
         <div class="corp-chart-card">
           <h3 class="corp-card-title">CLAIM RATIO ANALYSIS</h3>
-           <%!-- Donut Chart SVG --%>
+          <%!-- Donut Chart SVG --%>
           <div class="relative w-44 h-44 my-2 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" stroke-width="4"></circle>
-              
+
               <circle
                 cx="18"
                 cy="18"
@@ -316,7 +328,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
                 stroke-dashoffset="0"
               >
               </circle>
-              
+
               <circle
                 cx="18"
                 cy="18"
@@ -330,59 +342,59 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
               </circle>
             </svg>
           </div>
-           <%!-- Legend --%>
+          <%!-- Legend --%>
           <div class="w-full space-y-1.5 text-xs text-gray-600 mt-2">
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-pink-500 rounded-xs inline-block"></span>
               <span>Claim Ratio: 0%</span>
             </div>
-            
+
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-cyan-500 rounded-xs inline-block"></span>
               <span>Incurred Claim Ratio: 0%</span>
             </div>
           </div>
         </div>
-         <%!-- Active Employees Card --%>
+        <%!-- Active Employees Card --%>
         <div class="corp-active-employees-card">
           <div class="corp-employees-header">
             <h3 class="corp-employees-header-title">ACTIVE EMPLOYEES</h3>
-            
-            <div class="corp-employees-header-count">589</div>
+
+            <div class="corp-employees-header-count">{@list_counts.active_count}</div>
           </div>
-          
+
           <div class="corp-employees-rows">
             <div class="corp-emp-row">
               <span class="corp-emp-label">Inception Employees</span>
-              <span class="corp-emp-val">575</span>
+              <span class="corp-emp-val">{@list_counts.inception_count}</span>
             </div>
-            
+
             <div class="corp-emp-row">
               <span class="corp-emp-label">Addition Employees</span>
-              <span class="corp-emp-val">14</span>
+              <span class="corp-emp-val">{@list_counts.addition_count}</span>
             </div>
-            
+
             <div class="corp-emp-row">
               <span class="corp-emp-label">Deletion Employees</span>
-              <span class="corp-emp-val">0</span>
+              <span class="corp-emp-val">{@list_counts.deletion_count}</span>
             </div>
           </div>
         </div>
       </div>
-       <%!-- Bottom Row: Claims Analysis (Amount) & Claims Analysis (Count) --%>
+      <%!-- Bottom Row: Claims Analysis (Amount) & Claims Analysis (Count) --%>
       <div class="corp-claims-grid">
         <%!-- Claims Analysis (In Amount) --%>
         <div class="corp-claims-card">
           <h3 class="corp-card-title text-left">CLAIMS ANALYSIS (IN AMOUNT)</h3>
-          
+
           <div class="corp-no-data">
             No Data Found
           </div>
         </div>
-         <%!-- Claims Analysis (In Count) --%>
+        <%!-- Claims Analysis (In Count) --%>
         <div class="corp-claims-card">
           <h3 class="corp-card-title text-left">CLAIM ANALYSIS (IN COUNT)</h3>
-          
+
           <div class="corp-no-data">
             No Data Found
           </div>

@@ -249,7 +249,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
 
                   <th class="corp-th p-4 border-b text-left">SUM INSURED</th>
 
-                  <th class="corp-th p-4 border-b text-center w-40">QUICK VIEW</th>
+                  <th class="corp-th p-4 border-b text-left">QUICK VIEW</th>
                 </tr>
               </thead>
 
@@ -275,7 +275,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                         {entry.sum_insured || "-"}
                       </td>
 
-                      <td class="corp-td p-4 border-b text-center">
+                      <td class="corp-td p-4 border-b text-left">
                         <button
                           type="button"
                           phx-click="show_policy_benefit"
@@ -283,7 +283,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                           phx-value-feature-id={entry.feature_identifier_id || ""}
                           phx-value-policy-number={entry.policy_number}
                           phx-value-sum-insured={entry.sum_insured || ""}
-                          class="btn btn-sm btn-primary inline-flex items-center gap-1.5"
+                          class="btn-primary"
                         >
                           <.icon name="hero-eye" class="w-4 h-4" /> <span>Policy Benefit</span>
                         </button>

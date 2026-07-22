@@ -341,6 +341,7 @@ defmodule CorporatePolicyWeb.Layouts do
   attr :policy_numbers, :list, default: []
   attr :active_policy_number, :string, default: nil
   attr :active_path, :string, default: "/corporate/dashboard"
+  attr :show_policy_numbers, :boolean, default: true
 
   slot :inner_block
 
@@ -423,7 +424,7 @@ defmodule CorporatePolicyWeb.Layouts do
           <.corp_nav_item
             icon="hero-document-text"
             label="Policy Features"
-            href="#"
+            href={~p"/corporate/policy-features"}
             active={@active_path == "/corporate/policy-features"}
           />
           <.corp_nav_item
@@ -545,7 +546,7 @@ defmodule CorporatePolicyWeb.Layouts do
           </div>
         </div>
          <%!-- Policy Number Pills Row --%>
-        <div class="corp-policy-numbers-bar">
+        <div :if={@show_policy_numbers} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
             <%= for pn <- @policy_numbers do %>
               <button

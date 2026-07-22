@@ -254,7 +254,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
           <h2 class="text-lg sm:text-xl font-bold text-gray-900">
             {if @active_doc_type == "policy", do: "Policy Document", else: "Service Document"}
           </h2>
-          
+
           <div class="inline-flex rounded-md shadow-xs p-1 bg-gray-100 border border-gray-200">
             <button
               type="button"
@@ -269,7 +269,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
             >
               Policy Document
             </button>
-            
+
             <button
               type="button"
               phx-click="select_doc_type"
@@ -285,7 +285,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
             </button>
           </div>
         </div>
-         <%!-- Documents Grid Display Card --%>
+        <%!-- Documents Grid Display Card --%>
         <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-6 sm:p-10 min-h-[300px]">
           <%= if Enum.empty?(@documents) do %>
             <div class="text-center py-12 text-slate-500">
@@ -326,7 +326,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
                       /> <circle cx="28" cy="33" r="3" fill="white" />
                     </svg>
                   </div>
-                  
+
                   <span class="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors line-clamp-2">
                     {doc.document_name}
                   </span>

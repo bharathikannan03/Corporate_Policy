@@ -81,6 +81,14 @@ defmodule CorporatePolicy.Claims do
     |> Repo.all()
   end
 
+  def count_claims do
+    Repo.aggregate(
+      from(c in MasterClaimSubmission, where: is_nil(c.deleted_at)),
+      :count,
+      :id
+    )
+  end
+
   def get_claim!(id), do: Repo.get!(MasterClaimSubmission, id)
 
   def get_accessible_claim!(id, user, portal) do

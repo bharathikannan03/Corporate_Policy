@@ -105,6 +105,22 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  def count_policies_by_status(status) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status == ^status),
+      :count,
+      :id
+    )
+  end
+
+  def count_policies_by_statuses(statuses) when is_list(statuses) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status in ^statuses),
+      :count,
+      :id
+    )
+  end
+
   def list_active_policies do
     Repo.all(
       from p in Policy,

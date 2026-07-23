@@ -61,11 +61,13 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
             <div class="stat-card-rows">
               <div class="stat-row">
-                <span class="stat-label text-blue-500">Live</span> <span class="stat-value">50</span>
+                <span class="stat-label text-blue-500">Live</span>
+                <span class="stat-value">{@stats.policies.live}</span>
               </div>
 
               <div class="stat-row">
-                <span class="stat-label text-gray-400">Draft</span> <span class="stat-value">5</span>
+                <span class="stat-label text-gray-400">Draft</span>
+                <span class="stat-value">{@stats.policies.draft}</span>
               </div>
             </div>
           </div>
@@ -81,7 +83,8 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
             <div class="stat-card-rows">
               <div class="stat-row">
-                <span class="stat-label text-gray-400">Total</span> <span class="stat-value">0</span>
+                <span class="stat-label text-gray-400">Total</span>
+                <span class="stat-value">{@stats.expired_policies}</span>
               </div>
             </div>
           </div>
@@ -98,7 +101,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Reported</span>
-                <span class="stat-value">23</span>
+                <span class="stat-value">{@stats.claims_reported}</span>
               </div>
             </div>
           </div>
@@ -260,9 +263,12 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
         active: CorporatePolicy.Corporates.count_active_corporates(),
         inactive: CorporatePolicy.Corporates.count_inactive_corporates()
       },
-      policies: %{live: 50, draft: 5},
-      expired_policies: 0,
-      claims_reported: 23
+      policies: %{
+        live: CorporatePolicy.Policies.count_policies_by_status(1),
+        draft: CorporatePolicy.Policies.count_policies_by_statuses([0, 2])
+      },
+      expired_policies: CorporatePolicy.Policies.count_policies_by_status(3),
+      claims_reported: CorporatePolicy.Claims.count_claims()
     }
   end
 

@@ -157,28 +157,16 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             </div>
 
             <div class="claims-corner-rows">
-              <div class="claims-row" id="claims-closed">
-                <div class="claims-dot claims-dot--yellow"></div>
-                <span class="claims-label">Closed</span> <span class="claims-amount">₹0.00</span>
-              </div>
-
-              <div class="claims-row" id="claims-paid">
-                <div class="claims-dot claims-dot--green"></div>
-                <span class="claims-label">Paid</span>
-                <span class="claims-amount">₹18,31,244.00</span>
-              </div>
-
-              <div class="claims-row" id="claims-rejected">
-                <div class="claims-dot claims-dot--red"></div>
-                <span class="claims-label">Rejected</span>
-                <span class="claims-amount">₹1,66,552.00</span>
-              </div>
-
-              <div class="claims-row" id="claims-under-process">
-                <div class="claims-dot claims-dot--yellow"></div>
-                <span class="claims-label">Under Process</span>
-                <span class="claims-amount">₹0.00</span>
-              </div>
+              <%= for item <- @claims_corner do %>
+                <div
+                  class="claims-row"
+                  id={"claims-#{String.downcase(String.replace(item.label, " ", "-"))}"}
+                >
+                  <div class={"claims-dot claims-dot--#{item.color}"}></div>
+                  <span class="claims-label">{item.label}</span>
+                  <span class="claims-amount">{item.amount}</span>
+                </div>
+              <% end %>
             </div>
           </div>
         </div>
@@ -213,7 +201,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span>
-                <span class="stat-value">569</span>
+                <span class="stat-value">0</span>
               </div>
             </div>
           </div>
@@ -268,16 +256,18 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
         draft: CorporatePolicy.Policies.count_policies_by_statuses([0, 2])
       },
       expired_policies: CorporatePolicy.Policies.count_policies_by_status(3),
-      claims_reported: CorporatePolicy.Claims.count_claims()
+      claims_reported: CorporatePolicy.Policies.count_total_claim_reports()
     }
   end
 
   defp build_claims_corner do
+    summary = CorporatePolicy.Policies.get_global_claims_corner_summary()
+
     [
-      %{label: "Closed", amount: "₹0.00", color: :yellow},
-      %{label: "Paid", amount: "₹18,31,244.00", color: :green},
-      %{label: "Rejected", amount: "₹1,66,552.00", color: :red},
-      %{label: "Under Process", amount: "₹0.00", color: :yellow}
+      %{label: "Closed", amount: format_inr(summary.closed_amount), color: :yellow},
+      %{label: "Paid", amount: format_inr(summary.paid_amount), color: :green},
+      %{label: "Rejected", amount: format_inr(summary.rejected_amount), color: :red},
+      %{label: "Under Process", amount: format_inr(summary.process_amount), color: :yellow}
     ]
   end
 
@@ -295,5 +285,45 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       values: [2, 1, 2, 4, 1, 2, 3, 2, 3, 2, 2, 3]
     }
+  end
+
+  defp format_inr(nil), do: "₹0.00"
+
+  defp format_inr(val) when is_float(val) do
+    "₹" <> format_indian_number(val)
+  end
+
+  defp format_inr(val) when is_integer(val) do
+    "₹" <> format_indian_number(val * 1.0)
+  end
+
+  defp format_inr(_), do: "₹0.00"
+
+  defp format_indian_number(val) do
+    # Convert to float and format with 2 decimals
+    formatted = :erlang.float_to_binary(val, decimals: 2)
+    [integer_part, decimal_part] = String.split(formatted, ".")
+
+    # Process integer part for Indian numbering system
+    len = String.length(integer_part)
+
+    if len <= 3 do
+      integer_part <> "." <> decimal_part
+    else
+      last_three = String.slice(integer_part, -3..-1)
+      rest = String.slice(integer_part, 0, len - 3)
+
+      # Group preceding digits by 2
+      grouped_rest =
+        rest
+        |> String.reverse()
+        |> String.graphemes()
+        |> Enum.chunk_every(2)
+        |> Enum.map(&Enum.join/1)
+        |> Enum.join(",")
+        |> String.reverse()
+
+      grouped_rest <> "," <> last_three <> "." <> decimal_part
+    end
   end
 end

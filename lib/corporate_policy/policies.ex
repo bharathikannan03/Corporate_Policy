@@ -121,6 +121,54 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  def count_total_claim_reports do
+    Repo.aggregate(
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at)),
+      :count,
+      :id
+    ) || 0
+  end
+
+  def get_global_claims_corner_summary do
+    claims =
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at))
+      |> Repo.all()
+
+    Enum.reduce(
+      claims,
+      %{
+        closed_amount: 0.0,
+        paid_amount: 0.0,
+        rejected_amount: 0.0,
+        process_amount: 0.0
+      },
+      fn claim, acc ->
+        status = (claim.claim_status || "") |> String.trim() |> String.downcase()
+        claimed = claim.amount_claimed || 0.0
+        paid = claim.claim_paid_amount || claim.amount_sanctioned || claimed
+
+        cond do
+          status == "closed" or String.contains?(status, "close") ->
+            %{acc | closed_amount: acc.closed_amount + claimed}
+
+          status in ["paid", "settled", "claim paid"] or String.contains?(status, "paid") or
+              String.contains?(status, "settle") ->
+            %{acc | paid_amount: acc.paid_amount + paid}
+
+          status == "rejected" or String.contains?(status, "reject") ->
+            %{acc | rejected_amount: acc.rejected_amount + claimed}
+
+          status in ["under process", "in process", "processing", "pending"] or
+            String.contains?(status, "process") or String.contains?(status, "pending") ->
+            %{acc | process_amount: acc.process_amount + claimed}
+
+          true ->
+            acc
+        end
+      end
+    )
+  end
+
   def list_active_policies do
     Repo.all(
       from p in Policy,
@@ -732,6 +780,8 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc "Lists all active sum insured values for a policy."
+  def list_sum_insureds_for_policy(policy_id) when policy_id in [nil, "", "nil"], do: []
+
   def list_sum_insureds_for_policy(policy_id) do
     Repo.all(
       from s in MasterSumInsured,
@@ -741,6 +791,9 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc "Lists features associated with a specific feature identifier ID."
+  def list_features_by_identifier(policy_id, _feature_identifier_id)
+      when policy_id in [nil, "", "nil"], do: []
+
   def list_features_by_identifier(_policy_id, nil), do: []
 
   def list_features_by_identifier(policy_id, feature_identifier_id) do
@@ -1268,7 +1321,20 @@ defmodule CorporatePolicy.Policies do
 
   @total_claim_page_size 10
 
-  def list_total_claim_reports_paginated(policy_id, params \\ %{}) do
+  def list_total_claim_reports_paginated(policy_id, params \\ %{})
+
+  def list_total_claim_reports_paginated(policy_id, _params) when policy_id in [nil, "", "nil"] do
+    %{
+      entries: [],
+      page: 1,
+      page_size: @total_claim_page_size,
+      total_entries: 0,
+      total_pages: 1,
+      search: ""
+    }
+  end
+
+  def list_total_claim_reports_paginated(policy_id, params) do
     page = positive_int(Map.get(params, "page", 1), 1)
     search = StringUtils.normalize(Map.get(params, "search", ""))
 
@@ -1314,6 +1380,8 @@ defmodule CorporatePolicy.Policies do
       search: search
     }
   end
+
+  def list_total_claim_reports_for_export(policy_id) when policy_id in [nil, "", "nil"], do: []
 
   def list_total_claim_reports_for_export(policy_id) do
     from(r in MasterTotalClaimReport,

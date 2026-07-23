@@ -43,9 +43,9 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
               <article class="employee-coverage-card">
                 <div class="employee-coverage-header">
                   <h3>{card.identifier}</h3>
-                   <.icon name="hero-chevron-right" class="w-4 h-4" />
+                  <.icon name="hero-chevron-right" class="w-4 h-4" />
                 </div>
-                
+
                 <div class="employee-coverage-details">
                   <%= for detail <- Enum.take(card.details, 3) do %>
                     <p>

@@ -110,7 +110,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
         <div class="chart-card" id="chart-card">
           <h3 class="chart-title">Upcoming Policy Renewals</h3>
 
-          <div style="position: relative; height: 260px; width: 100%;">
+          <div class="chart-container-wrapper">
             <canvas
               id="renewals-chart"
               phx-hook="RenewalsChart"
@@ -134,7 +134,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
               <div class="stat-card-rows">
                 <div class="stat-row">
-                  <span class="stat-label text-blue-500">HR Users</span>
+                  <span class="stat-label text-blue-500">Corporate Users</span>
                   <span class="stat-value">35</span>
                 </div>
 

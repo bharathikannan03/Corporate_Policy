@@ -35,14 +35,12 @@ defmodule CorporatePolicyWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <main>
-      <%= if assigns[:inner_content] do %>
-        {@inner_content}
-      <% else %>
-        {render_slot(@inner_block)}
-      <% end %>
-    </main>
-     <.flash_group flash={@flash} />
+    <%= if assigns[:inner_content] do %>
+      {@inner_content}
+    <% else %>
+      {render_slot(@inner_block)}
+    <% end %>
+    <.flash_group flash={@flash} />
     """
   end
 
@@ -58,78 +56,79 @@ defmodule CorporatePolicyWeb.Layouts do
 
   def admin(assigns) do
     ~H"""
+    <style>
+      .policy-table-wrapper {
+        background: #ffffff;
+        border-radius: 0.75rem;
+        border: 1px solid #292524 !important;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      }
+      .policy-table {
+        width: 100%;
+        text-align: left;
+        border-collapse: collapse;
+        background: #ffffff;
+      }
+      .policy-table thead tr {
+        background-color: #f3f4f6;
+        border-bottom: 1px solid #292524 !important;
+      }
+      .policy-table th {
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #292524 !important;
+      }
+      .policy-table tbody tr {
+        border-bottom: 1px solid #292524 !important;
+        transition: background-color 0.15s ease;
+      }
+      .policy-table tbody tr:last-child {
+        border-bottom: none;
+      }
+      .policy-table tbody tr:hover {
+        background-color: #f8fafc;
+      }
+      .policy-table td {
+        padding: 1rem 1.5rem;
+        font-size: 0.875rem;
+        color: #292524 !important;
+      }
+      .admin-main { color: #1e293b !important; }
+    </style>
+
     <div class="admin-layout">
-      <style>
-        .policy-table-wrapper {
-          background: #ffffff;
-          border-radius: 0.75rem;
-          border: 1px solid #292524 !important;
-          overflow: hidden;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        }
-        .policy-table {
-          width: 100%;
-          text-align: left;
-          border-collapse: collapse;
-          background: #ffffff;
-        }
-        .policy-table thead tr {
-          background-color: #f3f4f6;
-          border-bottom: 1px solid #292524 !important;
-        }
-        .policy-table th {
-          padding: 1rem 1.5rem;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #292524 !important;
-        }
-        .policy-table tbody tr {
-          border-bottom: 1px solid #292524 !important;
-          transition: background-color 0.15s ease;
-        }
-        .policy-table tbody tr:last-child {
-          border-bottom: none;
-        }
-        .policy-table tbody tr:hover {
-          background-color: #f8fafc;
-        }
-        .policy-table td {
-          padding: 1rem 1.5rem;
-          font-size: 0.875rem;
-          color: #292524 !important;
-        }
-        .admin-main { color: #1e293b !important; }
-      </style>
-       <%!-- Sidebar --%>
+      <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
-          
+
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
           </div>
         </div>
-         <%!-- User info --%>
+        <%!-- User info --%>
         <div class="sidebar-user">
           <div class="user-avatar">
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
-          
+
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
-            
+
             <p class="user-role">Vibe Admin</p>
           </div>
-          
+
           <div class="user-actions">
             <.link
               href={~p"/admin/logout"}
@@ -141,7 +140,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-         <%!-- Navigation --%>
+        <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -167,7 +166,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-corporate"
             />
           </.sidebar_group>
-          
+
           <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
@@ -186,7 +185,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-policy"
             />
           </.sidebar_group>
-          
+
           <.sidebar_group
             icon="hero-banknotes"
             label="CD Statements"
@@ -205,7 +204,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-cd-accounts"
             />
           </.sidebar_group>
-          
+
           <.sidebar_item
             icon="hero-cog-6-tooth"
             label="Roles Configuration"
@@ -251,7 +250,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-escalation-matrix-user-master"
             />
           </.sidebar_group>
-          
+
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -284,14 +283,14 @@ defmodule CorporatePolicyWeb.Layouts do
           </.sidebar_group>
         </nav>
       </aside>
-       <%!-- Main content area --%>
+      <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
-          
+
           <div class="topbar-right">
             <div class="topbar-user">
               <.icon name="hero-user-circle" class="w-6 h-6 text-gray-500" />
@@ -300,7 +299,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
-              
+
               <.link
                 href={~p"/admin/logout"}
                 method="delete"
@@ -312,7 +311,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-         <%!-- Page content --%>
+        <%!-- Page content --%>
         <main class="admin-content">
           <%= if assigns[:inner_content] do %>
             {@inner_content}
@@ -356,26 +355,26 @@ defmodule CorporatePolicyWeb.Layouts do
             <span class="vibe-v">V</span> <span class="vibe-i">I</span> <span class="vibe-b">B</span>
             <span class="vibe-e">E</span>
           </div>
-          
+
           <div class="vibe-tagline">
             An Initiative By Intermedia
           </div>
         </div>
-         <%!-- Corporate Profile Card --%>
+        <%!-- Corporate Profile Card --%>
         <div class="corp-sidebar-user">
           <div class="corp-user-avatar">
             <.icon name="hero-user" class="w-10 h-10" />
           </div>
-          
+
           <h2 class="corp-user-name">
             {@corporate_name}
           </h2>
-           <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
+          <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
           <div class="corp-user-actions">
             <button type="button" class="corp-action-circle">
               <.icon name="hero-user" class="w-3.5 h-3.5" />
             </button>
-            
+
             <.link
               href={~p"/corporate/logout"}
               method="delete"
@@ -383,13 +382,13 @@ defmodule CorporatePolicyWeb.Layouts do
             >
               <.icon name="hero-power" class="w-3.5 h-3.5" />
             </.link>
-            
+
             <button type="button" class="corp-action-circle">
               <.icon name="hero-envelope" class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-         <%!-- Sidebar Menu --%>
+        <%!-- Sidebar Menu --%>
         <nav class="corp-sidebar-nav">
           <.corp_nav_item
             icon="hero-squares-2x2"
@@ -465,7 +464,7 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-       <%!-- Main Content Area --%>
+      <%!-- Main Content Area --%>
       <div class="flex-1 flex flex-col min-w-0">
         <%!-- Top Header Bar --%>
         <header class="corp-top-bar">
@@ -477,47 +476,47 @@ defmodule CorporatePolicyWeb.Layouts do
                     {fy.year_name}
                   </option>
                 <% end %>
-                
+
                 <%= if @financial_years == [] do %>
                   <option value={@current_fy_name} selected>{@current_fy_name}</option>
                 <% end %>
               </select>
             </form>
-            
+
             <select name="language" class="corp-select-sm">
               <option value="en">Select Language</option>
             </select>
           </div>
-          
+
           <div class="flex items-center space-x-4">
             <button type="button" class="text-white hover:opacity-80">
               <.icon name="hero-bell" class="w-5 h-5" />
             </button>
-            
+
             <div class="flex items-center space-x-2 text-xs font-semibold text-white">
               <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                 <.icon name="hero-user" class="w-4 h-4 text-white" />
               </div>
-              
+
               <span>
                 {if @current_user,
                   do: String.upcase("#{@current_user.first_name} #{@current_user.last_name}"),
                   else: "RICHIE JOSEPH"}
               </span>
-               <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
+              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
             </div>
           </div>
         </header>
-         <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
+        <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
         <div class="corp-welcome-banner">
           <h1 class="corp-welcome-title">Hi, Welcome back!</h1>
-           <%!-- Corporate Name & Policy Types Card --%>
+          <%!-- Corporate Name & Policy Types Card --%>
           <div class="corp-header-card">
             <div class="corp-title-text">
               {@corporate_name}
               <span class="corp-title-fy">(Financial Year: {@current_fy_name})</span>
             </div>
-             <%!-- Policy Type Tabs --%>
+            <%!-- Policy Type Tabs --%>
             <div class="corp-policy-types-row">
               <%= for pt <- @policy_types do %>
                 <button
@@ -535,7 +534,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </div>
-         <%!-- Policy Number Pills Row --%>
+        <%!-- Policy Number Pills Row --%>
         <div :if={@show_policy_numbers and @policy_numbers != []} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
             <%= for pn <- @policy_numbers do %>
@@ -555,7 +554,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <% end %>
           </div>
         </div>
-         <%!-- Page Specific Body --%>
+        <%!-- Page Specific Body --%>
         <main class="flex-1 p-6 overflow-y-auto">
           <%= if assigns[:inner_content] do %>
             {@inner_content}
@@ -634,9 +633,9 @@ defmodule CorporatePolicyWeb.Layouts do
           <.icon name={@icon} class="sidebar-nav-icon" />
           <span class="sidebar-nav-label">{@label}</span>
         </span>
-         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
-      
+
       <div
         id={"group-children-#{@group_id}"}
         class="sidebar-group-children"
@@ -693,7 +692,7 @@ defmodule CorporatePolicyWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-      
+
       <.flash
         id="server-error"
         kind={:error}
@@ -728,7 +727,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      
+
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -736,7 +735,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      
+
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}

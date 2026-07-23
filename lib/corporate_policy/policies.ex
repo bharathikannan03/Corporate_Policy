@@ -25,6 +25,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.MasterPolicyEscalationMatrix
   alias CorporatePolicy.Policies.MasterPolicyDocument
   alias CorporatePolicy.EscalationMatrices.EscalationMatrix, as: MasterEscalationMatrix
+  alias CorporatePolicy.Policies.MasterSumInsured
 
   @page_size 15
 
@@ -774,6 +775,30 @@ defmodule CorporatePolicy.Policies do
              m.policy_feature_template_field_value_id == ^feature_id)
     )
     |> Repo.delete_all()
+  end
+
+  @doc "Lists all active sum insured values for a policy."
+  def list_sum_insureds_for_policy(policy_id) do
+    Repo.all(
+      from s in MasterSumInsured,
+        where: s.policy_id == ^policy_id and s.status == 1 and is_nil(s.deleted_at),
+        order_by: [asc: s.sum_insured]
+    )
+  end
+
+  @doc "Lists features associated with a specific feature identifier ID."
+  def list_features_by_identifier(_policy_id, nil), do: []
+
+  def list_features_by_identifier(policy_id, feature_identifier_id) do
+    Repo.all(
+      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+        where:
+          m.ref_policy_id == ^policy_id and
+            (m.ref_policyidentifier_id == ^feature_identifier_id or
+               m.policy_feature_template_field_value_id == ^feature_identifier_id) and
+            is_nil(m.deleted_at) and m.status >= 0,
+        order_by: [asc: m.ref_policy_feature_template_field_id]
+    )
   end
 
   defp normalize_page(value) when is_integer(value) and value > 0, do: value

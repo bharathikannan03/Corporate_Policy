@@ -45,7 +45,12 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :corporate_policy, CorporatePolicyWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+  http: [
+    port: String.to_integer(System.get_env("PORT", "4000")),
+    thousand_island_options: [
+      silent_terminate_on_error: true
+    ]
+  ]
 
 if config_env() == :prod do
   database_url =

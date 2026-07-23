@@ -134,34 +134,34 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
         <div class="rounded-t-xl bg-sky-100 px-4 py-3 text-sm font-medium text-slate-700">
           Policy Details
         </div>
-
+        
         <div class="grid grid-cols-1 gap-4 px-4 py-5 text-sm md:grid-cols-3">
           <div>
             <div>Policy Number : {(@policy && @policy.policy_number) || "-"}</div>
-
+            
             <div>Insurer : {(@policy && @policy.select_insurer) || "-"}</div>
           </div>
-
+          
           <div>
             <div>
               Policy Start Date : {(@policy && @policy.policy_start_date &&
                                       Calendar.strftime(@policy.policy_start_date, "%d-%m-%Y")) || "-"}
             </div>
-
+            
             <div>TPA : {(@policy && @policy.select_tpa) || "-"}</div>
           </div>
-
+          
           <div>
             <div>
               Policy End Date : {(@policy && @policy.policy_end_date &&
                                     Calendar.strftime(@policy.policy_end_date, "%d-%m-%Y")) || "-"}
             </div>
-
+            
             <div>Corporate Name : {(@policy && @policy.corporate_name) || "-"}</div>
           </div>
         </div>
       </div>
-
+      
       <div class="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div class="flex gap-2">
           <input
@@ -175,7 +175,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
             class="input input-bordered"
           />
         </div>
-
+        
         <div class="flex gap-2">
           <%= if @policy do %>
             <.link
@@ -184,7 +184,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
             >
               Export CSV
             </.link>
-
+            
             <.link
               navigate={~p"/admin/policy-details/#{@policy.id}/cd-statements/new"}
               class="btn btn-primary"
@@ -197,14 +197,14 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
           <% end %>
         </div>
       </div>
-
+      
       <div class="corp-table-card">
         <div class="overflow-x-auto">
           <table class="corp-table">
             <thead>
               <tr>
                 <th class="corp-th">#</th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -217,7 +217,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <.sort_icon active={@sort_by == "policy_number"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -229,7 +229,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     Particular <.sort_icon active={@sort_by == "particular"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -242,7 +242,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <.sort_icon active={@sort_by == "debit_amount"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -255,7 +255,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <.sort_icon active={@sort_by == "credit_amount"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -268,7 +268,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <.sort_icon active={@sort_by == "policy_endorsement_no"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -281,7 +281,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     <.sort_icon active={@sort_by == "endorsement_issued_date"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -293,7 +293,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     Bank Name <.sort_icon active={@sort_by == "bank_name"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -305,7 +305,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     Cheque No <.sort_icon active={@sort_by == "cheque_no"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -317,9 +317,9 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                     Remark <.sort_icon active={@sort_by == "remark"} direction={@sort_dir} />
                   </button>
                 </th>
-
+                
                 <th class="corp-th text-center">Delete</th>
-
+                
                 <th class="corp-th">
                   <button
                     type="button"
@@ -333,7 +333,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                 </th>
               </tr>
             </thead>
-
+            
             <tbody>
               <%= if @rows_page.entries == [] do %>
                 <tr class="corp-empty-row">
@@ -348,25 +348,25 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                 <%= for {row, index} <- Enum.with_index(@rows_page.entries, 1) do %>
                   <tr class="corp-tr">
                     <td class="corp-td">{(@rows_page.page - 1) * @rows_page.page_size + index}</td>
-
+                    
                     <td class="corp-td font-medium">{row.policy_number}</td>
-
+                    
                     <td class="corp-td">{row.particular}</td>
-
+                    
                     <td class="corp-td">{amount_text(row.debit_amount)}</td>
-
+                    
                     <td class="corp-td">{amount_text(row.credit_amount)}</td>
-
+                    
                     <td class="corp-td">{row.policy_endorsement_no}</td>
-
+                    
                     <td class="corp-td">{row.endorsement_issued_date}</td>
-
+                    
                     <td class="corp-td">{row.bank_name}</td>
-
+                    
                     <td class="corp-td">{row.cheque_no}</td>
-
+                    
                     <td class="corp-td">{row.remark}</td>
-
+                    
                     <td class="corp-td text-center">
                       <button
                         type="button"
@@ -379,7 +379,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
                         <.icon name="hero-trash" class="h-4 w-4" />
                       </button>
                     </td>
-
+                    
                     <td class="corp-td whitespace-nowrap">
                       {Calendar.strftime(row.inserted_at, "%d/%-m/%Y, %-I:%M:%S %P")}
                     </td>
@@ -390,7 +390,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
           </table>
         </div>
       </div>
-
+      
       <.pagination
         page={@rows_page.page}
         page_size={@rows_page.page_size}
@@ -404,16 +404,16 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
           {if @edit_mode, do: "Save Changes", else: "Complete Policy"}
         </button>
       </div>
-
+      
       <%= if @delete_id do %>
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
             <h3 class="mb-2 text-lg font-semibold">Delete CD Statement Row</h3>
-
+            
             <p class="mb-6 text-sm text-base-content/70">
               Are you sure you want to delete this CD Statement row?
             </p>
-
+            
             <div class="flex justify-end gap-2">
               <button
                 type="button"
@@ -423,7 +423,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
               >
                 Cancel
               </button>
-
+              
               <button
                 type="button"
                 phx-click="delete_row"

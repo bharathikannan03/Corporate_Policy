@@ -114,6 +114,8 @@ defmodule CorporatePolicyWeb.Router do
       live "/claims", ClaimsLive
       live "/escalation-matrix", EscalationMatrixLive
       live "/documents", DocumentsLive
+      live "/policy-features", PolicyFeaturesLive
+
       live "/claims-submission", ClaimsSubmissionIndexLive, :index
       live "/claims-submission/add", ClaimSubmissionFormLive, :new
       live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit

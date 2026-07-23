@@ -3,7 +3,7 @@ defmodule CorporatePolicy.Claims do
 
   alias CorporatePolicy.Claims.{ClaimLog, ClaimSubmissionDocument, MasterClaimSubmission}
   alias CorporatePolicy.Corporates
-  alias CorporatePolicy.Policies.TrnMappingLiveEmployee
+  alias CorporatePolicy.Policies.{Policy, TrnMappingLiveEmployee}
   alias CorporatePolicy.Repo
   alias CorporatePolicy.StringUtils
 
@@ -351,8 +351,20 @@ defmodule CorporatePolicy.Claims do
   def list_accessible_policies(user, :employee) do
     accessible_policy_ids = accessible_employee_policy_ids(user)
 
-    CorporatePolicy.Policies.list_active_policies()
-    |> Enum.filter(&(&1.id in accessible_policy_ids))
+    from(p in Policy,
+      where: p.id in ^accessible_policy_ids,
+      preload: [
+        :corporate,
+        :financial_year_ref,
+        :line_of_business_ref,
+        :policy_type_ref,
+        :insurer_ref,
+        :tpa_ref,
+        :family_definition_ref,
+        :intimate_claim_visibility_ref
+      ]
+    )
+    |> Repo.all()
     |> Enum.sort_by(fn policy ->
       {
         policy.id != user.ref_policy_id,

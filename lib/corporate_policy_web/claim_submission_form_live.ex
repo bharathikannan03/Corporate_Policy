@@ -677,7 +677,8 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
            when @portal == :employee do
         selected_policy =
           find_policy_by_id(accessible_policies, current_user.ref_policy_id) ||
-            List.first(accessible_policies)
+            List.first(accessible_policies) ||
+            (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
 
         if selected_policy do
           params
@@ -769,7 +770,8 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         cond do
           @portal == :employee && current_user ->
             find_policy_by_id(policies, current_user.ref_policy_id) ||
-              find_policy_by_id(policies, parse_int(claim_params["ref_policy_id"]))
+              find_policy_by_id(policies, parse_int(claim_params["ref_policy_id"])) ||
+              (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
 
           true ->
             find_policy_by_id(policies, parse_int(claim_params["ref_policy_id"]))
@@ -777,7 +779,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       end
 
       defp select_default_policy(policies, current_user) do
-        find_policy_by_id(policies, current_user.ref_policy_id) || List.first(policies)
+        find_policy_by_id(policies, current_user.ref_policy_id) ||
+          List.first(policies) ||
+          (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
       end
 
       defp find_policy_by_id(policies, policy_id) when is_integer(policy_id) do

@@ -233,21 +233,32 @@ defmodule CorporatePolicy.EmployeePortal do
   end
 
   def list_policies_for_employee(%SessionEmployee{} = employee) do
-    Repo.all(
-      from e in TrnMappingLiveEmployee,
-        join: p in Policy,
-        on: p.id == e.ref_policy_id,
-        where:
-          fragment("lower(trim(?))", e.employee_code) ==
-            ^StringUtils.downcase(employee.employee_code) and
-            fragment("trim(coalesce(?, '')) <> ''", e.employee_code) and
-            fragment("lower(trim(?))", e.status) == "active" and
-            fragment("lower(trim(?))", e.relationship) in ["employee", "self"] and
-            is_nil(e.deleted_at) and p.status == 1,
-        order_by: [asc: p.policy_type, asc: p.policy_number],
-        distinct: p.id,
-        select: p
-    )
+    policies =
+      Repo.all(
+        from e in TrnMappingLiveEmployee,
+          join: p in Policy,
+          on: p.id == e.ref_policy_id,
+          where:
+            fragment("lower(trim(?))", e.employee_code) ==
+              ^StringUtils.downcase(employee.employee_code) and
+              fragment("trim(coalesce(?, '')) <> ''", e.employee_code) and
+              fragment("lower(trim(?))", e.status) == "active" and
+              fragment("lower(trim(?))", e.relationship) in ["employee", "self"] and
+              is_nil(e.deleted_at) and p.status in [1, 2],
+          order_by: [asc: p.policy_type, asc: p.policy_number],
+          distinct: p.id,
+          select: p
+      )
+
+    Enum.sort_by(policies, fn p ->
+      type = String.downcase(p.policy_type || "")
+
+      cond do
+        type == "gmc" -> {0, p.policy_number}
+        String.contains?(type, "gmc") -> {1, p.policy_number}
+        true -> {2, type}
+      end
+    end)
   end
 
   def format_relationship(value) do

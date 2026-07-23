@@ -198,12 +198,13 @@ defmodule CorporatePolicy.Policies do
           where:
             (p.ref_corporate_id == ^corporate_id or
                fragment("lower(trim(?))", p.corporate_name) == ^normalized_corporate_name) and
-              p.status == 1 and not is_nil(p.policy_number) and
+              p.status in [0, 1, 2] and not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       else
         from p in Policy,
           where:
-            p.ref_corporate_id == ^corporate_id and p.status == 1 and not is_nil(p.policy_number) and
+            p.ref_corporate_id == ^corporate_id and p.status in [0, 1, 2] and
+              not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       end
 

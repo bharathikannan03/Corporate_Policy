@@ -230,7 +230,6 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
       policy_numbers={@policy_numbers}
       active_policy_number={@active_policy_number}
       active_path={@active_path}
-      show_policy_numbers={false}
     >
       <div class="space-y-4 my-4">
         <%!-- Title Bar --%>

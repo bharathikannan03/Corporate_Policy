@@ -527,8 +527,8 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
           selected_policy={@selected_policy}
           member_counts={@member_counts}
           show_details={@show_policy_details}
-        /> <%!-- Employee Data Table Section (Image 2) --%> />
-        <%!-- Employee Data Table Section (Image 2) --%>
+        />
+        <%!-- Employee Data Table Section --%>
         <div class="bg-white rounded-lg border border-gray-200 shadow-xs mt-6 p-4">
           <%!-- Export Button Header --%>
           <div class="flex items-center justify-end mb-4">

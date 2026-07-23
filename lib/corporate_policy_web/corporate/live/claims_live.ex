@@ -834,9 +834,19 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
     """
   end
 
-  defp get_policy_type_name(%{policy_type_ref: %{name: name}}) when is_binary(name), do: name
-  defp get_policy_type_name(%{line_of_business_ref: %{name: name}}) when is_binary(name), do: name
-  defp get_policy_type_name(_), do: nil
+  defp get_policy_type_name(policy) do
+    cond do
+      is_binary(policy.policy_type) and policy.policy_type != "" ->
+        policy.policy_type
+
+      is_map(policy.policy_type_ref) and
+          is_binary(Map.get(policy.policy_type_ref, :policy_type_value)) ->
+        policy.policy_type_ref.policy_type_value
+
+      true ->
+        nil
+    end
+  end
 
   defp get_numbers_for_type(_policies, nil), do: []
 

@@ -104,16 +104,16 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
         Enum.into(existing_rows, %{}, fn r -> {r.ref_policy_feature_template_field_id, r} end)
 
       Enum.each(template_fields, fn field ->
-        val = params["field_#{field.id}"]
-        role_id = params["visibility_role_#{field.id}"]
+        val = params["field_#{field.template_field_id}"]
+        role_id = params["visibility_role_#{field.template_field_id}"]
         value = if val, do: String.trim(val), else: ""
 
-        existing_row = Map.get(existing_map, field.id)
+        existing_row = Map.get(existing_map, field.template_field_id)
 
         cond do
           existing_row && value != "" ->
             Policies.update_mapped_feature(existing_row, %{
-              ref_policy_feature_template_field_name: field.name,
+              ref_policy_feature_template_field_name: field.policy_feature_template_field_name,
               policy_feature_template_field_value: value,
               policy_feature_template_field_visibility_role_ids:
                 if(role_id != "", do: role_id, else: nil)
@@ -128,13 +128,13 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
 
           is_nil(existing_row) && value != "" ->
             Policies.create_mapped_feature(%{
-              ref_policy_feature_template_field_name: field.name,
+              ref_policy_feature_template_field_name: field.policy_feature_template_field_name,
               policy_feature_template_field_value: value,
               ref_template_id: template_id,
               ref_coporate_id: corp_id,
               ref_policy_id: policy.id,
-              ref_policy_feature_template_field_id: field.id,
-              ref_policy_feature_template_field_type_id: field.field_type_id,
+              ref_policy_feature_template_field_id: field.template_field_id,
+              ref_policy_feature_template_field_type_id: field.ref_master_temp_field_Type,
               policy_feature_template_field_visibility_role_ids:
                 if(role_id != "", do: role_id, else: nil),
               ref_policyidentifier_id: editing_feature_id,
@@ -161,22 +161,26 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
       # Add Mode: Create new mapped feature rows
       field1 =
         Enum.find(template_fields, fn f ->
-          f.id == 1 or f.name in ["Feature Identifier", "Policy Identifier"]
+          f.template_field_id == 1 or
+            f.policy_feature_template_field_name in ["Feature Identifier", "Policy Identifier"]
         end) || List.first(template_fields)
 
-      field1_val = if field1, do: params["field_#{field1.id}"], else: nil
-      field1_role = if field1, do: params["visibility_role_#{field1.id}"], else: nil
+      field1_val = if field1, do: params["field_#{field1.template_field_id}"], else: nil
+
+      field1_role =
+        if field1, do: params["visibility_role_#{field1.template_field_id}"], else: nil
 
       root_id =
         if field1 && field1_val && String.trim(field1_val) != "" do
           case Policies.create_mapped_feature(%{
-                 ref_policy_feature_template_field_name: field1.name,
+                 ref_policy_feature_template_field_name:
+                   field1.policy_feature_template_field_name,
                  policy_feature_template_field_value: String.trim(field1_val),
                  ref_template_id: template_id,
                  ref_coporate_id: corp_id,
                  ref_policy_id: policy.id,
-                 ref_policy_feature_template_field_id: field1.id,
-                 ref_policy_feature_template_field_type_id: field1.field_type_id,
+                 ref_policy_feature_template_field_id: field1.template_field_id,
+                 ref_policy_feature_template_field_type_id: field1.ref_master_temp_field_Type,
                  policy_feature_template_field_visibility_role_ids:
                    if(field1_role != "", do: field1_role, else: nil),
                  status: 1
@@ -195,21 +199,24 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           nil
         end
 
-      remaining_fields = Enum.reject(template_fields, fn f -> field1 && f.id == field1.id end)
+      remaining_fields =
+        Enum.reject(template_fields, fn f ->
+          field1 && f.template_field_id == field1.template_field_id
+        end)
 
       Enum.each(remaining_fields, fn field ->
-        val = params["field_#{field.id}"]
-        role_id = params["visibility_role_#{field.id}"]
+        val = params["field_#{field.template_field_id}"]
+        role_id = params["visibility_role_#{field.template_field_id}"]
 
         if val && String.trim(val) != "" do
           Policies.create_mapped_feature(%{
-            ref_policy_feature_template_field_name: field.name,
+            ref_policy_feature_template_field_name: field.policy_feature_template_field_name,
             policy_feature_template_field_value: String.trim(val),
             ref_template_id: template_id,
             ref_coporate_id: corp_id,
             ref_policy_id: policy.id,
-            ref_policy_feature_template_field_id: field.id,
-            ref_policy_feature_template_field_type_id: field.field_type_id,
+            ref_policy_feature_template_field_id: field.template_field_id,
+            ref_policy_feature_template_field_type_id: field.ref_master_temp_field_Type,
             policy_feature_template_field_visibility_role_ids:
               if(role_id != "", do: role_id, else: nil),
             ref_policyidentifier_id: root_id,
@@ -302,64 +309,79 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           >
             <%= for field <- @template_fields do %>
               <div class="corp-field-group">
-                <label class="corp-label">
-                  {field.name}
-                  <%= if field.is_mandatory do %>
-                    <span class="corp-required">*</span>
+                <label class="corp-label flex items-center gap-1.5 mb-1">
+                  <span>{field.policy_feature_template_field_name}</span>
+                  <%= if field.is_mandatory == 1 do %>
+                    <span class="corp-required text-red-500 font-bold">*</span>
                   <% end %>
                 </label>
 
-                <%= if field.field_type_id == 4 do %>
-                  <div class="flex items-center gap-6 mt-2 py-1">
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={"field_#{field.id}"}
-                        value="Yes"
-                        checked={@form_data["field_#{field.id}"] == "Yes"}
-                        class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <span class="text-sm font-medium text-slate-700">Yes</span>
-                    </label>
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={"field_#{field.id}"}
-                        value="No"
-                        checked={
-                          @form_data["field_#{field.id}"] == "No" ||
-                            (is_nil(@editing_feature_id) and is_nil(@form_data["field_#{field.id}"]))
-                        }
-                        class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                      />
-                      <span class="text-sm font-medium text-slate-700">No</span>
-                    </label>
+                <div class="grid grid-cols-2 gap-4 items-center">
+                  <div>
+                    <%= if field.ref_master_temp_field_Type == 4 do %>
+                      <div class="flex items-center gap-6 py-1.5">
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={"field_#{field.template_field_id}"}
+                            value="Yes"
+                            checked={@form_data["field_#{field.template_field_id}"] == "Yes"}
+                            class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span class="text-sm font-medium text-slate-700">Yes</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={"field_#{field.template_field_id}"}
+                            value="No"
+                            checked={
+                              @form_data["field_#{field.template_field_id}"] == "No" ||
+                                (is_nil(@editing_feature_id) and
+                                   is_nil(@form_data["field_#{field.template_field_id}"]))
+                            }
+                            class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span class="text-sm font-medium text-slate-700">No</span>
+                        </label>
+                      </div>
+                    <% else %>
+                      <%= if field.ref_master_temp_field_Type == 5 do %>
+                        <textarea
+                          name={"field_#{field.template_field_id}"}
+                          class="corp-input h-10 min-h-[40px] resize-y"
+                          placeholder={field.policy_feature_template_field_placeholder}
+                        >{@form_data["field_#{field.template_field_id}"] || ""}</textarea>
+                      <% else %>
+                        <input
+                          type="text"
+                          name={"field_#{field.template_field_id}"}
+                          value={@form_data["field_#{field.template_field_id}"] || ""}
+                          class="corp-input"
+                          placeholder={field.policy_feature_template_field_placeholder}
+                        />
+                      <% end %>
+                    <% end %>
                   </div>
-                <% else %>
-                  <input
-                    type="text"
-                    name={"field_#{field.id}"}
-                    value={@form_data["field_#{field.id}"] || ""}
-                    class="corp-input"
-                    placeholder={field.placeholder}
-                  />
-                <% end %>
 
-                <select name={"visibility_role_#{field.id}"} class="corp-input mt-2">
-                  <option value="">Select Visibility Role</option>
+                  <div>
+                    <select name={"visibility_role_#{field.template_field_id}"} class="corp-input">
+                      <option value="">Select Visibility Role</option>
 
-                  <%= for role <- @visibility_roles do %>
-                    <option
-                      value={role.role_id}
-                      selected={
-                        to_string(@form_data["visibility_role_#{field.id}"]) ==
-                          to_string(role.role_id)
-                      }
-                    >
-                      {role.role}
-                    </option>
-                  <% end %>
-                </select>
+                      <%= for role <- @visibility_roles do %>
+                        <option
+                          value={role.role_id}
+                          selected={
+                            to_string(@form_data["visibility_role_#{field.template_field_id}"]) ==
+                              to_string(role.role_id)
+                          }
+                        >
+                          {role.role}
+                        </option>
+                      <% end %>
+                    </select>
+                  </div>
+                </div>
               </div>
             <% end %>
 

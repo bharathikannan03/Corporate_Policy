@@ -638,12 +638,12 @@ defmodule CorporatePolicy.Policies do
 
   # === Policy Features (Step 2) ===
 
-  @doc "Fetches all fields for a given template_id, ordered by id."
+  @doc "Fetches all fields for a given template_id, ordered by template_field_id."
   def list_policy_feature_template_fields(template_id) do
     Repo.all(
       from f in MasterPolicyFeatureTemplateField,
-        where: f.template_id == ^template_id and f.status >= 0,
-        order_by: [asc: f.id]
+        where: f.ref_template_id == ^template_id and f.status >= 0,
+        order_by: [asc: f.template_field_id]
     )
   end
 
@@ -701,12 +701,22 @@ defmodule CorporatePolicy.Policies do
   def get_template_id_for_policy(_), do: 1
 
   defp template_id_from_policy_type(nil), do: 1
+  defp template_id_from_policy_type(%{policy_type_value: "GMC"}), do: 1
   defp template_id_from_policy_type(%{policy_type_value: "GPA"}), do: 2
-  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 3
-  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 4
-  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 5
-  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 6
-  # GMC, Parent Policy, Top up Policy, and all others → template 1
+  defp template_id_from_policy_type(%{policy_type_value: "Parent Policy"}), do: 3
+  defp template_id_from_policy_type(%{policy_type_value: "Top up Policy"}), do: 4
+  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 5
+  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 6
+  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 7
+  defp template_id_from_policy_type(%{policy_type_value: "Office Package"}), do: 8
+  defp template_id_from_policy_type(%{policy_type_value: "Motor Insurance"}), do: 9
+  defp template_id_from_policy_type(%{policy_type_value: "Travel Insurance"}), do: 10
+  defp template_id_from_policy_type(%{policy_type_value: "Property Insurance"}), do: 11
+  defp template_id_from_policy_type(%{policy_type_value: "Commercial Insurance"}), do: 12
+  defp template_id_from_policy_type(%{policy_type_value: "Asset Insurance"}), do: 13
+  defp template_id_from_policy_type(%{policy_type_value: "Pet Insurance"}), do: 14
+  defp template_id_from_policy_type(%{policy_type_value: "Bite-Sized Insurance"}), do: 15
+  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 16
   defp template_id_from_policy_type(_), do: 1
 
   @doc "Fetches mapped features for a policy, extracting the distinct Feature Identifiers."

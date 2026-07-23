@@ -335,15 +335,18 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                         Add CD Number
                       </.link>
 
-                      <button
-                        type="submit"
-                        class="btn btn-success"
-                        disabled={
-                          Enum.empty?(@available_cd_accounts) or Enum.empty?(@uploads.cd_csv.entries)
-                        }
-                      >
-                        Upload
-                      </button>
+                      <div class="flex justify-end mt-4">
+                        <button
+                          type="submit"
+                          class="btn btn-success"
+                          disabled={
+                            Enum.empty?(@available_cd_accounts) or
+                              Enum.empty?(@uploads.cd_csv.entries)
+                          }
+                        >
+                          Upload
+                        </button>
+                      </div>
                     </div>
                   </div>
 

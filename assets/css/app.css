@@ -901,6 +901,15 @@ body {
   margin-top: 16px;
 }
 
+.corp-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+
 .corp-table-card {
   background: #ffffff;
   border-radius: 12px;

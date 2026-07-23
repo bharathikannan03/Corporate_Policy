@@ -749,7 +749,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             />
           </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex justify-end gap-4 mt-6">
             <button type="button" phx-click="back_to_details" class="btn btn-secondary">Previous</button>
             <button
               type="button"

@@ -281,7 +281,7 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
               </div>
 
               <div class="corp-form-footer" id="corp-footer-details">
-                <button type="submit" name="action" value="next" class="btn-success" id="btn-next">
+                <button type="submit" name="action" value="next" class="btn btn-success" id="btn-next">
                   Next
                 </button>
               </div>
@@ -387,11 +387,17 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
               </div>
 
               <div class="corp-form-footer" id="corp-footer-contacts">
-                <button type="button" phx-click="prev_tab" class="btn-secondary" id="btn-back">
+                <button type="button" phx-click="prev_tab" class="btn btn-secondary" id="btn-back">
                   Back
                 </button>
 
-                <button type="submit" name="action" value="submit" class="btn-success" id="btn-submit">
+                <button
+                  type="submit"
+                  name="action"
+                  value="submit"
+                  class="btn btn-success"
+                  id="btn-submit"
+                >
                   Submit
                 </button>
               </div>

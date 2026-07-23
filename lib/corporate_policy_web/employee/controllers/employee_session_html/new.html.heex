@@ -2,12 +2,17 @@
   <div class="employee-login-card">
     <div class="employee-login-shell">
       <div class="employee-login-brand">
+<<<<<<< HEAD
+        <div class="employee-login-logo">Employee Portal</div>
+        <p>Secure access for policy benefits, members, and claims</p>
+=======
         <div class="employee-login-logo">
           <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
           <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
         </div>
         
         <p>Insurance Broking and Advisory Service Pvt Ltd</p>
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
       </div>
       
       <h1 class="employee-login-title">Employee Login</h1>
@@ -62,7 +67,6 @@
                 <span data-password-toggle-target="show-icon">
                   <.icon name="hero-eye" class="w-5 h-5" />
                 </span>
-                
                 <span class="hidden" data-password-toggle-target="hide-icon">
                   <.icon name="hero-eye-slash" class="w-5 h-5" />
                 </span>
@@ -70,7 +74,8 @@
             </div>
           </div>
         <% end %>
-        
+<<<<<<< HEAD
+
         <div class="employee-form-actions">
           <button
             type="submit"
@@ -79,6 +84,12 @@
             {if @otp_sent, do: "Login", else: "Generate OTP"}
           </button>
         </div>
+=======
+        
+        <button type="submit" class="employee-login-submit">
+          {if @otp_sent, do: "Login", else: "Generate OTP"}
+        </button>
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
       </.form>
       
       <p class="employee-login-note">

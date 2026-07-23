@@ -24,20 +24,24 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
     <div class="employee-shell">
       <header class="employee-topbar">
         <div class="employee-brand">
+<<<<<<< HEAD
           <div class="employee-brand-lockup">
             <span class="employee-brand-icon">
               <.icon name="hero-shield-check" class="w-5 h-5" />
             </span>
-            
             <div>
-              <div class="employee-brand-mark">
-                <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
-                <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
-              </div>
-              
-              <p class="employee-brand-tag">Insurance Broking and Advisory Service</p>
+              <div class="employee-brand-mark">Employee Portal</div>
+              <p class="employee-brand-tag">Benefits, Members, and Claims</p>
             </div>
           </div>
+=======
+          <div class="employee-brand-mark">
+            <span class="employee-brand-v">V</span> <span class="employee-brand-i">I</span>
+            <span class="employee-brand-b">B</span> <span class="employee-brand-e">E</span>
+          </div>
+          
+          <p class="employee-brand-tag">Insurance Broking and Advisory Service</p>
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
         </div>
         
         <div class="employee-topbar-actions">
@@ -45,7 +49,8 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
             <span class="employee-greeting-label">Hi,</span>
             <span class="employee-greeting-name">{@current_user.full_name}</span>
           </div>
-          
+<<<<<<< HEAD
+
           <form action={~p"/employee/logout"} method="post">
             <input type="hidden" name="_method" value="delete" />
             <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
@@ -53,6 +58,12 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
               <.icon name="hero-arrow-path-rounded-square" class="w-4 h-4" /> Logout
             </button>
           </form>
+=======
+          
+          <.link href={~p"/employee/logout"} method="delete" class="employee-logout-btn">
+            <.icon name="hero-arrow-path-rounded-square" class="w-4 h-4" /> Logout
+          </.link>
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
         </div>
       </header>
       
@@ -67,15 +78,19 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
               Access only the benefits, members, contacts, and claims linked to your policy.
             </p>
           </div>
-          
+<<<<<<< HEAD
+
           <div class="employee-hero-actions">
             <%= if @current_policy_label != "" do %>
               <span class="employee-current-policy-badge">{@current_policy_label}</span>
             <% end %>
           </div>
         </section>
-        
+
         <section class="employee-policy-strip">
+=======
+          
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
           <div class="employee-policy-pillset">
             <%= for policy_option <- @display_policy_options do %>
               <.link
@@ -85,7 +100,7 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
                 <span class="employee-policy-pill-icon">
                   <.icon name={policy_type_icon(policy_option.policy_type)} class="w-4 h-4" />
                 </span>
-                 {policy_type_label(policy_option)}
+                {policy_type_label(policy_option)}
               </.link>
             <% end %>
           </div>
@@ -101,13 +116,20 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
                 <span class="employee-nav-icon-wrap">
                   <.icon name={item.icon} class="w-4 h-4" />
                 </span>
+<<<<<<< HEAD
+
+                <div>
+                  <p class="employee-nav-title">{item.label}</p>
+                  <%= if item.subtitle do %>
+                    <p class="employee-nav-subtitle">{item.subtitle}</p>
+                  <% end %>
+=======
                 
                 <div>
                   <p class="employee-nav-title">{item.label}</p>
                   
-                  <%= if item.subtitle do %>
-                    <p class="employee-nav-subtitle">{item.subtitle}</p>
-                  <% end %>
+                  <p class="employee-nav-subtitle">{item.subtitle}</p>
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
                 </div>
               </.link>
             <% end %>
@@ -143,10 +165,17 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
       <div class="employee-info-icon">
         <.icon name={@icon} class="w-6 h-6" />
       </div>
+<<<<<<< HEAD
+
+      <div>
+        <p class="employee-info-label">{@title}</p>
+
+=======
       
       <div>
         <p class="employee-info-label">{@title}</p>
         
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
         <p class="employee-info-value">{@value}</p>
       </div>
     </article>
@@ -162,9 +191,15 @@ defmodule CorporatePolicyWeb.Employee.PortalComponents do
       <div class="employee-empty-icon">
         <.icon name="hero-wrench-screwdriver" class="w-8 h-8" />
       </div>
+<<<<<<< HEAD
+
+      <h3 class="employee-empty-title">{@title}</h3>
+
+=======
       
       <h3 class="employee-empty-title">{@title}</h3>
       
+>>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
       <p class="employee-empty-text">{@message}</p>
     </div>
     """

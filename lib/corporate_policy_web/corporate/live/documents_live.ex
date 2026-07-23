@@ -58,11 +58,11 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -144,13 +144,16 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
   end
 
   @impl true
-  def handle_event("change_financial_year", %{"fy_id" => fy_id_str}, socket) do
-    fy_id = String.to_integer(fy_id_str)
-    fy = Enum.find(socket.assigns.financial_years, &(&1.id == fy_id))
-    fy_name = (fy && fy.year_name) || socket.assigns.current_fy_name
+  def handle_event("change_fy", %{"fy_name" => fy_name}, socket) do
+    fy = Enum.find(socket.assigns.financial_years, &(&1.year_name == fy_name))
+    fy_id = fy && fy.id
 
     policies =
-      Enum.filter(socket.assigns.all_policies, &(&1.ref_fy_year_id == fy_id))
+      if fy_id do
+        Enum.filter(socket.assigns.all_policies, &(&1.ref_fy_year_id == fy_id))
+      else
+        socket.assigns.all_policies
+      end
 
     fetched_types =
       policies
@@ -158,11 +161,11 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -212,6 +215,8 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
     end
   end
 
+  defp get_numbers_for_type(_policies, nil), do: []
+
   defp get_numbers_for_type(policies, target_type) do
     policies
     |> Enum.filter(fn p ->
@@ -222,6 +227,10 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
   end
+
+  defp get_selected_policy([], _type, _number), do: nil
+  defp get_selected_policy(policies, nil, _number), do: List.first(policies)
+  defp get_selected_policy(policies, _type, nil), do: List.first(policies)
 
   defp get_selected_policy(policies, type, number) do
     Enum.find(policies, fn p ->

@@ -52,11 +52,11 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "Parent Policy"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -89,7 +89,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
   def handle_event("select_policy_type", %{"type" => type}, socket) do
     policies = socket.assigns.policies
     fetched_numbers = get_numbers_for_type(policies, type)
-    policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
     selected_policy = get_selected_policy(policies, type, active_policy_number)
     policy_id = selected_policy && selected_policy.id
@@ -195,7 +195,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             <p class="corp-info-value truncate">
               {if @selected_policy,
                 do: @selected_policy.select_insurer || get_insurer_name(@selected_policy),
-                else: "Aditya Birla Health Insurance Co. Limited"}
+                else: "N/A"}
             </p>
           </div>
         </div>
@@ -209,7 +209,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             <p class="corp-info-label">Policy Number</p>
 
             <p class="corp-info-value truncate">
-              {if @selected_policy, do: @selected_policy.policy_number, else: "2-81-25-00003017-000"}
+              {if @selected_policy, do: @selected_policy.policy_number, else: "N/A"}
             </p>
           </div>
         </div>
@@ -239,7 +239,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             <p class="corp-info-value truncate">
               {if @selected_policy,
                 do: @selected_policy.select_tpa || get_tpa_name(@selected_policy),
-                else: "Internal TPA"}
+                else: "N/A"}
             </p>
           </div>
         </div>
@@ -420,6 +420,10 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     |> Enum.uniq()
   end
 
+  defp get_selected_policy([], _type, _number), do: nil
+  defp get_selected_policy(policies, nil, _number), do: List.first(policies)
+  defp get_selected_policy(policies, _type, nil), do: List.first(policies)
+
   defp get_selected_policy(policies, type, number) do
     Enum.find(policies, fn p ->
       get_policy_type_name(p) == type and p.policy_number == number
@@ -437,10 +441,10 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
 
   defp get_tpa_name(policy) do
     cond do
-      is_nil(policy) -> "Internal TPA"
+      is_nil(policy) -> "N/A"
       is_binary(policy.select_tpa) and policy.select_tpa != "" -> policy.select_tpa
       policy.tpa_ref -> policy.tpa_ref.name
-      true -> "Internal TPA"
+      true -> "N/A"
     end
   end
 
@@ -449,7 +453,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
     "#{format_date(s)} to #{format_date(e)}"
   end
 
-  defp format_policy_period(_), do: "25-07-2025 to 24-07-2026"
+  defp format_policy_period(_), do: "N/A"
 
   defp format_date(%Date{} = d), do: Calendar.strftime(d, "%d-%m-%Y")
   defp format_date(d) when is_binary(d), do: d

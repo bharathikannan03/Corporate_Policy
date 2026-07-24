@@ -3,7 +3,7 @@ defmodule CorporatePolicy.Claims do
 
   alias CorporatePolicy.Claims.{ClaimLog, ClaimSubmissionDocument, MasterClaimSubmission}
   alias CorporatePolicy.Corporates
-  alias CorporatePolicy.Policies.TrnMappingLiveEmployee
+  alias CorporatePolicy.Policies.{Policy, TrnMappingLiveEmployee}
   alias CorporatePolicy.Repo
   alias CorporatePolicy.StringUtils
 
@@ -39,6 +39,7 @@ defmodule CorporatePolicy.Claims do
     page = positive_int(Map.get(params, "page", 1), 1)
     search = StringUtils.normalize(Map.get(params, "search", ""))
     status = normalize_claim_status(Map.get(params, "status", ""))
+    policy_id = parse_int(Map.get(params, "ref_policy_id"))
     sort_by = Map.get(params, "sort_by", "inserted_at")
     sort_dir = normalize_sort_dir(Map.get(params, "sort_dir", "desc"))
 
@@ -46,6 +47,7 @@ defmodule CorporatePolicy.Claims do
       MasterClaimSubmission
       |> where([c], is_nil(c.deleted_at))
       |> accessible_to(user, portal)
+      |> maybe_filter_policy(policy_id)
       |> maybe_filter_search(search)
       |> maybe_filter_status(status)
 
@@ -163,7 +165,8 @@ defmodule CorporatePolicy.Claims do
       |> enrich_claim_metadata()
       |> Map.put("updated_by", actor_user_id)
 
-    with :ok <- ensure_employee_claim_access(claim, attrs, user, portal) do
+    with :ok <- ensure_claim_portal_access(claim, portal),
+         :ok <- ensure_employee_claim_access(claim, attrs, user, portal) do
       Repo.transaction(fn ->
         case claim
              |> MasterClaimSubmission.update_changeset(attrs)
@@ -193,35 +196,40 @@ defmodule CorporatePolicy.Claims do
     submitted_by = resolve_submitted_by(user, portal, claim)
     actor_user_id = actor_user_id(user)
 
-    if document_count < @min_documents do
-      {:error, :minimum_documents_not_met}
-    else
-      Repo.transaction(fn ->
-        case claim
-             |> MasterClaimSubmission.update_changeset(%{
-               "claim_status" => "Submitted",
-               "submitted_at" => DateTime.utc_now(),
-               "submitted_by" => submitted_by,
-               "updated_by" => actor_user_id
-             })
-             |> Repo.update() do
-          {:ok, submitted_claim} ->
-            create_log!(
-              submitted_claim,
-              actor_user_id,
-              portal_id_for(portal),
-              submitted_by,
-              "Submitted",
-              "Claim submitted"
-            )
+    cond do
+      match?({:error, _}, ensure_claim_portal_access(claim, portal)) ->
+        ensure_claim_portal_access(claim, portal)
 
-            Repo.preload(submitted_claim, [:documents, :logs])
+      document_count < @min_documents ->
+        {:error, :minimum_documents_not_met}
 
-          {:error, changeset} ->
-            Repo.rollback(changeset)
-        end
-      end)
-      |> unwrap_transaction()
+      true ->
+        Repo.transaction(fn ->
+          case claim
+               |> MasterClaimSubmission.update_changeset(%{
+                 "claim_status" => "Submitted",
+                 "submitted_at" => DateTime.utc_now(),
+                 "submitted_by" => submitted_by,
+                 "updated_by" => actor_user_id
+               })
+               |> Repo.update() do
+            {:ok, submitted_claim} ->
+              create_log!(
+                submitted_claim,
+                actor_user_id,
+                portal_id_for(portal),
+                submitted_by,
+                "Submitted",
+                "Claim submitted"
+              )
+
+              Repo.preload(submitted_claim, [:documents, :logs])
+
+            {:error, changeset} ->
+              Repo.rollback(changeset)
+          end
+        end)
+        |> unwrap_transaction()
     end
   end
 
@@ -250,27 +258,29 @@ defmodule CorporatePolicy.Claims do
       |> Map.put("created_by", actor_user_id)
       |> Map.put("updated_by", actor_user_id)
 
-    Repo.transaction(fn ->
-      case %ClaimSubmissionDocument{}
-           |> ClaimSubmissionDocument.changeset(attrs)
-           |> Repo.insert() do
-        {:ok, document} ->
-          create_log!(
-            claim,
-            actor_user_id,
-            portal_id_for(portal),
-            submitted_by,
-            "Document Uploaded",
-            document.document_name
-          )
+    with :ok <- ensure_claim_portal_access(claim, portal) do
+      Repo.transaction(fn ->
+        case %ClaimSubmissionDocument{}
+             |> ClaimSubmissionDocument.changeset(attrs)
+             |> Repo.insert() do
+          {:ok, document} ->
+            create_log!(
+              claim,
+              actor_user_id,
+              portal_id_for(portal),
+              submitted_by,
+              "Document Uploaded",
+              document.document_name
+            )
 
-          document
+            document
 
-        {:error, changeset} ->
-          Repo.rollback(changeset)
-      end
-    end)
-    |> unwrap_transaction()
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+      |> unwrap_transaction()
+    end
   end
 
   def delete_claim_document(
@@ -282,27 +292,29 @@ defmodule CorporatePolicy.Claims do
     submitted_by = resolve_submitted_by(user, portal, claim)
     actor_user_id = actor_user_id(user)
 
-    Repo.transaction(fn ->
-      case document
-           |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(), updated_by: actor_user_id)
-           |> Repo.update() do
-        {:ok, deleted_document} ->
-          create_log!(
-            claim,
-            actor_user_id,
-            portal_id_for(portal),
-            submitted_by,
-            "Document Deleted",
-            deleted_document.document_name
-          )
+    with :ok <- ensure_claim_portal_access(claim, portal) do
+      Repo.transaction(fn ->
+        case document
+             |> Ecto.Changeset.change(deleted_at: DateTime.utc_now(), updated_by: actor_user_id)
+             |> Repo.update() do
+          {:ok, deleted_document} ->
+            create_log!(
+              claim,
+              actor_user_id,
+              portal_id_for(portal),
+              submitted_by,
+              "Document Deleted",
+              deleted_document.document_name
+            )
 
-          deleted_document
+            deleted_document
 
-        {:error, changeset} ->
-          Repo.rollback(changeset)
-      end
-    end)
-    |> unwrap_transaction()
+          {:error, changeset} ->
+            Repo.rollback(changeset)
+        end
+      end)
+      |> unwrap_transaction()
+    end
   end
 
   def list_accessible_corporates(_user, :admin) do
@@ -310,15 +322,28 @@ defmodule CorporatePolicy.Claims do
   end
 
   def list_accessible_corporates(user, portal) when portal in [:corporate, :employee] do
-    case user && user.ref_corporate_id do
-      nil ->
-        []
+    case {portal, user} do
+      {:employee, %{employee_code: _employee_code}} ->
+        corporate_ids =
+          user
+          |> list_accessible_policies(:employee)
+          |> Enum.map(& &1.ref_corporate_id)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.uniq()
 
-      corporate_id ->
+        Enum.filter(
+          CorporatePolicy.Policies.list_corporates(),
+          &(&1.corporate_id in corporate_ids)
+        )
+
+      {_, %{ref_corporate_id: corporate_id}} when not is_nil(corporate_id) ->
         Enum.filter(
           CorporatePolicy.Policies.list_corporates(),
           &(&1.corporate_id == corporate_id)
         )
+
+      _ ->
+        []
     end
   end
 
@@ -332,8 +357,29 @@ defmodule CorporatePolicy.Claims do
   end
 
   def list_accessible_policies(user, :employee) do
-    CorporatePolicy.Policies.list_active_policies()
-    |> Enum.filter(&(&1.id == user.ref_policy_id))
+    accessible_policy_ids = accessible_employee_policy_ids(user)
+
+    from(p in Policy,
+      where: p.id in ^accessible_policy_ids,
+      preload: [
+        :corporate,
+        :financial_year_ref,
+        :line_of_business_ref,
+        :policy_type_ref,
+        :insurer_ref,
+        :tpa_ref,
+        :family_definition_ref,
+        :intimate_claim_visibility_ref
+      ]
+    )
+    |> Repo.all()
+    |> Enum.sort_by(fn policy ->
+      {
+        policy.id != user.ref_policy_id,
+        StringUtils.downcase(policy.policy_type),
+        StringUtils.downcase(policy.policy_number)
+      }
+    end)
   end
 
   def list_accessible_employee_codes(_user, :admin, policy_id),
@@ -348,7 +394,7 @@ defmodule CorporatePolicy.Claims do
   end
 
   def list_accessible_employee_codes(user, :employee, policy_id) do
-    if user && policy_id == user.ref_policy_id do
+    if user && policy_id in accessible_employee_policy_ids(user) do
       [
         %{
           employee_code: user.employee_code,
@@ -398,6 +444,16 @@ defmodule CorporatePolicy.Claims do
 
   def get_policy(policy_id) do
     CorporatePolicy.Policies.get_policy_with_preloads(policy_id)
+  end
+
+  def resolve_employee_policy(user, policy_type) do
+    normalized_policy_type = StringUtils.normalize(policy_type)
+
+    user
+    |> list_accessible_policies(:employee)
+    |> Enum.find(fn policy ->
+      StringUtils.equal?(policy.policy_type, normalized_policy_type)
+    end)
   end
 
   def get_location_by_pincode(pincode), do: Corporates.get_location_by_pincode(pincode)
@@ -512,20 +568,36 @@ defmodule CorporatePolicy.Claims do
     end)
   end
 
-  defp accessible_to(query, _user, :admin), do: query
-
-  defp accessible_to(query, user, :corporate) do
-    where(query, [c], c.ref_corporate_id == ^user.ref_corporate_id)
+  defp accessible_to(query, _user, :admin) do
+    where(query, [c], c.portal_id == ^portal_id_for(:admin))
   end
 
-  defp accessible_to(query, user, :employee) do
+  defp accessible_to(query, user, :corporate) do
     where(
       query,
       [c],
-      c.ref_policy_id == ^user.ref_policy_id and
-        fragment("lower(trim(?))", c.employee_code) == ^StringUtils.downcase(user.employee_code)
+      c.portal_id == ^portal_id_for(:corporate) and c.ref_corporate_id == ^user.ref_corporate_id
     )
   end
+
+  defp accessible_to(query, user, :employee) do
+    accessible_policy_ids = accessible_employee_policy_ids(user)
+
+    if accessible_policy_ids == [] do
+      where(query, [c], false)
+    else
+      where(
+        query,
+        [c],
+        c.portal_id == ^portal_id_for(:employee) and
+          c.ref_policy_id in ^accessible_policy_ids and
+          fragment("lower(trim(?))", c.employee_code) == ^StringUtils.downcase(user.employee_code)
+      )
+    end
+  end
+
+  defp maybe_filter_policy(query, nil), do: query
+  defp maybe_filter_policy(query, policy_id), do: where(query, [c], c.ref_policy_id == ^policy_id)
 
   defp maybe_filter_search(query, ""), do: query
 
@@ -682,16 +754,17 @@ defmodule CorporatePolicy.Claims do
     corporate_id = attrs["ref_corporate_id"] || (claim && claim.ref_corporate_id)
     employee_code = attrs["employee_code"] || (claim && claim.employee_code)
     patient_name = attrs["patient_name"] || (claim && claim.patient_name)
+    accessible_policy = find_employee_policy(user, policy_id)
 
     cond do
       is_nil(user) ->
         {:error, claim_access_error(claim, attrs, :employee_code, "is not authorized")}
 
-      policy_id != user.ref_policy_id ->
+      is_nil(accessible_policy) ->
         {:error,
          claim_access_error(claim, attrs, :ref_policy_id, "does not belong to your account")}
 
-      corporate_id != user.ref_corporate_id ->
+      corporate_id != accessible_policy.ref_corporate_id ->
         {:error,
          claim_access_error(claim, attrs, :ref_corporate_id, "does not belong to your account")}
 
@@ -699,7 +772,7 @@ defmodule CorporatePolicy.Claims do
         {:error,
          claim_access_error(claim, attrs, :employee_code, "must match your employee code")}
 
-      is_nil(get_policy_employee(user.ref_policy_id, user.employee_code, patient_name)) ->
+      is_nil(get_policy_employee(accessible_policy.id, user.employee_code, patient_name)) ->
         {:error,
          claim_access_error(claim, attrs, :patient_name, "is not covered under your policy")}
 
@@ -808,4 +881,49 @@ defmodule CorporatePolicy.Claims do
   defp normalize_sort_dir(value) do
     if StringUtils.equal?(value, "asc"), do: "asc", else: "desc"
   end
+
+  defp ensure_claim_portal_access(%MasterClaimSubmission{portal_id: portal_id} = claim, portal) do
+    if portal_id == portal_id_for(portal) do
+      :ok
+    else
+      {:error,
+       claim_access_error(
+         claim,
+         %{},
+         :portal_id,
+         "does not belong to the #{portal_label(portal)}"
+       )}
+    end
+  end
+
+  defp portal_label(:admin), do: "admin portal"
+  defp portal_label(:corporate), do: "corporate portal"
+  defp portal_label(:employee), do: "employee portal"
+
+  defp accessible_employee_policy_ids(%{employee_code: employee_code}) do
+    normalized_employee_code = StringUtils.normalize(employee_code)
+
+    Repo.all(
+      from e in TrnMappingLiveEmployee,
+        where:
+          fragment("lower(trim(?))", e.employee_code) ==
+            ^StringUtils.downcase(normalized_employee_code) and
+            fragment("trim(coalesce(?, '')) <> ''", e.employee_code) and
+            fragment("lower(trim(?))", e.status) == "active" and
+            fragment("lower(trim(?))", e.relationship) in ["employee", "self"] and
+            is_nil(e.deleted_at),
+        select: e.ref_policy_id,
+        distinct: true
+    )
+  end
+
+  defp accessible_employee_policy_ids(_user), do: []
+
+  defp find_employee_policy(user, policy_id) when is_integer(policy_id) do
+    user
+    |> list_accessible_policies(:employee)
+    |> Enum.find(&(&1.id == policy_id))
+  end
+
+  defp find_employee_policy(_user, _policy_id), do: nil
 end

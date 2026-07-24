@@ -1,8 +1,6 @@
 defmodule CorporatePolicyWeb.Router do
   use CorporatePolicyWeb, :router
 
-  @portal System.get_env("PORTAL", "all")
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -40,34 +38,10 @@ defmodule CorporatePolicyWeb.Router do
     plug CorporatePolicyWeb.Employee.Plugs.AuthPlug
   end
 
-  case @portal do
-    "admin" ->
-      scope "/", CorporatePolicyWeb.Admin do
-        pipe_through :browser
+  scope "/", CorporatePolicyWeb do
+    pipe_through :browser
 
-        get "/", SessionController, :new
-      end
-
-    "corp" ->
-      scope "/", CorporatePolicyWeb.Corporate do
-        pipe_through :browser
-
-        get "/", CorporateSessionController, :new
-      end
-
-    "emp" ->
-      scope "/", CorporatePolicyWeb.Employee do
-        pipe_through :browser
-
-        get "/", EmployeeSessionController, :new
-      end
-
-    _ ->
-      scope "/", CorporatePolicyWeb.Admin do
-        pipe_through :browser
-
-        get "/", SessionController, :new
-      end
+    get "/", PageController, :home
   end
 
   scope "/admin", CorporatePolicyWeb.Admin, as: :admin do

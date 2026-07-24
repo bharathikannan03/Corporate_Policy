@@ -13,13 +13,16 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
       @portal unquote(portal)
 
       @impl true
-      def mount(_params, session, socket) do
+      def mount(params, session, socket) do
         current_user = resolve_current_user(session, socket, @portal)
+        current_user = maybe_scope_employee_to_policy(current_user, params)
+        employee_policy_options = employee_policy_options(current_user, @portal)
 
         {:ok,
          socket
          |> assign(:portal, @portal)
          |> assign(:current_user, current_user)
+         |> assign(:employee_policy_options, employee_policy_options)
          |> assign(
            :employee_policy,
            if(@portal == :employee && current_user,
@@ -27,7 +30,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
              else: nil
            )
          )
-         |> assign(:page_title, "Claim Submission")
+         |> assign(:page_title, if(@portal == :admin, do: "All Claims", else: "Claim Submission"))
          |> assign(:active_path, portal_path(@portal, "/claims-submission"))
          |> assign(:claim_statuses, Claims.claim_statuses())
          |> load_claims(%{})}
@@ -68,6 +71,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
                 current_user={@current_user}
                 page_title={@page_title}
                 active_path={@active_path}
+                show_navigation={false}
               >
                 <.submissions_index
                   claims_page={@claims_page}
@@ -81,6 +85,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
               <.shell
                 current_user={@current_user}
                 policy={@employee_policy}
+                policy_options={@employee_policy_options}
                 active_path={@active_path}
                 page_title={@page_title}
               >
@@ -89,11 +94,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
                   current_user={@current_user}
                   page_title={@page_title}
                   active_path={@active_path}
+                  selected_policy_id={@employee_policy && @employee_policy.id}
                 >
                   <.submissions_index
                     claims_page={@claims_page}
                     portal={@portal}
                     status_options={@claim_statuses}
+                    selected_policy_id={@employee_policy && @employee_policy.id}
                   />
                 </.portal_shell>
               </.shell>
@@ -120,6 +127,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
       end
 
       defp load_claims(socket, params) do
+        params =
+          if @portal == :employee && socket.assigns.current_user do
+            Map.put(params, "ref_policy_id", socket.assigns.current_user.ref_policy_id)
+          else
+            params
+          end
+
         claims_page = Claims.list_claims(socket.assigns.current_user, @portal, params)
         assign(socket, :claims_page, claims_page)
       end
@@ -149,6 +163,31 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
             nil -> socket.assigns[:current_user]
             id -> CorporatePolicy.Accounts.get_user(id)
           end
+        end
+      end
+
+      defp maybe_scope_employee_to_policy(current_user, params) do
+        if @portal == :employee && current_user do
+          policy_options = CorporatePolicy.EmployeePortal.list_policies_for_employee(current_user)
+
+          policy =
+            CorporatePolicy.EmployeePortal.select_policy_for_employee(
+              current_user,
+              params["policy_id"],
+              policy_options
+            )
+
+          CorporatePolicy.EmployeePortal.scoped_employee_for_policy(current_user, policy)
+        else
+          current_user
+        end
+      end
+
+      defp employee_policy_options(current_user, portal) do
+        if portal == :employee && current_user do
+          CorporatePolicy.EmployeePortal.list_policies_for_employee(current_user)
+        else
+          []
         end
       end
     end

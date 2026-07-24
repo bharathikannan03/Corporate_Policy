@@ -6,7 +6,7 @@ defmodule CorporatePolicyWeb.SessionControllerTest do
   test "renders the login page", %{conn: conn} do
     conn = get(conn, ~p"/")
 
-    assert html_response(conn, 200) =~ "Sign in to Admin Portal"
+    assert redirected_to(conn) == "/admin/login"
   end
 
   test "logs in with valid credentials", %{conn: conn} do

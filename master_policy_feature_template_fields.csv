@@ -1,0 +1,361 @@
+template_field_id,policy_feature_template_field_name,policy_feature_template_field_placeholder,ref_master_temp_field_Type,ref_template_id,status,created_at,updated_at,deleted_at,is_mandatory,ref_policyidentifier_id,field_description,ref_fieldgrouping_id,created_by,updated_by
+1,"Feature Identifier","Please Enter Template Name",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,0,NULL,NULL
+2,"Room Rent Limit","Room Rent Limit",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When You get get hospitalized for an ailment the cost of the room allotted to you
+                                   as per the category you choose is room rent. This include the bed charges, Nursing charges
+                                   and doctor visit charges. In some policies surgeon fees is also clubbed under room rent Food 
+                                   ordered for anyone apart from patient is not covered under room rent.",5,NULL,NULL
+3,"ICU Limit","Enter ICU Limit",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a person admitted in the intensive care unit (ICU) the daily charges for the same will be
+                                  payable, this would also inculde operation theater charges in some cases.",5,NULL,NULL
+4,"Proportionate deduction on exceeding room rent","Enter Proportionate deduction on exceeding room rent",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In Case a person opts for a room which is higher that the limit prescribed under the room rent 
+                                   limit of the policy. Deductions will be applied to other heads like doctor visit, nursing charges 
+                                   etc as well.",5,NULL,NULL
+5,"Existing Disease Waiting Period","Enter Existing Disease Waiting Period",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Prior to buying health insurance policy if you are suffering from an ailment which is natural or 
+                                   arises due to accidental and if you are taking any medication for any health condition that would 
+                                   be termed as a pre existing diease. While buying health insurance it is recommended to declare any 
+                                   such ailments or past hospitalizations of past due. Incase you don't declare and it is reviled during 
+                                   your hospitalization claim will be rejected.",12,NULL,NULL
+6,"Ailment wise waiting period","Enter Ailment wise waiting period",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In a policy, Waiting period would be applicable for certain ailments as per the prescribed terms and 
+                                   conditions. Claims for such ailments will be payable after the completion of witing period.",12,NULL,NULL
+7,"Pre & post natal Expenses","Enter Pre & post natal Expenses",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Pre and post-nadal expenses would mean costs pertaining to utrasound, regular checkups, doctor's 
+                                   consultaion fee, medicines and so on. These are similar to pre-and post- Hospitalization expenses 
+                                   that are admissible under a standard health insurance policy.",2,NULL,NULL
+8,"Ailment wise capping","Enter Ailment wise capping",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under the Policy claims for certain policies is limited prescribed as per terms of the policy.",12,NULL,NULL
+9,"Internal congenital disease","Enter Internal congenital disease",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an internal body organ in the body from the birth.",11,NULL,NULL
+10,"External congenital disease","Enter External congenital disease",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an External body organ in the body from the birth.",11,NULL,NULL
+11,Pandemic,"Enter Pandemic",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Charges include owning to hospitalization due to novel corona virus.",13,NULL,NULL
+12,"Pre Hospitalization","Enter Pre Hospitalization",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred by a insured person prior to hospitalization on a account of Doctor visit, 
+                                   tests conducted or any other medical procedures undertaken are termed as pere hospitalization expenses. 
+                                   Generally, policies cover expenses incurred for a duration of 30 to 60 days prior hospitalization.",5,NULL,NULL
+13,"Post Hospitalization","Enter Post Hospitalization",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred after being discharged from the hospital on account of doctor visits, 
+                                   Post-operative procedures, other medical procedure are termed as post hospitalization expenses. 
+                                   Generally, Policies cover expenses incurred for a duration of 60 to 120 days after hospitalization.",5,NULL,NULL
+14,"Restore Benefit","Enter Restore Benefit",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit, if you consume the complete sum insured under a policy due to one or more 
+                                   hospitalizations, then again you will be eligible to use the entire sum insured within the policy period.
+                                   For restoration to be implemented the admissible claim amount will be considered, If a person putrs a 
+                                   claim and there are deductions that portion will be excluded from the restoration element.",14,NULL,NULL
+15,Copay,,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When you claim co-pay will be the amount which will be deducted from your admissible claim amount since 
+                                   it's a policy condition. All insurance policies do not have a co pay condition. If a co pay condition 
+                                   is present your policy it could applicable due on claims for certain ailments, Claims for dependents 
+                                   parents or all members, claims for members above certain age  or not adhering to certain policy 
+                                   conditions.",15,NULL,NULL
+16,"Copay Deduction In %","Enter Copay Deduction In %",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+17,Remark,,2,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+18,"No claim Bonus",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a policy renewed without lodging a claim, a benefit can be availed be the customer. This benefit could be 
+                                   in the form of a discount in premium or increase in sum insured.",16,NULL,NULL
+19,"% Increase in Sum Insured","Enter % Increase in Sum Insured",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+20,"Discount Premium","Enter Discount Premium",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+21,"Organ Donar",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"If a recipient of an organ has an insurance policy where organ donor expenses covered then the costs 
+                                      incurred for hospitalization and procedure  for donor is also covered. Traditionally insurance 
+                                      policies would cover the cost of a surgery of organ donation only for the policy holder. However 
+                                      now it is possible to cover the hospitalization and surgery expenses of the donor also. Costs of 
+                                      pre and post hospitalization costs of the donor and costs on account of post- surgery complication 
+                                      are not generally not covered under insurance.",11,NULL,NULL
+22,"Organ Donor Value","Enter Organ Donor Value",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,11,NULL,NULL
+23,"OPD Cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Out door patient treatment does not involve hospitalization. Here you meet a doctor  for consultaion 
+                                   and are prescribed to take medicines or undergo tests or other medical procedure.",17,NULL,NULL
+24,"OPD Amount Payable","Enter OPD Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,17,NULL,NULL
+25,"Maternity Cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit a female who is covered under the policy can claim expenses incurred on account of 
+                                   child birth during hospitalization upto the limit of the cover. In retail insurance policies waiting 
+                                   period of 2 Years or more may apply on the coverage. Generally pre hospitalization and post hospitalization 
+                                   expenses are not covered under the maternity benefit.",2,NULL,NULL
+26,"Maternity Waiting Period","Enter Maternity Waiting Period",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+27,"Normal delivery sum Insured","Enter Normal delivery sum Insured",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+28,"C Sec - sum insured","Enter C Sec - sum insured",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,"Caesarean section, also known as C - Section, or Caesarean delivery, is the use of surgery to delivery, 
+                                      is the use of surgery deliver babies. A caesarean section is often necessary when a vaginal delivery 
+                                      would put the baby or mother at risk.",2,NULL,NULL
+29,"Baby Vaccination",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit after child birth expenses incurred for vaccination which are prescribed as per 
+                                   medical board are covered. The charges will have to be validated as per the guideline provided by 
+                                   medical board.",2,NULL,NULL
+30,"Baby Vaccination Amount Payable","Enter Baby Vaccination Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+31,"New born baby cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When this cover is availed, the new born baby gets covered under the policy as an insured instantly 
+                                   after birth without payment of additional premium.",2,NULL,NULL
+32,"Health Checkup",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the expenses upto the limit prescribed and for listed tests will be borne from 
+                                   insurer. The common conditions for eligiability of health check-up are after one or more claim free 
+                                   renewals you will be entitled for reimbursement of limited expenses some peoples offered annual 
+                                   checkups, upto the defined limit you can go to the list or empaneled vendors and get yourself tested 
+                                   for free as per the list of tests provided.",3,NULL,NULL
+33,"Initial waiting Period","Enter Initial waiting Period",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+34,"Health Checkup Amount Payable","Enter Health Checkup Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+35,"Emergency Ambulance",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+36,"Emergency Ambulance Amount Payable","Enter Emergency Ambulance Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+37,"Domiciliary Hospitalization",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"A situation when a person needs to be hospitalized but could not be due to non-availability of acommodation 
+                                   in hospital or condition of patient didn't allow him to be shifted so he was treated at home. Some 
+                                   policies cover domicilliary hospitalization but subject to conditions like the domicilliary treatment 
+                                   should last for a particular period. Limits will be defined for the amount payable under domicilliary 
+                                   treatment.",1,NULL,NULL
+38,"Domiciliary Hospitalization Value","Enter Domiciliary Hospitalization",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,1,NULL,NULL
+39,Ayurveda/Homeopathy,,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred for alternative medical treatments (Ayurveda/Yoga/Unani/Sidha/Homepathy) are payable 
+                                   subject to admission in a registered hospital.",6,NULL,NULL
+40,"Ayurveda/Homeopathy Amount Payable","Enter Ayurveda/Homeopathy Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,6,NULL,NULL
+41,"Eye Cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Damage to the eye to an accident or cataract treatment usually covered. Genric optician and spectacle 
+                                   charges are not covered under mediclaim. Limits of cataract cover are defined under the policy costs 
+                                   incurred due to congential eye defects may not be covered.",7,NULL,NULL
+42,"Eye Cover Amount Payable","Enter Eye Cover Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,7,NULL,NULL
+43,"Dental Cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred due to dental treatment arising due to an accident are covered under mediclaim insurance. 
+                                   Some plans may offer costs incurred due to root canal or other such surgeries. Tooth extraction or 
+                                   cosmatic Dental Treatment is not covered under mediclaim.",8,NULL,NULL
+44,"Dental Cover Amount Payable","Enter Dental Cover Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,8,NULL,NULL
+45,"Critical illness Benefit",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"This is a supplementary benefit where the patient after being diagnosed with a dreadful listed disease 
+                                   has to survive a limited period (Mostly 30 days). Thereafter he/she is paid a lumpsum amount of 
+                                   treatment as per his/her convenience. The list of diseases vary from company to company the most 
+                                   common are cancer, Stroke, Heart attack, Coronary bypass surgery, Multiple organ failure etc..",9,NULL,NULL
+46,"Critical illness Amount Payable","Enter Critical illness Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,9,NULL,NULL
+47,"Worldwide Emergency Cover",,4,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the insurance policy will cover expenses incurred overseas owing to a unforsean
+                                   health condition. Traditionally mediclaim insurance would not cover medical expenses if incurred 
+                                   outside indian borders, However now some insurers offer this feature as an addon benefit.",10,NULL,NULL
+48,"Worldwide Emergency Amount Payable","Enter Worldwide Emergency Amount Payable",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+49,"Amount Deductible","Enter Amount Deductible",1,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+50,"Add Remarks",,5,1,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,18,NULL,NULL
+51,"Feature Identifier","Please Enter Template Name",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+52,"Age Limit","Enter age Limit",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+53,"Per person Sum Insured","Enter Per person sum insured",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+54,"Accidental Death","Enter Accidental Death",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+55,"Permanent Total Disablement","Enter Permanent Total Disablement",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+56,"Permanent Partial Disability","Enter Permanent Partial Disability",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+57,"Temporary Total Disablement","Enter Temporary Total Disablement",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+58,"Accidental Medical Expenses","Enter Accidental Medical Expenses",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+59,"Funeral Expenses","Enter Funeral Expenses",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+60,"Transportation of Mortal Remains","Enter Transportation of Mortal Remains",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+61,"Educational Grant","Enter Educational Grant",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+62,Terrorism,"Enter Terrorism",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+63,"24-Hrs & Worldwide Cover","Enter 24-Hrs & Worldwide Cover",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+64,"Ambulance Charges","Enter Ambulance Charges",1,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+65,"Add Remarks","Enter the Remarks",5,2,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,,NULL,NULL
+66,"Feature Identifier","Please Enter Template Name",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,0,NULL,NULL
+67,"Room Rent Limit","Room Rent Limit",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When You get get hospitalized for an ailment the cost of the room allotted to you
+                                   as per the category you choose is room rent. This include the bed charges, Nursing charges
+                                   and doctor visit charges. In some policies surgeon fees is also clubbed under room rent Food 
+                                   ordered for anyone apart from patient is not covered under room rent.",5,NULL,NULL
+68,"ICU Limit","Enter ICU Limit",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a person admitted in the intensive care unit (ICU) the daily charges for the same will be
+                                  payable, this would also inculde operation theater charges in some cases.",5,NULL,NULL
+69,"Proportionate deduction on exceeding room rent","Enter Proportionate deduction on exceeding room rent",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In Case a person opts for a room which is higher that the limit prescribed under the room rent 
+                                   limit of the policy. Deductions will be applied to other heads like doctor visit, nursing charges 
+                                   etc as well.",5,NULL,NULL
+70,"Existing Disease Waiting Period","Enter Existing Disease Waiting Period",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Prior to buying health insurance policy if you are suffering from an ailment which is natural or 
+                                   arises due to accidental and if you are taking any medication for any health condition that would 
+                                   be termed as a pre existing diease. While buying health insurance it is recommended to declare any 
+                                   such ailments or past hospitalizations of past due. Incase you don't declare and it is reviled during 
+                                   your hospitalization claim will be rejected.",12,NULL,NULL
+71,"Ailment wise waiting period","Enter Ailment wise waiting period",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In a policy, Waiting period would be applicable for certain ailments as per the prescribed terms and 
+                                   conditions. Claims for such ailments will be payable after the completion of witing period.",12,NULL,NULL
+72,"Pre & post natal Expenses","Enter Pre & post natal Expenses",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Pre and post-nadal expenses would mean costs pertaining to utrasound, regular checkups, doctor's 
+                                   consultaion fee, medicines and so on. These are similar to pre-and post- Hospitalization expenses 
+                                   that are admissible under a standard health insurance policy.",2,NULL,NULL
+73,"Ailment wise capping","Enter Ailment wise capping",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under the Policy claims for certain policies is limited prescribed as per terms of the policy.",12,NULL,NULL
+74,"Internal congenital disease","Enter Internal congenital disease",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an internal body organ in the body from the birth.",11,NULL,NULL
+75,"External congenital disease","Enter External congenital disease",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an External body organ in the body from the birth.",11,NULL,NULL
+76,Pandemic,"Enter Pandemic",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Charges include owning to hospitalization due to novel corona virus.",13,NULL,NULL
+77,"Pre Hospitalization","Enter Pre Hospitalization",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred by a insured person prior to hospitalization on a account of Doctor visit, 
+                                   tests conducted or any other medical procedures undertaken are termed as pere hospitalization expenses. 
+                                   Generally, policies cover expenses incurred for a duration of 30 to 60 days prior hospitalization.",5,NULL,NULL
+78,"Post Hospitalization","Enter Post Hospitalization",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred after being discharged from the hospital on account of doctor visits, 
+                                   Post-operative procedures, other medical procedure are termed as post hospitalization expenses. 
+                                   Generally, Policies cover expenses incurred for a duration of 60 to 120 days after hospitalization.",5,NULL,NULL
+79,"Restore Benefit","Enter Restore Benefit",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit, if you consume the complete sum insured under a policy due to one or more 
+                                   hospitalizations, then again you will be eligible to use the entire sum insured within the policy period.
+                                   For restoration to be implemented the admissible claim amount will be considered, If a person putrs a 
+                                   claim and there are deductions that portion will be excluded from the restoration element.",14,NULL,NULL
+80,Copay,,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When you claim co-pay will be the amount which will be deducted from your admissible claim amount since 
+                                   it's a policy condition. All insurance policies do not have a co pay condition. If a co pay condition 
+                                   is present your policy it could applicable due on claims for certain ailments, Claims for dependents 
+                                   parents or all members, claims for members above certain age  or not adhering to certain policy 
+                                   conditions.",15,NULL,NULL
+81,"Copay Deduction In %","Enter Copay Deduction In %",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+82,Remark,,2,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+83,"No claim Bonus",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a policy renewed without lodging a claim, a benefit can be availed be the customer. This benefit could be 
+                                   in the form of a discount in premium or increase in sum insured.",16,NULL,NULL
+84,"% Increase in Sum Insured","Enter % Increase in Sum Insured",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+85,"Discount Premium","Enter Discount Premium",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+86,"Organ Donar",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"If a recipient of an organ has an insurance policy where organ donor expenses covered then the costs 
+                                      incurred for hospitalization and procedure  for donor is also covered. Traditionally insurance 
+                                      policies would cover the cost of a surgery of organ donation only for the policy holder. However 
+                                      now it is possible to cover the hospitalization and surgery expenses of the donor also. Costs of 
+                                      pre and post hospitalization costs of the donor and costs on account of post- surgery complication 
+                                      are not generally not covered under insurance.",11,NULL,NULL
+87,"Organ Donor Value","Enter Organ Donor Value",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,11,NULL,NULL
+88,"OPD Cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Out door patient treatment does not involve hospitalization. Here you meet a doctor  for consultaion 
+                                   and are prescribed to take medicines or undergo tests or other medical procedure.",17,NULL,NULL
+89,"OPD Amount Payable","Enter OPD Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,17,NULL,NULL
+90,"Maternity Cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit a female who is covered under the policy can claim expenses incurred on account of 
+                                   child birth during hospitalization upto the limit of the cover. In retail insurance policies waiting 
+                                   period of 2 Years or more may apply on the coverage. Generally pre hospitalization and post hospitalization 
+                                   expenses are not covered under the maternity benefit.",2,NULL,NULL
+91,"Maternity Waiting Period","Enter Maternity Waiting Period",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+92,"Normal delivery sum Insured","Enter Normal delivery sum Insured",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+93,"C Sec - sum insured","Enter C Sec - sum insured",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,"Caesarean section, also known as C - Section, or Caesarean delivery, is the use of surgery to delivery, 
+                                      is the use of surgery deliver babies. A caesarean section is often necessary when a vaginal delivery 
+                                      would put the baby or mother at risk.",2,NULL,NULL
+94,"Baby Vaccination",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit after child birth expenses incurred for vaccination which are prescribed as per 
+                                   medical board are covered. The charges will have to be validated as per the guideline provided by 
+                                   medical board.",2,NULL,NULL
+95,"Baby Vaccination Amount Payable","Enter Baby Vaccination Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+96,"New born baby cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When this cover is availed, the new born baby gets covered under the policy as an insured instantly 
+                                   after birth without payment of additional premium.",2,NULL,NULL
+97,"Health Checkup",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the expenses upto the limit prescribed and for listed tests will be borne from 
+                                   insurer. The common conditions for eligiability of health check-up are after one or more claim free 
+                                   renewals you will be entitled for reimbursement of limited expenses some peoples offered annual 
+                                   checkups, upto the defined limit you can go to the list or empaneled vendors and get yourself tested 
+                                   for free as per the list of tests provided.",3,NULL,NULL
+98,"Initial waiting Period","Enter Initial waiting Period",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+99,"Health Checkup Amount Payable","Enter Health Checkup Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+100,"Emergency Ambulance",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+101,"Emergency Ambulance Amount Payable","Enter Emergency Ambulance Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+102,"Domiciliary Hospitalization",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"A situation when a person needs to be hospitalized but could not be due to non-availability of acommodation 
+                                   in hospital or condition of patient didn't allow him to be shifted so he was treated at home. Some 
+                                   policies cover domicilliary hospitalization but subject to conditions like the domicilliary treatment 
+                                   should last for a particular period. Limits will be defined for the amount payable under domicilliary 
+                                   treatment.",1,NULL,NULL
+103,"Domiciliary Hospitalization Value","Enter Domiciliary Hospitalization",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,1,NULL,NULL
+104,Ayurveda/Homeopathy,,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred for alternative medical treatments (Ayurveda/Yoga/Unani/Sidha/Homepathy) are payable 
+                                   subject to admission in a registered hospital.",6,NULL,NULL
+105,"Ayurveda/Homeopathy Amount Payable","Enter Ayurveda/Homeopathy Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,6,NULL,NULL
+106,"Eye Cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Damage to the eye to an accident or cataract treatment usually covered. Genric optician and spectacle 
+                                   charges are not covered under mediclaim. Limits of cataract cover are defined under the policy costs 
+                                   incurred due to congential eye defects may not be covered.",7,NULL,NULL
+107,"Eye Cover Amount Payable","Enter Eye Cover Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,7,NULL,NULL
+108,"Dental Cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred due to dental treatment arising due to an accident are covered under mediclaim insurance. 
+                                   Some plans may offer costs incurred due to root canal or other such surgeries. Tooth extraction or 
+                                   cosmatic Dental Treatment is not covered under mediclaim.",8,NULL,NULL
+109,"Dental Cover Amount Payable","Enter Dental Cover Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,8,NULL,NULL
+110,"Critical illness Benefit",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"This is a supplementary benefit where the patient after being diagnosed with a dreadful listed disease 
+                                   has to survive a limited period (Mostly 30 days). Thereafter he/she is paid a lumpsum amount of 
+                                   treatment as per his/her convenience. The list of diseases vary from company to company the most 
+                                   common are cancer, Stroke, Heart attack, Coronary bypass surgery, Multiple organ failure etc..",9,NULL,NULL
+111,"Critical illness Amount Payable","Enter Critical illness Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,9,NULL,NULL
+112,"Worldwide Emergency Cover",,4,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the insurance policy will cover expenses incurred overseas owing to a unforsean
+                                   health condition. Traditionally mediclaim insurance would not cover medical expenses if incurred 
+                                   outside indian borders, However now some insurers offer this feature as an addon benefit.",10,NULL,NULL
+113,"Worldwide Emergency Amount Payable","Enter Worldwide Emergency Amount Payable",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+114,"Amount Deductible","Enter Amount Deductible",1,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+115,"Add Remarks",,5,3,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,18,NULL,NULL
+116,"Feature Identifier","Please Enter Template Name",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,0,NULL,NULL
+117,"Room Rent Limit","Room Rent Limit",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When You get get hospitalized for an ailment the cost of the room allotted to you
+                                   as per the category you choose is room rent. This include the bed charges, Nursing charges
+                                   and doctor visit charges. In some policies surgeon fees is also clubbed under room rent Food 
+                                   ordered for anyone apart from patient is not covered under room rent.",5,NULL,NULL
+118,"ICU Limit","Enter ICU Limit",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a person admitted in the intensive care unit (ICU) the daily charges for the same will be
+                                  payable, this would also inculde operation theater charges in some cases.",5,NULL,NULL
+119,"Proportionate deduction on exceeding room rent","Enter Proportionate deduction on exceeding room rent",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In Case a person opts for a room which is higher that the limit prescribed under the room rent 
+                                   limit of the policy. Deductions will be applied to other heads like doctor visit, nursing charges 
+                                   etc as well.",5,NULL,NULL
+120,"Existing Disease Waiting Period","Enter Existing Disease Waiting Period",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Prior to buying health insurance policy if you are suffering from an ailment which is natural or 
+                                   arises due to accidental and if you are taking any medication for any health condition that would 
+                                   be termed as a pre existing diease. While buying health insurance it is recommended to declare any 
+                                   such ailments or past hospitalizations of past due. Incase you don't declare and it is reviled during 
+                                   your hospitalization claim will be rejected.",12,NULL,NULL
+121,"Ailment wise waiting period","Enter Ailment wise waiting period",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"In a policy, Waiting period would be applicable for certain ailments as per the prescribed terms and 
+                                   conditions. Claims for such ailments will be payable after the completion of witing period.",12,NULL,NULL
+122,"Pre & post natal Expenses","Enter Pre & post natal Expenses",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Pre and post-nadal expenses would mean costs pertaining to utrasound, regular checkups, doctor's 
+                                   consultaion fee, medicines and so on. These are similar to pre-and post- Hospitalization expenses 
+                                   that are admissible under a standard health insurance policy.",2,NULL,NULL
+123,"Ailment wise capping","Enter Ailment wise capping",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under the Policy claims for certain policies is limited prescribed as per terms of the policy.",12,NULL,NULL
+124,"Internal congenital disease","Enter Internal congenital disease",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an internal body organ in the body from the birth.",11,NULL,NULL
+125,"External congenital disease","Enter External congenital disease",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Disability/defect to an External body organ in the body from the birth.",11,NULL,NULL
+126,Pandemic,"Enter Pandemic",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Charges include owning to hospitalization due to novel corona virus.",13,NULL,NULL
+127,"Pre Hospitalization","Enter Pre Hospitalization",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred by a insured person prior to hospitalization on a account of Doctor visit, 
+                                   tests conducted or any other medical procedures undertaken are termed as pere hospitalization expenses. 
+                                   Generally, policies cover expenses incurred for a duration of 30 to 60 days prior hospitalization.",5,NULL,NULL
+128,"Post Hospitalization","Enter Post Hospitalization",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"The expenses incurred after being discharged from the hospital on account of doctor visits, 
+                                   Post-operative procedures, other medical procedure are termed as post hospitalization expenses. 
+                                   Generally, Policies cover expenses incurred for a duration of 60 to 120 days after hospitalization.",5,NULL,NULL
+129,"Restore Benefit","Enter Restore Benefit",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit, if you consume the complete sum insured under a policy due to one or more 
+                                   hospitalizations, then again you will be eligible to use the entire sum insured within the policy period.
+                                   For restoration to be implemented the admissible claim amount will be considered, If a person putrs a 
+                                   claim and there are deductions that portion will be excluded from the restoration element.",14,NULL,NULL
+130,Copay,,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When you claim co-pay will be the amount which will be deducted from your admissible claim amount since 
+                                   it's a policy condition. All insurance policies do not have a co pay condition. If a co pay condition 
+                                   is present your policy it could applicable due on claims for certain ailments, Claims for dependents 
+                                   parents or all members, claims for members above certain age  or not adhering to certain policy 
+                                   conditions.",15,NULL,NULL
+131,"Copay Deduction In %","Enter Copay Deduction In %",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+132,Remark,,2,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,15,NULL,NULL
+133,"No claim Bonus",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When a policy renewed without lodging a claim, a benefit can be availed be the customer. This benefit could be 
+                                   in the form of a discount in premium or increase in sum insured.",16,NULL,NULL
+134,"% Increase in Sum Insured","Enter % Increase in Sum Insured",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+135,"Discount Premium","Enter Discount Premium",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,16,NULL,NULL
+136,"Organ Donar",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"If a recipient of an organ has an insurance policy where organ donor expenses covered then the costs 
+                                      incurred for hospitalization and procedure  for donor is also covered. Traditionally insurance 
+                                      policies would cover the cost of a surgery of organ donation only for the policy holder. However 
+                                      now it is possible to cover the hospitalization and surgery expenses of the donor also. Costs of 
+                                      pre and post hospitalization costs of the donor and costs on account of post- surgery complication 
+                                      are not generally not covered under insurance.",11,NULL,NULL
+137,"Organ Donor Value","Enter Organ Donor Value",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,11,NULL,NULL
+138,"OPD Cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Out door patient treatment does not involve hospitalization. Here you meet a doctor  for consultaion 
+                                   and are prescribed to take medicines or undergo tests or other medical procedure.",17,NULL,NULL
+139,"OPD Amount Payable","Enter OPD Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,17,NULL,NULL
+140,"Maternity Cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit a female who is covered under the policy can claim expenses incurred on account of 
+                                   child birth during hospitalization upto the limit of the cover. In retail insurance policies waiting 
+                                   period of 2 Years or more may apply on the coverage. Generally pre hospitalization and post hospitalization 
+                                   expenses are not covered under the maternity benefit.",2,NULL,NULL
+141,"Maternity Waiting Period","Enter Maternity Waiting Period",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+142,"Normal delivery sum Insured","Enter Normal delivery sum Insured",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+143,"C Sec - sum insured","Enter C Sec - sum insured",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,"Caesarean section, also known as C - Section, or Caesarean delivery, is the use of surgery to delivery, 
+                                      is the use of surgery deliver babies. A caesarean section is often necessary when a vaginal delivery 
+                                      would put the baby or mother at risk.",2,NULL,NULL
+144,"Baby Vaccination",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit after child birth expenses incurred for vaccination which are prescribed as per 
+                                   medical board are covered. The charges will have to be validated as per the guideline provided by 
+                                   medical board.",2,NULL,NULL
+145,"Baby Vaccination Amount Payable","Enter Baby Vaccination Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,2,NULL,NULL
+146,"New born baby cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"When this cover is availed, the new born baby gets covered under the policy as an insured instantly 
+                                   after birth without payment of additional premium.",2,NULL,NULL
+147,"Health Checkup",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the expenses upto the limit prescribed and for listed tests will be borne from 
+                                   insurer. The common conditions for eligiability of health check-up are after one or more claim free 
+                                   renewals you will be entitled for reimbursement of limited expenses some peoples offered annual 
+                                   checkups, upto the defined limit you can go to the list or empaneled vendors and get yourself tested 
+                                   for free as per the list of tests provided.",3,NULL,NULL
+148,"Initial waiting Period","Enter Initial waiting Period",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+149,"Health Checkup Amount Payable","Enter Health Checkup Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,3,NULL,NULL
+150,"Emergency Ambulance",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+151,"Emergency Ambulance Amount Payable","Enter Emergency Ambulance Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,4,NULL,NULL
+152,"Domiciliary Hospitalization",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"A situation when a person needs to be hospitalized but could not be due to non-availability of acommodation 
+                                   in hospital or condition of patient didn't allow him to be shifted so he was treated at home. Some 
+                                   policies cover domicilliary hospitalization but subject to conditions like the domicilliary treatment 
+                                   should last for a particular period. Limits will be defined for the amount payable under domicilliary 
+                                   treatment.",1,NULL,NULL
+153,"Domiciliary Hospitalization Value","Enter Domiciliary Hospitalization",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,1,NULL,NULL
+154,Ayurveda/Homeopathy,,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred for alternative medical treatments (Ayurveda/Yoga/Unani/Sidha/Homepathy) are payable 
+                                   subject to admission in a registered hospital.",6,NULL,NULL
+155,"Ayurveda/Homeopathy Amount Payable","Enter Ayurveda/Homeopathy Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,6,NULL,NULL
+156,"Eye Cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Damage to the eye to an accident or cataract treatment usually covered. Genric optician and spectacle 
+                                   charges are not covered under mediclaim. Limits of cataract cover are defined under the policy costs 
+                                   incurred due to congential eye defects may not be covered.",7,NULL,NULL
+157,"Eye Cover Amount Payable","Enter Eye Cover Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,7,NULL,NULL
+158,"Dental Cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Costs incurred due to dental treatment arising due to an accident are covered under mediclaim insurance. 
+                                   Some plans may offer costs incurred due to root canal or other such surgeries. Tooth extraction or 
+                                   cosmatic Dental Treatment is not covered under mediclaim.",8,NULL,NULL
+159,"Dental Cover Amount Payable","Enter Dental Cover Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,8,NULL,NULL
+160,"Critical illness Benefit",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"This is a supplementary benefit where the patient after being diagnosed with a dreadful listed disease 
+                                   has to survive a limited period (Mostly 30 days). Thereafter he/she is paid a lumpsum amount of 
+                                   treatment as per his/her convenience. The list of diseases vary from company to company the most 
+                                   common are cancer, Stroke, Heart attack, Coronary bypass surgery, Multiple organ failure etc..",9,NULL,NULL
+161,"Critical illness Amount Payable","Enter Critical illness Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,9,NULL,NULL
+162,"Worldwide Emergency Cover",,4,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,"Under this benefit the insurance policy will cover expenses incurred overseas owing to a unforsean
+                                   health condition. Traditionally mediclaim insurance would not cover medical expenses if incurred 
+                                   outside indian borders, However now some insurers offer this feature as an addon benefit.",10,NULL,NULL
+163,"Worldwide Emergency Amount Payable","Enter Worldwide Emergency Amount Payable",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+164,"Amount Deductible","Enter Amount Deductible",1,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,10,NULL,NULL
+165,"Add Remarks",,5,4,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,18,NULL,NULL
+166,"Feature Identifier","Please Enter Template Name",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+167,"Definition of CTC","Enter Definition of CTC",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+168,"Age Limit","Enter Age Limit",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+169,"Normal Retirement Age","Enter Normal Retirement Age",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+170,"FCL (Free Cover Limit)","Enter FCL",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+171,"Riders Covered","Enter Riders Covered",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+172,"Critical Illness Rider","Enter Critical Illness Rider",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+173,"Terminal Illness Rider","Enter Terminal Illness Rider",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+174,"Accidental Death Rider","Enter Accidental Death Rider",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+175,"Actively at Work Clause","Enter Actively at Work Clause",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+176,"Suicide Exclusion Clause","Enter Suicide Exclusion Clause",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+177,"Worldwide cover","Enter Worldwide cover",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+178,"Add Remarks","Enter Add Remarks",1,5,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,0,NULL,,,NULL,NULL
+179,"Feature Identifier","Please Enter Template Name",1,6,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+180,"Feature Identifier","Please Enter Template Name",1,7,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+181,"Feature Identifier","Please Enter Template Name",1,8,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+182,"Feature Identifier","Please Enter Template Name",1,9,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+183,"Feature Identifier","Please Enter Template Name",1,10,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+184,"Feature Identifier","Please Enter Template Name",1,11,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+185,"Feature Identifier","Please Enter Template Name",1,12,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+186,"Feature Identifier","Please Enter Template Name",1,13,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+187,"Feature Identifier","Please Enter Template Name",1,14,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+188,"Feature Identifier","Please Enter Template Name",1,15,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL
+189,"Feature Identifier","Please Enter Template Name",1,16,0,"2026-01-14 11:46:42","2026-01-14 11:46:42",NULL,1,NULL,,,NULL,NULL

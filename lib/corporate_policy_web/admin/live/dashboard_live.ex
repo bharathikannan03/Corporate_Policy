@@ -139,8 +139,8 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
               <div class="stat-card-rows">
                 <div class="stat-row">
-                  <span class="stat-label text-blue-500">Active</span>
-                  <span class="stat-value">{@stats.user_stats.active_employees}</span>
+                  <span class="stat-label text-blue-500">Corporte Admins</span>
+                  <span class="stat-value">{@stats.active_users}</span>
                 </div>
 
                 <div class="stat-row">
@@ -271,6 +271,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
       },
       expired_policies: CorporatePolicy.Policies.count_policies_by_status(3),
       claims_reported: CorporatePolicy.Policies.count_total_claim_reports(),
+      active_users: CorporatePolicy.Accounts.count_active_users(),
       user_stats: user_stats
     }
   end

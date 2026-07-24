@@ -26,6 +26,18 @@ defmodule CorporatePolicy.Accounts do
     ) || 0
   end
 
+  @doc """
+  Counts all users with status = 1 (active) who have not been soft-deleted.
+  Used for the Users card on the admin dashboard.
+  """
+  def count_active_users do
+    Repo.aggregate(
+      from(u in User, where: u.status == 1 and is_nil(u.deleted_at)),
+      :count,
+      :id
+    ) || 0
+  end
+
   def get_user(id), do: Repo.get(User, id)
 
   def get_user_by_email(email) do

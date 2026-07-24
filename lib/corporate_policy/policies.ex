@@ -1264,6 +1264,266 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc """
+  Returns statistics for the Corporate Portal dashboard (claim analysis in amount/ratio/count, enrollment list counts).
+  """
+  def get_dashboard_claim_stats(nil) do
+    %{
+      claim_analysis_in_amount: %{
+        claims_paid: 0.0,
+        claims_underprocess: 0.0,
+        claims_closed: 0.0,
+        claims_rejected: 0.0,
+        reported_claims: 0.0
+      },
+      claim_analysis_in_ratio: %{
+        claims_paid_ratio: 0.0,
+        claims_underprocess_ratio: 0.0
+      },
+      claim_analysis_in_count: %{
+        claims_paid_count: 0,
+        claims_underprocess_count: 0,
+        claims_closed_count: 0,
+        claims_rejected_count: 0,
+        reported_claims_count: 0
+      },
+      enrollment_list: %{
+        active_list: 0,
+        inception_list: 0,
+        addition_list: 0,
+        deletion_list: 0
+      }
+    }
+  end
+
+  def get_dashboard_claim_stats(policy_id) do
+    # 1. claim_analysis_in_amount
+    claims_paid =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "paid"
+        ),
+        :sum,
+        :claim_paid_amount
+      ) || 0.0
+
+    claims_underprocess =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "under process"
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    claims_closed =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "closed"
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    claims_rejected =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "rejected"
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    reported_claims =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    # 2. claim_analysis_in_ratio
+    total_paid_amount =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :claim_paid_amount
+      ) || 0.0
+
+    total_amount_sanctioned =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    ratio_denominator = total_paid_amount + total_amount_sanctioned
+
+    claims_underprocess_ratio_numerator =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) in [
+                "under process",
+                "closed",
+                "rejected"
+              ]
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    claims_paid_ratio = calculate_ratio(claims_paid, ratio_denominator)
+
+    claims_underprocess_ratio =
+      calculate_ratio(claims_underprocess_ratio_numerator, ratio_denominator)
+
+    # 3. claim_analysis_in_count
+    claims_paid_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "paid"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_underprocess_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "under process"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_closed_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "closed"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_rejected_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "rejected"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    reported_claims_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :count,
+        :id
+      ) || 0
+
+    # 4. enrollment_list
+    inception_list =
+      Repo.aggregate(
+        from(m in MasterInceptionDataUpload,
+          where:
+            m.ref_policy_id == ^policy_id and is_nil(m.deleted_at) and
+              fragment("lower(trim(?))", m.relationship) == "employee"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    addition_list =
+      Repo.aggregate(
+        from(e in MasterEndorsementDataUpload,
+          where:
+            e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+              fragment("lower(trim(?))", e.endorsement_type) in [
+                "employee_addition",
+                "employee addition"
+              ]
+        ),
+        :count,
+        :id
+      ) || 0
+
+    deletion_list =
+      Repo.aggregate(
+        from(e in MasterEndorsementDataUpload,
+          where:
+            e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+              fragment("lower(trim(?))", e.endorsement_type) in [
+                "employee_deletion",
+                "employee deletion"
+              ]
+        ),
+        :count,
+        :id
+      ) || 0
+
+    active_list = inception_list + addition_list - deletion_list
+
+    %{
+      claim_analysis_in_amount: %{
+        claims_paid: claims_paid,
+        claims_underprocess: claims_underprocess,
+        claims_closed: claims_closed,
+        claims_rejected: claims_rejected,
+        reported_claims: reported_claims
+      },
+      claim_analysis_in_ratio: %{
+        claims_paid_ratio: claims_paid_ratio,
+        claims_underprocess_ratio: claims_underprocess_ratio
+      },
+      claim_analysis_in_count: %{
+        claims_paid_count: claims_paid_count,
+        claims_underprocess_count: claims_underprocess_count,
+        claims_closed_count: claims_closed_count,
+        claims_rejected_count: claims_rejected_count,
+        reported_claims_count: reported_claims_count
+      },
+      enrollment_list: %{
+        active_list: active_list,
+        inception_list: inception_list,
+        addition_list: addition_list,
+        deletion_list: deletion_list
+      }
+    }
+  end
+
+  defp calculate_ratio(_numerator, denominator) when denominator == 0 or denominator == 0.0 do
+    0.0
+  end
+
+  defp calculate_ratio(numerator, denominator) do
+    Float.round(numerator / denominator * 100.0, 2)
+  end
+
+  @doc """
   Returns paginated list view entries (page size 10) for a given list_type ("active", "inception", "addition", "deletion").
   """
   def list_policy_list_view_paginated(nil, _list_type, _params) do

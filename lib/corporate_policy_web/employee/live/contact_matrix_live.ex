@@ -46,16 +46,16 @@ defmodule CorporatePolicyWeb.Employee.ContactMatrixLive do
             <%= for contact <- @contacts do %>
               <article class="employee-contact-card">
                 <div class="employee-contact-level">{contact.level}</div>
-
+                
                 <h3>{contact.name}</h3>
-
+                
                 <p>{contact.type || "Policy Support"}</p>
-
+                
                 <ul>
                   <li>Phone: {contact.mobile_number || contact.phone_number || "-"}</li>
-
+                  
                   <li>Email: {contact.email_id || "-"}</li>
-
+                  
                   <li>Alt Email: {contact.alt_email_id || "-"}</li>
                 </ul>
               </article>

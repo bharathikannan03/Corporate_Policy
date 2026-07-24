@@ -139,8 +139,8 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
               <div class="stat-card-rows">
                 <div class="stat-row">
-                  <span class="stat-label text-blue-500">Corporate Users</span>
-                  <span class="stat-value">{@stats.user_stats.corporate_users}</span>
+                  <span class="stat-label text-blue-500">Active</span>
+                  <span class="stat-value">{@stats.user_stats.active_employees}</span>
                 </div>
 
                 <div class="stat-row">
@@ -185,8 +185,8 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
             <div class="stat-card-rows">
               <div class="stat-row">
-                <span class="stat-label text-blue-500">Total</span>
-                <span class="stat-value">{@stats.user_stats.corporate_users}</span>
+                <span class="stat-label text-blue-500">Active</span>
+                <span class="stat-value">{@stats.user_stats.active_employees}</span>
               </div>
             </div>
           </div>
@@ -247,8 +247,15 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
   # ─── Private helpers ──────────────────────────────────────────────────────────
 
   defp build_user_stats do
+    alias CorporatePolicy.Policies
+
+    active = Policies.count_live_employees_by_relationship_and_status("Employee", "active")
+    inactive = Policies.count_live_employees_by_relationship_and_status("Employee", "inactive")
+
     %{
-      corporate_users: CorporatePolicy.Accounts.count_corporate_users()
+      active_employees: active,
+      inactive_employees: inactive,
+      total_employees: active + inactive
     }
   end
 

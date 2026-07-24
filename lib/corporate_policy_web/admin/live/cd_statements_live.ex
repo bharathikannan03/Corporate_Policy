@@ -23,16 +23,16 @@ defmodule CorporatePolicyWeb.Admin.CdStatementsLive do
       <div class="p-6">
         <div class="max-w-4xl mx-auto bg-base-100 rounded-box shadow-xl p-8">
           <h1 class="text-2xl font-semibold mb-3">CD Statements</h1>
-          
+
           <p class="text-base-content/70 mb-6">
             Choose one of the CD Statements module options below.
           </p>
-          
+
           <div class="flex flex-col gap-4 md:flex-row">
             <.link navigate={~p"/admin/cd-statements/cd-statement"} class="btn btn-primary">
               CD Statement
             </.link>
-            
+
             <.link navigate={~p"/admin/cd-statements/cd-accounts"} class="btn btn-secondary">
               CD Accounts
             </.link>

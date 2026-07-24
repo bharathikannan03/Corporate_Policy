@@ -53,7 +53,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
           </div>
         </.link>
         <%!-- Policies --%>
-        <div class="stat-card" id="stat-policies">
+        <.link navigate={~p"/admin/policy-details"} class="stat-card" id="stat-policies">
           <div class="stat-card-icon stat-card-icon--indigo">
             <.icon name="hero-document-text" class="w-6 h-6" />
           </div>
@@ -73,9 +73,9 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
               </div>
             </div>
           </div>
-        </div>
+        </.link>
         <%!-- Expired Policies --%>
-        <div class="stat-card" id="stat-expired-policies">
+        <.link navigate={~p"/admin/policy-details"} class="stat-card" id="stat-expired-policies">
           <div class="stat-card-icon stat-card-icon--cyan">
             <.icon name="hero-clock" class="w-6 h-6" />
           </div>
@@ -90,7 +90,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
               </div>
             </div>
           </div>
-        </div>
+        </.link>
         <%!-- Claims --%>
         <div class="stat-card" id="stat-claims">
           <div class="stat-card-icon stat-card-icon--purple">

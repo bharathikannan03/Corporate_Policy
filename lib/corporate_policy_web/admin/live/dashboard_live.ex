@@ -92,7 +92,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
           </div>
         </.link>
         <%!-- Claims --%>
-        <div class="stat-card" id="stat-claims">
+        <.link navigate={~p"/admin/total-claim-reported"} class="stat-card" id="stat-claims">
           <div class="stat-card-icon stat-card-icon--purple">
             <.icon name="hero-clipboard-document-check" class="w-6 h-6" />
           </div>
@@ -107,7 +107,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
               </div>
             </div>
           </div>
-        </div>
+        </.link>
       </div>
       <%!-- Middle section: Chart + Users & Claims Corner --%>
       <div class="dashboard-middle">

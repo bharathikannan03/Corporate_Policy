@@ -129,6 +129,100 @@ defmodule CorporatePolicy.Policies do
     ) || 0
   end
 
+  def list_total_claim_reports(params \\ %{}) do
+    page = params |> Map.get("page", 1) |> normalize_page()
+    search = StringUtils.normalize(Map.get(params, "search", ""))
+    status = StringUtils.normalize(Map.get(params, "status", ""))
+    sort_by = Map.get(params, "sort_by", "id")
+    sort_dir = if Map.get(params, "sort_dir", "desc") == "asc", do: :asc, else: :desc
+
+    base_query =
+      from r in MasterTotalClaimReport,
+        where: is_nil(r.deleted_at),
+        preload: [:policy]
+
+    base_query =
+      if search != "" do
+        like = "%#{search}%"
+
+        where(
+          base_query,
+          [r],
+          ilike(r.employee_code, ^like) or
+            ilike(r.employee_name, ^like) or
+            ilike(r.patient_name, ^like) or
+            ilike(r.tpa_claim_no, ^like) or
+            ilike(r.hospital_name, ^like) or
+            ilike(r.insurance_claim_no, ^like)
+        )
+      else
+        base_query
+      end
+
+    base_query =
+      if status != "" do
+        where(
+          base_query,
+          [r],
+          fragment("lower(trim(?))", r.claim_status) == ^StringUtils.downcase(status)
+        )
+      else
+        base_query
+      end
+
+    sort_field =
+      case sort_by do
+        "employee_code" -> :employee_code
+        "employee_name" -> :employee_name
+        "patient_name" -> :patient_name
+        "tpa_claim_no" -> :tpa_claim_no
+        "claim_status" -> :claim_status
+        "amount_claimed" -> :amount_claimed
+        "amount_sanctioned" -> :amount_sanctioned
+        "date_of_hospitalization" -> :date_of_hospitalization
+        "date_of_discharge" -> :date_of_discharge
+        _ -> :id
+      end
+
+    total_entries = Repo.aggregate(base_query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      base_query
+      |> order_by(^[{sort_dir, sort_field}])
+      |> offset(^((page - 1) * @page_size))
+      |> limit(^@page_size)
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: @page_size,
+      total_entries: total_entries,
+      total_pages: total_pages,
+      search: search,
+      status: status,
+      sort_by: sort_by,
+      sort_dir: if(sort_dir == :asc, do: "asc", else: "desc")
+    }
+  end
+
+  def list_total_claim_reports_for_export do
+    from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at), order_by: [desc: r.id])
+    |> Repo.all()
+  end
+
+  def total_claim_report_statuses do
+    from(r in MasterTotalClaimReport,
+      where: is_nil(r.deleted_at) and not is_nil(r.claim_status) and r.claim_status != "",
+      select: r.claim_status,
+      distinct: true,
+      order_by: r.claim_status
+    )
+    |> Repo.all()
+  end
+
   @doc """
   Counts employees in trn_mapping_live_employees filtered by relationship and status.
   Useful for dashboard stats showing, e.g., active Employee-relationship members.

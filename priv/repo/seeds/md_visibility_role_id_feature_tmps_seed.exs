@@ -7,14 +7,10 @@ alias CorporatePolicy.Repo
 alias CorporatePolicy.Corporates.MdVisibilityRoleFeature
 
 roles = [
-  %{role_id: 1, role: "SuperAdmin", is_visible: 0, status: 0},
-  %{role_id: 2, role: "All",        is_visible: 1, status: 0},
-  %{role_id: 3, role: "Admin",      is_visible: 3, status: 0},
-  %{role_id: 4, role: "HR",         is_visible: 2, status: 0},
-  %{role_id: 5, role: "Finance",    is_visible: 2, status: 0},
-  %{role_id: 6, role: "Employee",   is_visible: 4, status: 0},
-  %{role_id: 7, role: "None",       is_visible: 1, status: 0},
-  %{role_id: 9, role: "Broker",     is_visible: 3, status: 0}
+  %{role_id: 1, role: "All", is_visible: 1},
+  %{role_id: 2, role: "superadmin", is_visible: 1},
+  %{role_id: 3, role: "broker", is_visible: 1},
+  %{role_id: 4, role: "none", is_visible: 1}
 ]
 
 now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -34,26 +30,35 @@ inserted_count =
           Repo,
           """
           INSERT INTO md_visibility_role_id_feature_tmps
-            (role_id, role, is_visible, status, inserted_at, updated_at)
-          OVERRIDING SYSTEM VALUE
-          VALUES ($1, $2, $3, $4, $5, $6)
+            (ref_feature_template_field_id, role_id, role, is_visible, inserted_at, updated_at)
+          VALUES (1, $1, $2, $3, $4, $5)
           """,
-          [attrs.role_id, attrs.role, attrs.is_visible, attrs.status, now, now]
+          [attrs.role_id, attrs.role, attrs.is_visible, now, now]
         )
 
-        IO.puts("  ✓ Inserted  role_id=#{attrs.role_id}  role=#{attrs.role}  is_visible=#{attrs.is_visible}")
+        IO.puts("  ✓ Inserted  role_id=#{attrs.role_id}  role=#{attrs.role}")
         acc + 1
 
       _existing ->
-        IO.puts("  → Skipped   role_id=#{attrs.role_id}  role=#{attrs.role} (already exists)")
-        acc
+        Ecto.Adapters.SQL.query!(
+          Repo,
+          """
+          UPDATE md_visibility_role_id_feature_tmps
+          SET role = $1, is_visible = $2, updated_at = $3
+          WHERE role_id = $4
+          """,
+          [attrs.role, attrs.is_visible, now, attrs.role_id]
+        )
+
+        IO.puts("  ✓ Updated   role_id=#{attrs.role_id}  role=#{attrs.role}")
+        acc + 1
     end
   end)
 
 # Advance the sequence past the highest role_id to avoid future conflicts
 Ecto.Adapters.SQL.query!(
   Repo,
-  "SELECT setval(pg_get_serial_sequence('md_visibility_role_id_feature_tmps', 'role_id'), (SELECT MAX(role_id) FROM md_visibility_role_id_feature_tmps))",
+  "SELECT setval(pg_get_serial_sequence('md_visibility_role_id_feature_tmps', 'id'), (SELECT MAX(id) FROM md_visibility_role_id_feature_tmps))",
   []
 )
 

@@ -17,6 +17,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       @impl true
       def mount(params, session, socket) do
         current_user = resolve_current_user(session, socket, @portal)
+        current_user = maybe_scope_employee_to_policy(current_user, params)
+        accessible_corporates = Claims.list_accessible_corporates(current_user, @portal)
+        accessible_policies = Claims.list_accessible_policies(current_user, @portal)
+        employee_policy_options = employee_policy_options(current_user, @portal)
 
         claim =
           case socket.assigns.live_action do
@@ -25,7 +29,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           end
 
         form_params =
-          if claim, do: claim_to_params(claim), else: default_claim_params(current_user)
+          if claim,
+            do: claim_to_params(claim),
+            else: default_claim_params(current_user, accessible_policies)
 
         document_form = to_form(%{"document_name" => ""}, as: :document)
 
@@ -33,6 +39,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           socket
           |> assign(:portal, @portal)
           |> assign(:current_user, current_user)
+          |> assign(:employee_policy_options, employee_policy_options)
+          |> assign(:accessible_corporates, accessible_corporates)
+          |> assign(:accessible_policies, accessible_policies)
           |> assign(
             :employee_policy,
             if(@portal == :employee && current_user,
@@ -42,7 +51,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           )
           |> assign(
             :page_title,
-            if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
+            if(@portal == :admin,
+              do: if(claim, do: "Edit Claim", else: "Add Claim"),
+              else: if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
+            )
           )
           |> assign(:active_path, portal_path(@portal, "/claims-submission/add"))
           |> assign(:claim, claim)
@@ -79,7 +91,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           merge_and_derive(
             socket.assigns.form_params,
             claim_params,
-            socket.assigns[:last_pincode]
+            socket.assigns[:last_pincode],
+            socket.assigns.current_user,
+            socket.assigns.accessible_policies
           )
 
         socket =
@@ -97,7 +111,9 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           merge_and_derive(
             socket.assigns.form_params,
             claim_params,
-            socket.assigns[:last_pincode]
+            socket.assigns[:last_pincode],
+            socket.assigns.current_user,
+            socket.assigns.accessible_policies
           )
 
         case save_claim(socket.assigns.claim, attrs, socket.assigns.current_user) do
@@ -259,6 +275,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                 current_user={@current_user}
                 page_title={@page_title}
                 active_path={@active_path}
+                show_navigation={false}
               >
                 <.claim_form
                   portal={@portal}
@@ -268,6 +285,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                   policies={@policies}
                   employees={@employees}
                   patient_options={@patient_options}
+                  selected_policy={@selected_policy}
                   document_form={@document_form}
                   documents_page={@documents_page}
                   uploads={@uploads}
@@ -285,6 +303,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
               <.shell
                 current_user={@current_user}
                 policy={@employee_policy}
+                policy_options={@employee_policy_options}
                 active_path={@active_path}
                 page_title={@page_title}
               >
@@ -293,6 +312,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                   current_user={@current_user}
                   page_title={@page_title}
                   active_path={@active_path}
+                  selected_policy_id={@employee_policy && @employee_policy.id}
                 >
                   <.claim_form
                     portal={@portal}
@@ -302,6 +322,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                     policies={@policies}
                     employees={@employees}
                     patient_options={@patient_options}
+                    selected_policy={@selected_policy}
                     document_form={@document_form}
                     documents_page={@documents_page}
                     uploads={@uploads}
@@ -332,6 +353,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                     policies={@policies}
                     employees={@employees}
                     patient_options={@patient_options}
+                    selected_policy={@selected_policy}
                     document_form={@document_form}
                     documents_page={@documents_page}
                     uploads={@uploads}
@@ -358,20 +380,49 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       defp load_reference_data(socket) do
         user = socket.assigns.current_user
         claim_params = socket.assigns.form_params
-        corporates = Claims.list_accessible_corporates(user, @portal)
-        policies = Claims.list_accessible_policies(user, @portal)
-        selected_corporate_id = parse_int(claim_params["ref_corporate_id"])
-        selected_policy_id = parse_int(claim_params["ref_policy_id"])
+
+        corporates =
+          socket.assigns[:accessible_corporates] ||
+            Claims.list_accessible_corporates(user, @portal)
+
+        accessible_policies =
+          socket.assigns[:accessible_policies] || Claims.list_accessible_policies(user, @portal)
+
+        selected_policy =
+          resolve_selected_policy(
+            accessible_policies,
+            claim_params,
+            user
+          )
+
+        selected_corporate_id =
+          if selected_policy,
+            do: selected_policy.ref_corporate_id,
+            else: parse_int(claim_params["ref_corporate_id"])
+
+        selected_policy_id =
+          if selected_policy,
+            do: selected_policy.id,
+            else: parse_int(claim_params["ref_policy_id"])
 
         policies =
-          if selected_corporate_id,
-            do: Enum.filter(policies, &(&1.ref_corporate_id == selected_corporate_id)),
-            else: policies
+          if @portal == :employee do
+            accessible_policies
+          else
+            if selected_corporate_id,
+              do:
+                Enum.filter(accessible_policies, &(&1.ref_corporate_id == selected_corporate_id)),
+              else: accessible_policies
+          end
 
         employees =
-          if selected_policy_id,
-            do: Claims.list_accessible_employee_codes(user, @portal, selected_policy_id),
-            else: []
+          if @portal == :employee do
+            []
+          else
+            if selected_policy_id,
+              do: Claims.list_accessible_employee_codes(user, @portal, selected_policy_id),
+              else: []
+          end
 
         selected_employee_code = claim_params["employee_code"]
 
@@ -383,6 +434,14 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         socket
         |> assign(:corporates, corporates)
         |> assign(:policies, policies)
+        |> assign(:selected_policy, selected_policy)
+        |> assign(
+          :employee_policy,
+          if(@portal == :employee,
+            do: selected_policy || socket.assigns[:employee_policy],
+            else: nil
+          )
+        )
         |> assign(:employees, employees)
         |> assign(:patient_options, patient_options)
       end
@@ -411,6 +470,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         |> Map.take([
           :ref_corporate_id,
           :ref_policy_id,
+          :policy_type,
           :employee_code,
           :patient_name,
           :estimated_amount,
@@ -439,14 +499,16 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         end)
       end
 
-      defp default_claim_params(current_user) do
+      defp default_claim_params(current_user, accessible_policies) do
         base = %{"claim_status" => "Draft"}
 
         cond do
           @portal == :employee and current_user ->
+            selected_policy = select_default_policy(accessible_policies, current_user)
+
             base
-            |> Map.put("ref_corporate_id", current_user.ref_corporate_id)
-            |> Map.put("ref_policy_id", current_user.ref_policy_id)
+            |> Map.put("ref_corporate_id", selected_policy && selected_policy.ref_corporate_id)
+            |> Map.put("ref_policy_id", selected_policy && selected_policy.id)
             |> Map.put("employee_code", current_user.employee_code)
 
           (@portal in [:corporate, :employee] and current_user) && current_user.ref_corporate_id ->
@@ -457,11 +519,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         end
       end
 
-      defp merge_and_derive(existing, incoming, last_pincode) do
+      defp merge_and_derive(existing, incoming, last_pincode, current_user, accessible_policies) do
         merged =
           existing
           |> Map.merge(incoming)
+          |> maybe_apply_employee_policy_selection(current_user, accessible_policies)
           |> reset_dependent_fields(existing)
+          |> maybe_apply_employee_policy_selection(current_user, accessible_policies)
 
         selected_policy_id = parse_int(merged["ref_policy_id"])
         employee_code = StringUtils.normalize(merged["employee_code"])
@@ -488,6 +552,14 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
       end
 
       defp reset_dependent_fields(merged, existing) do
+        if @portal == :employee do
+          reset_employee_dependent_fields(merged, existing)
+        else
+          reset_standard_dependent_fields(merged, existing)
+        end
+      end
+
+      defp reset_standard_dependent_fields(merged, existing) do
         corporate_changed? =
           StringUtils.normalize(Map.get(existing, "ref_corporate_id", "")) !=
             StringUtils.normalize(Map.get(merged, "ref_corporate_id", ""))
@@ -522,6 +594,21 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           end
 
         if employee_changed? do
+          merged
+          |> Map.put("patient_name", "")
+          |> Map.put("employee_name", nil)
+          |> Map.put("relationship", nil)
+        else
+          merged
+        end
+      end
+
+      defp reset_employee_dependent_fields(merged, existing) do
+        policy_changed? =
+          StringUtils.normalize(Map.get(existing, "ref_policy_id", "")) !=
+            StringUtils.normalize(Map.get(merged, "ref_policy_id", ""))
+
+        if policy_changed? do
           merged
           |> Map.put("patient_name", "")
           |> Map.put("employee_name", nil)
@@ -585,6 +672,33 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           merged
         end
       end
+
+      defp maybe_apply_employee_policy_selection(
+             params,
+             %{employee_code: employee_code} = current_user,
+             accessible_policies
+           )
+           when @portal == :employee do
+        selected_policy =
+          find_policy_by_id(accessible_policies, current_user.ref_policy_id) ||
+            List.first(accessible_policies) ||
+            (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
+
+        if selected_policy do
+          params
+          |> Map.put("ref_policy_id", selected_policy.id)
+          |> Map.put("ref_corporate_id", selected_policy.ref_corporate_id)
+          |> Map.put("employee_code", employee_code)
+        else
+          params
+          |> Map.put("ref_policy_id", "")
+          |> Map.put("ref_corporate_id", "")
+          |> Map.put("employee_code", employee_code)
+        end
+      end
+
+      defp maybe_apply_employee_policy_selection(params, _current_user, _accessible_policies),
+        do: params
 
       defp maybe_apply_location(params, "", _last_pincode) do
         params
@@ -656,6 +770,30 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         |> Enum.join(", ")
       end
 
+      defp resolve_selected_policy(policies, claim_params, current_user) do
+        cond do
+          @portal == :employee && current_user ->
+            find_policy_by_id(policies, current_user.ref_policy_id) ||
+              find_policy_by_id(policies, parse_int(claim_params["ref_policy_id"])) ||
+              (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
+
+          true ->
+            find_policy_by_id(policies, parse_int(claim_params["ref_policy_id"]))
+        end
+      end
+
+      defp select_default_policy(policies, current_user) do
+        find_policy_by_id(policies, current_user.ref_policy_id) ||
+          List.first(policies) ||
+          (current_user.ref_policy_id && Claims.get_policy(current_user.ref_policy_id))
+      end
+
+      defp find_policy_by_id(policies, policy_id) when is_integer(policy_id) do
+        Enum.find(policies, &(&1.id == policy_id))
+      end
+
+      defp find_policy_by_id(_policies, _policy_id), do: nil
+
       defp resolve_current_user(session, socket, portal) do
         if portal == :employee do
           cond do
@@ -677,6 +815,31 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
             nil -> socket.assigns[:current_user]
             id -> CorporatePolicy.Accounts.get_user(id)
           end
+        end
+      end
+
+      defp maybe_scope_employee_to_policy(current_user, params) do
+        if @portal == :employee && current_user do
+          policy_options = CorporatePolicy.EmployeePortal.list_policies_for_employee(current_user)
+
+          policy =
+            CorporatePolicy.EmployeePortal.select_policy_for_employee(
+              current_user,
+              params["policy_id"],
+              policy_options
+            )
+
+          CorporatePolicy.EmployeePortal.scoped_employee_for_policy(current_user, policy)
+        else
+          current_user
+        end
+      end
+
+      defp employee_policy_options(current_user, portal) do
+        if portal == :employee && current_user do
+          CorporatePolicy.EmployeePortal.list_policies_for_employee(current_user)
+        else
+          []
         end
       end
     end

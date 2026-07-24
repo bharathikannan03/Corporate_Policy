@@ -398,13 +398,13 @@ defmodule CorporatePolicyWeb.Admin.PolicyLive do
               </div>
               
               <div class="flex justify-end gap-4 mt-6 pt-4 border-t">
-                <button type="button" phx-click="close-modal" class="btn btn-primary btn-soft">
+                <button type="button" phx-click="close-modal" class="btn btn-secondary">
                   Cancel
                 </button>
                 
-                <.button variant="primary">
+                <button type="submit" class="btn btn-success">
                   {if(@modal_action == :new, do: "Create Policy", else: "Update Policy")}
-                </.button>
+                </button>
               </div>
             </.form>
           </div>

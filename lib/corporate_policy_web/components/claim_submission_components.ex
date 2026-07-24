@@ -9,6 +9,8 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :current_user, :map, default: nil
   attr :page_title, :string, required: true
   attr :active_path, :string, default: ""
+  attr :selected_policy_id, :integer, default: nil
+  attr :show_navigation, :boolean, default: true
   slot :inner_block, required: true
 
   def portal_shell(assigns) do
@@ -18,13 +20,15 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         <div>
           <h1 class="corp-list-title">{@page_title}</h1>
           
-          <p class="corp-list-subtitle">
-            Manage claim submissions for the {portal_label(@portal)}.
-          </p>
+          <%= if @portal != :employee do %>
+            <p class="corp-list-subtitle">
+              Manage claim submissions for the {portal_label(@portal)}.
+            </p>
+          <% end %>
         </div>
         
         <div class="header-actions gap-3 flex items-center">
-          <%= if @portal != :admin do %>
+          <%= if @portal == :corporate do %>
             <div class="text-sm text-gray-500">
               Logged in as
               <span class="font-semibold text-gray-700">
@@ -37,23 +41,25 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         </div>
       </div>
       
-      <div class="mb-6 border-b border-gray-200">
-        <div class="flex gap-3 flex-wrap">
-          <.link
-            navigate={portal_path(@portal, "/claims-submission")}
-            class={tab_class(@active_path == portal_path(@portal, "/claims-submission"))}
-          >
-            All Submissions
-          </.link>
-          
-          <.link
-            navigate={portal_path(@portal, "/claims-submission/add")}
-            class={tab_class(@active_path == portal_path(@portal, "/claims-submission/add"))}
-          >
-            Add Claim
-          </.link>
+      <%= if @show_navigation do %>
+        <div class="mb-6 border-b border-gray-200">
+          <div class="flex gap-3 flex-wrap">
+            <.link
+              navigate={policy_aware_path(@portal, "/claims-submission", @selected_policy_id)}
+              class={tab_class(@active_path == portal_path(@portal, "/claims-submission"))}
+            >
+              All Claims
+            </.link>
+            
+            <.link
+              navigate={policy_aware_path(@portal, "/claims-submission/add", @selected_policy_id)}
+              class={tab_class(@active_path == portal_path(@portal, "/claims-submission/add"))}
+            >
+              Add Claim
+            </.link>
+          </div>
         </div>
-      </div>
+      <% end %>
        {render_slot(@inner_block)}
     </div>
     """
@@ -62,6 +68,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :claims_page, :map, required: true
   attr :portal, :atom, required: true
   attr :status_options, :list, default: []
+  attr :selected_policy_id, :integer, default: nil
 
   def submissions_index(assigns) do
     ~H"""
@@ -100,14 +107,18 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         
         <div class="header-actions flex gap-2">
           <.link
-            navigate={portal_path(@portal, "/claims-submission/add")}
-            class="btn-primary"
+            navigate={
+              policy_aware_path(@portal, "/claims-submission/add", assigns[:selected_policy_id])
+            }
+            class="btn btn-success employee-primary-action"
           >
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add New
           </.link>
           
           <.link
-            href={portal_path(@portal, "/claims-submission/export")}
+            href={
+              policy_aware_path(@portal, "/claims-submission/export", assigns[:selected_policy_id])
+            }
             class="btn-secondary"
           >
             <.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-1" /> Export
@@ -213,6 +224,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :policies, :list, default: []
   attr :employees, :list, default: []
   attr :patient_options, :list, default: []
+  attr :selected_policy, :map, default: nil
   attr :document_form, :map, required: true
   attr :documents_page, :map, required: true
   attr :uploads, :map, required: true
@@ -281,77 +293,128 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             </div>
           <% end %>
           
-          <div class="corp-field-group">
-            <label class="corp-label">Corporate Name <span class="corp-required">*</span></label>
-            <select
+          <%= if @portal == :employee do %>
+            <input
+              type="hidden"
               name="claim[ref_corporate_id]"
-              class="corp-input"
-              required
-              disabled={readonly_field?(@claim, :ref_corporate_id)}
-            >
-              <option value="">Select Corporate Name</option>
-              
-              <%= for corporate <- @corporates do %>
-                <option
-                  value={corporate.corporate_id}
-                  selected={
-                    to_string(@form[:ref_corporate_id].value || "") ==
-                      to_string(corporate.corporate_id)
-                  }
-                >
-                  {corporate.corporate_name}
-                </option>
-              <% end %>
-            </select>
-          </div>
-          
-          <div class="corp-field-group">
-            <label class="corp-label">Policy Number <span class="corp-required">*</span></label>
-            <select
+              value={@form[:ref_corporate_id].value || ""}
+            />
+            <input
+              type="hidden"
               name="claim[ref_policy_id]"
-              class="corp-input"
-              required
-              disabled={
-                readonly_field?(@claim, :ref_policy_id) or @form[:ref_corporate_id].value in [nil, ""]
-              }
-            >
-              <option value="">Select Policy Number</option>
-              
-              <%= for policy <- @policies do %>
-                <option
-                  value={policy.id}
-                  selected={to_string(@form[:ref_policy_id].value || "") == to_string(policy.id)}
-                >
-                  {Claims.policy_option_label(policy)}
-                </option>
-              <% end %>
-            </select>
-          </div>
-          
-          <div class="corp-field-group">
-            <label class="corp-label">Employee Code <span class="corp-required">*</span></label>
-            <select
+              value={@form[:ref_policy_id].value || ""}
+            />
+            <input
+              type="hidden"
               name="claim[employee_code]"
-              class="corp-input"
-              required
-              disabled={
-                readonly_field?(@claim, :employee_code) or @form[:ref_policy_id].value in [nil, ""]
-              }
-            >
-              <option value="">Select Employee Code</option>
-              
-              <%= for employee <- @employees do %>
-                <option
-                  value={employee.employee_code}
-                  selected={
-                    StringUtils.equal?(@form[:employee_code].value || "", employee.employee_code)
-                  }
-                >
-                  {employee.employee_code}
-                </option>
-              <% end %>
-            </select>
-          </div>
+              value={@form[:employee_code].value || ""}
+            />
+            <div class="corp-field-group">
+              <label class="corp-label">Corporate Name <span class="corp-required">*</span></label>
+              <input
+                type="text"
+                class="corp-input"
+                value={(@selected_policy && @selected_policy.corporate_name) || ""}
+                placeholder="Auto populated from your employee policy"
+                readonly
+              />
+            </div>
+            
+            <div class="corp-field-group">
+              <label class="corp-label">Policy Number <span class="corp-required">*</span></label>
+              <input
+                type="text"
+                class="corp-input"
+                value={(@selected_policy && @selected_policy.policy_number) || ""}
+                placeholder="Auto populated from selected policy type"
+                readonly
+              />
+            </div>
+            
+            <div class="corp-field-group">
+              <label class="corp-label">Employee Code <span class="corp-required">*</span></label>
+              <input
+                type="text"
+                class="corp-input"
+                value={@form[:employee_code].value || ""}
+                placeholder="Auto populated from your login"
+                readonly
+              />
+            </div>
+          <% else %>
+            <div class="corp-field-group">
+              <label class="corp-label">Corporate Name <span class="corp-required">*</span></label>
+              <select
+                name="claim[ref_corporate_id]"
+                class="corp-input"
+                required
+                disabled={readonly_field?(@claim, :ref_corporate_id)}
+              >
+                <option value="">Select Corporate Name</option>
+                
+                <%= for corporate <- @corporates do %>
+                  <option
+                    value={corporate.corporate_id}
+                    selected={
+                      to_string(@form[:ref_corporate_id].value || "") ==
+                        to_string(corporate.corporate_id)
+                    }
+                  >
+                    {corporate.corporate_name}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+            
+            <div class="corp-field-group">
+              <label class="corp-label">Policy Number <span class="corp-required">*</span></label>
+              <select
+                name="claim[ref_policy_id]"
+                class="corp-input"
+                required
+                disabled={
+                  readonly_field?(@claim, :ref_policy_id) or
+                    @form[:ref_corporate_id].value in [nil, ""]
+                }
+              >
+                <option value="">Select Policy Number</option>
+                
+                <%= for policy <- @policies do %>
+                  <option
+                    value={policy.id}
+                    selected={to_string(@form[:ref_policy_id].value || "") == to_string(policy.id)}
+                  >
+                    {Claims.policy_option_label(policy)}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+            
+            <div class="corp-field-group">
+              <label class="corp-label">Employee Code <span class="corp-required">*</span></label>
+              <select
+                name="claim[employee_code]"
+                class="corp-input"
+                required
+                disabled={
+                  readonly_field?(@claim, :employee_code) or @form[:ref_policy_id].value in [nil, ""]
+                }
+              >
+                <option value="">Select Employee Code</option>
+                
+                <%= for employee <- @employees do %>
+                  <option
+                    value={employee.employee_code}
+                    selected={
+                      StringUtils.equal?(@form[:employee_code].value || "", employee.employee_code)
+                    }
+                  >
+                    {employee.employee_code}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+          <% end %>
           
           <div class="corp-field-group">
             <label class="corp-label">Patient Name <span class="corp-required">*</span></label>
@@ -360,10 +423,16 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               class="corp-input"
               required
               disabled={
-                readonly_field?(@claim, :patient_name) or @form[:employee_code].value in [nil, ""]
+                readonly_field?(@claim, :patient_name) or
+                  (@portal == :employee and is_nil(@selected_policy)) or
+                  @form[:employee_code].value in [nil, ""]
               }
             >
-              <option value="">Select Patient Name</option>
+              <option value="">
+                {if @portal == :employee,
+                  do: "Select covered member",
+                  else: "Select Patient Name"}
+              </option>
               
               <%= for patient <- @patient_options do %>
                 <option
@@ -564,11 +633,20 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
           </div>
           
           <div class="corp-field-group corp-field-group--full corp-form-actions">
-            <.link navigate={portal_path(@portal, "/claims-submission")} class="btn btn-secondary">
+            <.link
+              navigate={
+                policy_aware_path(
+                  @portal,
+                  "/claims-submission",
+                  @selected_policy && @selected_policy.id
+                )
+              }
+              class="btn btn-secondary"
+            >
               Cancel
             </.link>
             
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-success employee-primary-action">
               <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @claim,
                 do: "Save Claim",
                 else: "Save & Next"}
@@ -587,7 +665,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             </div>
             
             <div class="flex gap-2">
-              <button type="button" phx-click="open_upload_modal" class="btn-primary">
+              <button
+                type="button"
+                phx-click="open_upload_modal"
+                class="btn btn-success employee-primary-action"
+              >
                 <.icon name="hero-arrow-up-tray" class="w-4 h-4 mr-1" /> Upload Document
               </button>
             </div>
@@ -669,9 +751,13 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
             />
           </div>
           
-          <div class="flex items-center justify-between">
+          <div class="flex justify-end gap-4 mt-6">
             <button type="button" phx-click="back_to_details" class="btn btn-secondary">Previous</button>
-            <button type="button" phx-click="submit_claim" class="btn btn-success">
+            <button
+              type="button"
+              phx-click="submit_claim"
+              class="btn btn-success employee-primary-action"
+            >
               Complete
             </button>
           </div>
@@ -757,7 +843,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
                   <button type="button" phx-click="close_upload_modal" class="btn btn-secondary">Cancel</button>
                   <button
                     type="submit"
-                    class="btn btn-success"
+                    class="btn btn-success employee-primary-action"
                     disabled={Enum.empty?(@uploads.claim_document.entries)}
                   >
                     Upload
@@ -799,6 +885,11 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   def portal_path(:admin, suffix), do: "/admin#{suffix}"
   def portal_path(:corporate, suffix), do: "/corporate#{suffix}"
   def portal_path(:employee, suffix), do: "/employee#{suffix}"
+
+  def policy_aware_path(:employee, suffix, policy_id) when is_integer(policy_id),
+    do: "#{portal_path(:employee, suffix)}?policy_id=#{policy_id}"
+
+  def policy_aware_path(portal, suffix, _policy_id), do: portal_path(portal, suffix)
 
   def portal_label(:admin), do: "Admin Portal"
   def portal_label(:corporate), do: "Corporate Portal"

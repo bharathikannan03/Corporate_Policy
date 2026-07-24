@@ -35,13 +35,11 @@ defmodule CorporatePolicyWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <main>
-      <%= if assigns[:inner_content] do %>
-        {@inner_content}
-      <% else %>
-        {render_slot(@inner_block)}
-      <% end %>
-    </main>
+    <%= if assigns[:inner_content] do %>
+      {@inner_content}
+    <% else %>
+      {render_slot(@inner_block)}
+    <% end %>
      <.flash_group flash={@flash} />
     """
   end

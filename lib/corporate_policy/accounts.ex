@@ -9,6 +9,35 @@ defmodule CorporatePolicy.Accounts do
     Repo.all(User)
   end
 
+  @excluded_department_ids [0, 1, 3, 4, 7, 9]
+
+  @doc """
+  Counts users whose department_id is NOT IN the excluded system/internal
+  department IDs (0, 1, 3, 4, 7, 9). Used for the Corporate Users stat on
+  the admin dashboard.
+  """
+  def count_corporate_users do
+    Repo.aggregate(
+      from(u in User,
+        where: u.department_id not in ^@excluded_department_ids and is_nil(u.deleted_at)
+      ),
+      :count,
+      :id
+    ) || 0
+  end
+
+  @doc """
+  Counts all users with status = 1 (active) who have not been soft-deleted.
+  Used for the Users card on the admin dashboard.
+  """
+  def count_active_users do
+    Repo.aggregate(
+      from(u in User, where: u.status == 1 and is_nil(u.deleted_at)),
+      :count,
+      :id
+    ) || 0
+  end
+
   def get_user(id), do: Repo.get(User, id)
 
   def get_user_by_email(email) do

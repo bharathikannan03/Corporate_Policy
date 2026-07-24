@@ -105,6 +105,84 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  def count_policies_by_status(status) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status == ^status),
+      :count,
+      :id
+    )
+  end
+
+  def count_policies_by_statuses(statuses) when is_list(statuses) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status in ^statuses),
+      :count,
+      :id
+    )
+  end
+
+  def count_total_claim_reports do
+    Repo.aggregate(
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at)),
+      :count,
+      :id
+    ) || 0
+  end
+
+  @doc """
+  Counts employees in trn_mapping_live_employees filtered by relationship and status.
+  Useful for dashboard stats showing, e.g., active Employee-relationship members.
+  """
+  def count_live_employees_by_relationship_and_status(relationship, status) do
+    Repo.aggregate(
+      from(e in TrnMappingLiveEmployee,
+        where: e.relationship == ^relationship and e.status == ^status and is_nil(e.deleted_at)
+      ),
+      :count,
+      :id
+    ) || 0
+  end
+
+  def get_global_claims_corner_summary do
+    claims =
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at))
+      |> Repo.all()
+
+    Enum.reduce(
+      claims,
+      %{
+        closed_amount: 0.0,
+        paid_amount: 0.0,
+        rejected_amount: 0.0,
+        process_amount: 0.0
+      },
+      fn claim, acc ->
+        status = (claim.claim_status || "") |> String.trim() |> String.downcase()
+        claimed = claim.amount_claimed || 0.0
+        paid = claim.claim_paid_amount || claim.amount_sanctioned || claimed
+
+        cond do
+          status == "closed" or String.contains?(status, "close") ->
+            %{acc | closed_amount: acc.closed_amount + claimed}
+
+          status in ["paid", "settled", "claim paid"] or String.contains?(status, "paid") or
+              String.contains?(status, "settle") ->
+            %{acc | paid_amount: acc.paid_amount + paid}
+
+          status == "rejected" or String.contains?(status, "reject") ->
+            %{acc | rejected_amount: acc.rejected_amount + claimed}
+
+          status in ["under process", "in process", "processing", "pending"] or
+            String.contains?(status, "process") or String.contains?(status, "pending") ->
+            %{acc | process_amount: acc.process_amount + claimed}
+
+          true ->
+            acc
+        end
+      end
+    )
+  end
+
   def list_active_policies do
     Repo.all(
       from p in Policy,
@@ -134,12 +212,13 @@ defmodule CorporatePolicy.Policies do
           where:
             (p.ref_corporate_id == ^corporate_id or
                fragment("lower(trim(?))", p.corporate_name) == ^normalized_corporate_name) and
-              p.status == 1 and not is_nil(p.policy_number) and
+              p.status in [0, 1, 2] and not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       else
         from p in Policy,
           where:
-            p.ref_corporate_id == ^corporate_id and p.status == 1 and not is_nil(p.policy_number) and
+            p.ref_corporate_id == ^corporate_id and p.status in [0, 1, 2] and
+              not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       end
 
@@ -639,30 +718,48 @@ defmodule CorporatePolicy.Policies do
 
   # === Policy Features (Step 2) ===
 
-  @doc "Fetches all fields for a given template_id, ordered by id."
+  @doc "Fetches all fields for a given template_id, ordered by template_field_id."
   def list_policy_feature_template_fields(template_id) do
     Repo.all(
       from f in MasterPolicyFeatureTemplateField,
-        where: f.template_id == ^template_id and f.status >= 0,
-        order_by: [asc: f.id]
+        where: f.ref_template_id == ^template_id and f.status >= 0,
+        order_by: [asc: f.template_field_id]
     )
   end
 
   @doc """
-  Returns distinct policy_identifier values from master_policy_feature_templates
-  for the Sum Insured step dropdown. Filters by template_id matching the policy type.
+  Returns distinct policy_identifier values from mapping_policy_feature_templates_corporates_policies
+  or master_policy_feature_templates for the Sum Insured step dropdown.
   """
   def list_policy_identifiers_for_policy(nil), do: [%{template_id: 1, policy_identifier: "GMC"}]
 
   def list_policy_identifiers_for_policy(policy) do
-    template_id = get_template_id_for_policy(policy)
+    policy_id = policy && policy.id
 
-    Repo.all(
-      from t in "master_policy_feature_templates",
-        where: t.template_id == ^template_id and t.status == 1,
-        select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
-        order_by: [asc: t.template_id]
-    )
+    mapped =
+      if policy_id do
+        list_mapped_features_by_policy(policy_id)
+      else
+        []
+      end
+
+    if mapped != [] do
+      Enum.map(mapped, fn m ->
+        %{
+          template_id: get_template_id_for_policy(policy),
+          policy_identifier: m.feature_identifier
+        }
+      end)
+    else
+      template_id = get_template_id_for_policy(policy)
+
+      Repo.all(
+        from t in "master_policy_feature_templates",
+          where: t.template_id == ^template_id and t.status == 1,
+          select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
+          order_by: [asc: t.template_id]
+      )
+    end
   end
 
   @doc """
@@ -684,27 +781,53 @@ defmodule CorporatePolicy.Policies do
   def get_template_id_for_policy(_), do: 1
 
   defp template_id_from_policy_type(nil), do: 1
+  defp template_id_from_policy_type(%{policy_type_value: "GMC"}), do: 1
   defp template_id_from_policy_type(%{policy_type_value: "GPA"}), do: 2
-  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 3
-  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 4
-  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 5
-  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 6
-  # GMC, Parent Policy, Top up Policy, and all others → template 1
+  defp template_id_from_policy_type(%{policy_type_value: "Parent Policy"}), do: 3
+  defp template_id_from_policy_type(%{policy_type_value: "Top up Policy"}), do: 4
+  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 5
+  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 6
+  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 7
+  defp template_id_from_policy_type(%{policy_type_value: "Office Package"}), do: 8
+  defp template_id_from_policy_type(%{policy_type_value: "Motor Insurance"}), do: 9
+  defp template_id_from_policy_type(%{policy_type_value: "Travel Insurance"}), do: 10
+  defp template_id_from_policy_type(%{policy_type_value: "Property Insurance"}), do: 11
+  defp template_id_from_policy_type(%{policy_type_value: "Commercial Insurance"}), do: 12
+  defp template_id_from_policy_type(%{policy_type_value: "Asset Insurance"}), do: 13
+  defp template_id_from_policy_type(%{policy_type_value: "Pet Insurance"}), do: 14
+  defp template_id_from_policy_type(%{policy_type_value: "Bite-Sized Insurance"}), do: 15
+  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 16
   defp template_id_from_policy_type(_), do: 1
 
   @doc "Fetches mapped features for a policy, extracting the distinct Feature Identifiers."
-  def list_mapped_features_by_policy(nil), do: []
-
   def list_mapped_features_by_policy(policy_id) do
     Repo.all(
       from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
         where:
           m.ref_policy_id == ^policy_id and
-            m.ref_policy_feature_template_field_name == "Feature Identifier",
+            (m.ref_policy_feature_template_field_name in [
+               "Feature Identifier",
+               "Policy Identifier"
+             ] or
+               m.ref_policy_feature_template_field_id == 1) and
+            (is_nil(m.status) or m.status >= 0),
         select: %{
           id: m.policy_feature_template_field_value_id,
           feature_identifier: m.policy_feature_template_field_value
-        }
+        },
+        distinct: true
+    )
+  end
+
+  @doc "Fetches all mapped feature rows for a specific feature entry."
+  def get_mapped_feature_details(policy_id, feature_id) do
+    Repo.all(
+      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+        where:
+          m.ref_policy_id == ^policy_id and
+            (m.ref_policyidentifier_id == ^feature_id or
+               m.policy_feature_template_field_value_id == ^feature_id) and
+            (is_nil(m.status) or m.status >= 0)
     )
   end
 
@@ -715,7 +838,27 @@ defmodule CorporatePolicy.Policies do
     |> Repo.insert()
   end
 
+  @doc "Updates an existing mapped feature row."
+  def update_mapped_feature(%MappingPolicyFeatureTemplatesCorporatesPolicy{} = mapping, attrs) do
+    mapping
+    |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc "Deletes all mapped feature rows for a given feature ID."
+  def delete_mapped_feature(policy_id, feature_id) do
+    from(m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+      where:
+        m.ref_policy_id == ^policy_id and
+          (m.ref_policyidentifier_id == ^feature_id or
+             m.policy_feature_template_field_value_id == ^feature_id)
+    )
+    |> Repo.delete_all()
+  end
+
   @doc "Lists all active sum insured values for a policy."
+  def list_sum_insureds_for_policy(policy_id) when policy_id in [nil, "", "nil"], do: []
+
   def list_sum_insureds_for_policy(policy_id) do
     Repo.all(
       from s in MasterSumInsured,
@@ -725,6 +868,9 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc "Lists features associated with a specific feature identifier ID."
+  def list_features_by_identifier(policy_id, _feature_identifier_id)
+      when policy_id in [nil, "", "nil"], do: []
+
   def list_features_by_identifier(_policy_id, nil), do: []
 
   def list_features_by_identifier(policy_id, feature_identifier_id) do
@@ -1512,7 +1658,20 @@ defmodule CorporatePolicy.Policies do
 
   @total_claim_page_size 10
 
-  def list_total_claim_reports_paginated(policy_id, params \\ %{}) do
+  def list_total_claim_reports_paginated(policy_id, params \\ %{})
+
+  def list_total_claim_reports_paginated(policy_id, _params) when policy_id in [nil, "", "nil"] do
+    %{
+      entries: [],
+      page: 1,
+      page_size: @total_claim_page_size,
+      total_entries: 0,
+      total_pages: 1,
+      search: ""
+    }
+  end
+
+  def list_total_claim_reports_paginated(policy_id, params) do
     page = positive_int(Map.get(params, "page", 1), 1)
     search = StringUtils.normalize(Map.get(params, "search", ""))
 
@@ -1558,6 +1717,8 @@ defmodule CorporatePolicy.Policies do
       search: search
     }
   end
+
+  def list_total_claim_reports_for_export(policy_id) when policy_id in [nil, "", "nil"], do: []
 
   def list_total_claim_reports_for_export(policy_id) do
     from(r in MasterTotalClaimReport,

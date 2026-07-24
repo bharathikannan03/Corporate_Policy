@@ -281,7 +281,7 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
               </div>
               
               <div class="corp-form-footer" id="corp-footer-details">
-                <button type="submit" name="action" value="next" class="btn-success" id="btn-next">
+                <button type="submit" name="action" value="next" class="btn btn-success" id="btn-next">
                   Next
                 </button>
               </div>
@@ -387,11 +387,17 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
               </div>
               
               <div class="corp-form-footer" id="corp-footer-contacts">
-                <button type="button" phx-click="prev_tab" class="btn-secondary" id="btn-back">
+                <button type="button" phx-click="prev_tab" class="btn btn-secondary" id="btn-back">
                   Back
                 </button>
                 
-                <button type="submit" name="action" value="submit" class="btn-success" id="btn-submit">
+                <button
+                  type="submit"
+                  name="action"
+                  value="submit"
+                  class="btn btn-success"
+                  id="btn-submit"
+                >
                   Submit
                 </button>
               </div>
@@ -536,8 +542,7 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
                       filename
                     ])
 
-                  File.mkdir_p!(Path.dirname(dest_compiled))
-                  File.cp!(path, dest_compiled)
+                  persist_compiled_logo_copy(path, dest_source, dest_compiled)
 
                   {:ok, "/uploads/logos/" <> filename}
                 end)
@@ -626,4 +631,17 @@ defmodule CorporatePolicyWeb.Admin.CorporateNewLive do
 
   defp upload_error_to_string(:too_many_files), do: "Only one logo allowed"
   defp upload_error_to_string(_), do: "Upload error"
+
+  defp persist_compiled_logo_copy(_source_path, dest_source, dest_compiled)
+       when dest_source == dest_compiled,
+       do: :ok
+
+  defp persist_compiled_logo_copy(source_path, _dest_source, dest_compiled) do
+    File.mkdir_p!(Path.dirname(dest_compiled))
+
+    case File.cp(source_path, dest_compiled) do
+      :ok -> :ok
+      {:error, _reason} -> :ok
+    end
+  end
 end

@@ -12,7 +12,12 @@ defmodule CorporatePolicy.Emails.MailQueue do
   Queues a welcome email for a user with their temporary password.
   """
   def queue_welcome_email(user, password, queue \\ __MODULE__) do
-    GenServer.cast(queue, {:queue_email, user, password})
+    if queue == __MODULE__ and
+         Application.get_env(:corporate_policy, :mail_queue_enabled, true) == false do
+      :ok
+    else
+      GenServer.cast(queue, {:queue_email, user, password})
+    end
   end
 
   # Server Callbacks

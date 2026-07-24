@@ -318,7 +318,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         target={@myself}
         class="mb-8 bg-gray-50 rounded-b-lg"
       />
-      <div class="flex justify-end gap-4 mt-4 border-t pt-4">
+      <div class="corp-form-actions border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>

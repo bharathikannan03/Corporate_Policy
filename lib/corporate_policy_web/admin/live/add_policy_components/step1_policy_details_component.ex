@@ -650,7 +650,7 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           />
         </div>
         
-        <div class="corp-field-group corp-field-group--full corp-form-actions">
+        <div class="corp-field-group corp-field-group--full corp-form-actions justify-end">
           <button type="button" phx-click="cancel" class="btn btn-secondary">
             Cancel
           </button>

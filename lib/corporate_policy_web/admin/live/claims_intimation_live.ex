@@ -24,9 +24,9 @@ defmodule CorporatePolicyWeb.Admin.ClaimsIntimationLive do
         <div class="coming-soon-icon">
           <.icon name="hero-bell-alert" class="w-16 h-16 text-blue-400" />
         </div>
-        
+
         <h1 class="coming-soon-title">Claims Intimation</h1>
-        
+
         <p class="coming-soon-text">This module is under development. Check back soon.</p>
       </div>
     </Layouts.admin>

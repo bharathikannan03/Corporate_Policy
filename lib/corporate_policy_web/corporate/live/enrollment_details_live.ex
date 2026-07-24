@@ -58,11 +58,11 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -145,7 +145,7 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
   def handle_event("select_policy_type", %{"type" => type}, socket) do
     policies = socket.assigns.policies
     fetched_numbers = get_numbers_for_type(policies, type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
     selected_policy = get_selected_policy(policies, type, active_policy_number)
     policy_id = selected_policy && selected_policy.id
@@ -231,11 +231,11 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -867,6 +867,10 @@ defmodule CorporatePolicyWeb.Corporate.EnrollmentDetailsLive do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
   end
+
+  defp get_selected_policy([], _type, _number), do: nil
+  defp get_selected_policy(policies, nil, _number), do: List.first(policies)
+  defp get_selected_policy(policies, _type, nil), do: List.first(policies)
 
   defp get_selected_policy(policies, type, number) do
     Enum.find(policies, fn p ->

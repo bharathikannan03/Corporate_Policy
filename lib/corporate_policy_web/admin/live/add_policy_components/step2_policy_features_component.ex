@@ -4,6 +4,8 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
   alias CorporatePolicy.Policies
   alias CorporatePolicy.Corporates
   alias CorporatePolicyWeb.Pagination
+  alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
+  alias CorporatePolicy.Repo
 
   @impl true
   def update(assigns, socket) do
@@ -53,24 +55,58 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
     template_fields = socket.assigns.template_fields
     template_id = socket.assigns.template_id
 
-    Enum.each(template_fields, fn field ->
-      value = params["field_#{field.id}"]
-      role_id = params["visibility_role_#{field.id}"]
+    # 1. Find parent "Feature Identifier" field
+    parent_field = Enum.find(template_fields, &(&1.name == "Feature Identifier"))
+    parent_value = parent_field && params["field_#{parent_field.id}"]
+    parent_role_id = parent_field && params["visibility_role_#{parent_field.id}"]
 
-      if value && value != "" do
+    if parent_value && parent_value != "" do
+      # 2. Insert parent mapping
+      {:ok, parent_mapping} =
         Policies.create_mapped_feature(%{
-          ref_policy_feature_template_field_name: field.name,
-          policy_feature_template_field_value: value,
+          ref_policy_feature_template_field_name: parent_field.name,
+          policy_feature_template_field_value: parent_value,
           ref_template_id: template_id,
           ref_coporate_id: policy.ref_corporate_id,
           ref_policy_id: policy.id,
-          ref_policy_feature_template_field_id: field.id,
-          ref_policy_feature_template_field_type_id: field.field_type_id,
-          policy_feature_template_field_visibility_role_ids: role_id,
+          ref_policy_feature_template_field_id: parent_field.id,
+          ref_policy_feature_template_field_type_id: parent_field.field_type_id,
+          policy_feature_template_field_visibility_role_ids: parent_role_id,
           status: 1
         })
-      end
-    end)
+
+      parent_id = parent_mapping.policy_feature_template_field_value_id
+
+      # 3. Update parent mapping with self ref
+      parent_mapping
+      |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
+        ref_policyidentifier_id: parent_id
+      })
+      |> Repo.update!()
+
+      # 4. Create other features referencing parent_id
+      Enum.each(template_fields, fn field ->
+        if field.id != parent_field.id do
+          value = params["field_#{field.id}"]
+          role_id = params["visibility_role_#{field.id}"]
+
+          if value && value != "" do
+            Policies.create_mapped_feature(%{
+              ref_policy_feature_template_field_name: field.name,
+              policy_feature_template_field_value: value,
+              ref_template_id: template_id,
+              ref_coporate_id: policy.ref_corporate_id,
+              ref_policy_id: policy.id,
+              ref_policy_feature_template_field_id: field.id,
+              ref_policy_feature_template_field_type_id: field.field_type_id,
+              policy_feature_template_field_visibility_role_ids: role_id,
+              ref_policyidentifier_id: parent_id,
+              status: 1
+            })
+          end
+        end
+      end)
+    end
 
     mapped_features = Policies.list_mapped_features_by_policy(policy.id)
 

@@ -55,12 +55,12 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "Parent Policy"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     # We must assign policy numbers and active number to avoid layout crash
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     # Build the paginated sum insured list for GMC or active type
@@ -101,7 +101,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
     table_entries = build_table_entries(policies, type)
 
     fetched_numbers = get_numbers_for_type(policies, type)
-    policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     socket =
@@ -139,7 +139,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
     table_entries = build_table_entries(policies, active_policy_type)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["2-81-25-00003017-000"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     socket =
@@ -249,7 +249,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                   
                   <th class="corp-th p-4 border-b text-left">SUM INSURED</th>
                   
-                  <th class="corp-th p-4 border-b text-center w-40">QUICK VIEW</th>
+                  <th class="corp-th p-4 border-b text-left">QUICK VIEW</th>
                 </tr>
               </thead>
               
@@ -275,7 +275,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                         {entry.sum_insured || "-"}
                       </td>
                       
-                      <td class="corp-td p-4 border-b text-center">
+                      <td class="corp-td p-4 border-b text-left">
                         <button
                           type="button"
                           phx-click="show_policy_benefit"
@@ -283,7 +283,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                           phx-value-feature-id={entry.feature_identifier_id || ""}
                           phx-value-policy-number={entry.policy_number}
                           phx-value-sum-insured={entry.sum_insured || ""}
-                          class="btn btn-sm btn-primary inline-flex items-center gap-1.5"
+                          class="btn-primary"
                         >
                           <.icon name="hero-eye" class="w-4 h-4" /> <span>Policy Benefit</span>
                         </button>
@@ -385,6 +385,8 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
         nil
     end
   end
+
+  defp get_numbers_for_type(_policies, nil), do: []
 
   defp get_numbers_for_type(policies, target_type) do
     policies

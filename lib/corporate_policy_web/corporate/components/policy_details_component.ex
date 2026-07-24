@@ -32,7 +32,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyDetailsComponent do
             <div>
               <span class="font-bold text-gray-900">Policy Number:</span>
               <span class="ml-1 text-gray-600">
-                {if @selected_policy, do: @selected_policy.policy_number, else: "PG11260000000094"}
+                {if @selected_policy, do: @selected_policy.policy_number, else: "N/A"}
               </span>
             </div>
             

@@ -532,21 +532,11 @@ defmodule CorporatePolicyWeb.Layouts do
                   <span>{pt}</span> <.icon name="hero-sparkles" class="w-3.5 h-3.5 text-blue-500" />
                 </button>
               <% end %>
-              
-              <%= if @policy_types == [] do %>
-                <button type="button" class="corp-policy-type-tab corp-policy-type-tab--active">
-                  <span>GMC</span> <.icon name="hero-sparkles" class="w-3.5 h-3.5 text-blue-500" />
-                </button>
-                
-                <button type="button" class="corp-policy-type-tab">
-                  <span>Parent Policy</span>
-                </button>
-              <% end %>
             </div>
           </div>
         </div>
          <%!-- Policy Number Pills Row --%>
-        <div :if={@show_policy_numbers} class="corp-policy-numbers-bar">
+        <div :if={@show_policy_numbers and @policy_numbers != []} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
             <%= for pn <- @policy_numbers do %>
               <button
@@ -561,12 +551,6 @@ defmodule CorporatePolicyWeb.Layouts do
                 ]}
               >
                 {pn}
-              </button>
-            <% end %>
-            
-            <%= if @policy_numbers == [] do %>
-              <button type="button" class="corp-policy-number-tab">
-                2-81-25-00003017-000
               </button>
             <% end %>
           </div>

@@ -58,11 +58,11 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -132,13 +132,16 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
   end
 
   @impl true
-  def handle_event("change_financial_year", %{"fy_id" => fy_id_str}, socket) do
-    fy_id = String.to_integer(fy_id_str)
-    fy = Enum.find(socket.assigns.financial_years, &(&1.id == fy_id))
-    fy_name = (fy && fy.year_name) || socket.assigns.current_fy_name
+  def handle_event("change_fy", %{"fy_name" => fy_name}, socket) do
+    fy = Enum.find(socket.assigns.financial_years, &(&1.year_name == fy_name))
+    fy_id = fy && fy.id
 
     policies =
-      Enum.filter(socket.assigns.all_policies, &(&1.ref_fy_year_id == fy_id))
+      if fy_id do
+        Enum.filter(socket.assigns.all_policies, &(&1.ref_fy_year_id == fy_id))
+      else
+        socket.assigns.all_policies
+      end
 
     fetched_types =
       policies
@@ -146,11 +149,11 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
-    policy_types = if fetched_types == [], do: ["GMC", "GPA"], else: fetched_types
+    policy_types = fetched_types
     active_policy_type = List.first(policy_types)
 
     fetched_numbers = get_numbers_for_type(policies, active_policy_type)
-    policy_numbers = if fetched_numbers == [], do: ["PG11260000000094"], else: fetched_numbers
+    policy_numbers = fetched_numbers
     active_policy_number = List.first(policy_numbers)
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
@@ -188,6 +191,8 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
     end
   end
 
+  defp get_numbers_for_type(_policies, nil), do: []
+
   defp get_numbers_for_type(policies, target_type) do
     policies
     |> Enum.filter(fn p ->
@@ -198,6 +203,10 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
   end
+
+  defp get_selected_policy([], _type, _number), do: nil
+  defp get_selected_policy(policies, nil, _number), do: List.first(policies)
+  defp get_selected_policy(policies, _type, nil), do: List.first(policies)
 
   defp get_selected_policy(policies, type, number) do
     Enum.find(policies, fn p ->
@@ -229,7 +238,7 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Escalation Matrix</h2>
         </div>
-         <%!-- Escalation Matrix Cards Display --%>
+        <%!-- Escalation Matrix Cards Display --%>
         <div>
           <%= if Enum.empty?(@escalation_matrices) do %>
             <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-12 text-center text-slate-500">
@@ -244,13 +253,13 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
                   <div class="absolute top-0 right-0 bg-amber-400 text-slate-900 font-bold text-[11px] px-3 py-1 rounded-bl-lg shadow-xs uppercase tracking-wider">
                     {matrix[:level] || "Level #{matrix[:escalation_level_id]}"}
                   </div>
-                  
+
                   <div>
                     <%!-- Full Name --%>
                     <h3 class="text-base font-bold text-slate-800 pt-1 pr-16 mb-4">
                       {matrix[:fullname] || "N/A"}
                     </h3>
-                     <%!-- Details List --%>
+                    <%!-- Details List --%>
                     <div class="space-y-2.5 text-xs text-slate-600">
                       <%!-- Address --%>
                       <%= if matrix[:company_fulladdress] && matrix[:company_fulladdress] != "" do %>
@@ -259,21 +268,21 @@ defmodule CorporatePolicyWeb.Corporate.EscalationMatrixLive do
                           <span class="leading-relaxed font-normal">{matrix.company_fulladdress}</span>
                         </div>
                       <% end %>
-                       <%!-- Phone / Mobile --%>
+                      <%!-- Phone / Mobile --%>
                       <%= if (matrix[:mobile_number] && matrix[:mobile_number] != "") || (matrix[:phone_number] && matrix[:phone_number] != "") do %>
                         <div class="flex items-center space-x-2.5">
                           <.icon name="hero-phone" class="w-4 h-4 text-slate-400 shrink-0" />
                           <span class="font-normal">{matrix[:mobile_number] || matrix[:phone_number]}</span>
                         </div>
                       <% end %>
-                       <%!-- Email --%>
+                      <%!-- Email --%>
                       <%= if matrix[:email_id] && matrix[:email_id] != "" do %>
                         <div class="flex items-center space-x-2.5">
                           <.icon name="hero-envelope" class="w-4 h-4 text-slate-400 shrink-0" />
                           <span class="font-normal text-slate-700 truncate">{matrix.email_id}</span>
                         </div>
                       <% end %>
-                       <%!-- Role / Type --%>
+                      <%!-- Role / Type --%>
                       <%= if matrix[:type] && matrix[:type] != "" do %>
                         <div class="flex items-center space-x-2.5 pt-1 border-t border-slate-100 mt-2">
                           <.icon name="hero-briefcase" class="w-4 h-4 text-slate-400 shrink-0" />

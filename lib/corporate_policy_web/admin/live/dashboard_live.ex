@@ -297,10 +297,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
   end
 
   defp build_chart_data do
-    %{
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      values: [2, 1, 2, 4, 1, 2, 3, 2, 3, 2, 2, 3]
-    }
+    CorporatePolicy.Policies.get_expiring_policies_chart_data()
   end
 
   defp format_inr(nil), do: "₹0.00"

@@ -1712,4 +1712,30 @@ defmodule CorporatePolicy.Policies do
   Gets a single master policy document by ID.
   """
   def get_master_policy_document(id), do: Repo.get(MasterPolicyDocument, id)
+
+  @doc """
+  Returns line chart data showing count of policies expiring per calendar month.
+  Queries the database for policies where policy_end_date >= NOW(), groups by month of policy_end_date,
+  and maps them to a list corresponding to Jan-Dec.
+  """
+  def get_expiring_policies_chart_data do
+    query =
+      from p in Policy,
+        where: p.policy_end_date >= fragment("NOW()"),
+        group_by: fragment("extract(month from ?)", p.policy_end_date),
+        select: {
+          fragment("extract(month from ?)::integer", p.policy_end_date),
+          count(p.id)
+        }
+
+    results = Repo.all(query) |> Map.new()
+
+    labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    values = Enum.map(1..12, fn m -> Map.get(results, m, 0) end)
+
+    %{
+      labels: labels,
+      values: values
+    }
+  end
 end

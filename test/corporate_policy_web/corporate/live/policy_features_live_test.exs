@@ -85,19 +85,20 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
     # Seed master fields if needed
     parent_field =
       case Repo.get_by(MasterPolicyFeatureTemplateField,
-             name: "Feature Identifier",
-             template_id: 1
+             policy_feature_template_field_name: "Feature Identifier",
+             ref_template_id: 1
            ) do
         nil ->
           %MasterPolicyFeatureTemplateField{}
           |> MasterPolicyFeatureTemplateField.changeset(%{
-            id: 9991,
-            name: "Feature Identifier",
-            placeholder: "Feature Identifier",
-            field_type_id: 1,
-            template_id: 1,
+            template_field_id: 9991,
+            policy_feature_template_field_name: "Feature Identifier",
+            policy_feature_template_field_placeholder: "Feature Identifier",
+            ref_master_temp_field_Type: 1,
+            ref_template_id: 1,
             status: 0,
-            is_mandatory: true
+            is_mandatory: 1,
+            field_description: "Feature Identifier"
           })
           |> Repo.insert!()
 
@@ -106,17 +107,21 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
       end
 
     room_field =
-      case Repo.get_by(MasterPolicyFeatureTemplateField, name: "Room Rent Limit", template_id: 1) do
+      case Repo.get_by(MasterPolicyFeatureTemplateField,
+             policy_feature_template_field_name: "Room Rent Limit",
+             ref_template_id: 1
+           ) do
         nil ->
           %MasterPolicyFeatureTemplateField{}
           |> MasterPolicyFeatureTemplateField.changeset(%{
-            id: 9992,
-            name: "Room Rent Limit",
-            placeholder: "Room Rent Limit",
-            field_type_id: 1,
-            template_id: 1,
+            template_field_id: 9992,
+            policy_feature_template_field_name: "Room Rent Limit",
+            policy_feature_template_field_placeholder: "Room Rent Limit",
+            ref_master_temp_field_Type: 1,
+            ref_template_id: 1,
             status: 0,
-            is_mandatory: true
+            is_mandatory: 1,
+            field_description: "Room Rent Limit"
           })
           |> Repo.insert!()
 
@@ -128,13 +133,13 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
     parent_mapping =
       %MappingPolicyFeatureTemplatesCorporatesPolicy{}
       |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-        ref_policy_feature_template_field_name: parent_field.name,
+        ref_policy_feature_template_field_name: parent_field.policy_feature_template_field_name,
         policy_feature_template_field_value: "GMC",
         ref_template_id: 1,
         ref_coporate_id: corporate.corporate_id,
         ref_policy_id: active_policy.id,
-        ref_policy_feature_template_field_id: parent_field.id,
-        ref_policy_feature_template_field_type_id: parent_field.field_type_id,
+        ref_policy_feature_template_field_id: parent_field.template_field_id,
+        ref_policy_feature_template_field_type_id: parent_field.ref_master_temp_field_Type,
         policy_feature_template_field_visibility_role_ids: "1,2,3",
         status: 1
       })
@@ -150,13 +155,13 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
     room_mapping =
       %MappingPolicyFeatureTemplatesCorporatesPolicy{}
       |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-        ref_policy_feature_template_field_name: room_field.name,
+        ref_policy_feature_template_field_name: room_field.policy_feature_template_field_name,
         policy_feature_template_field_value: "1% SUM INSURED PER DAY",
         ref_template_id: 1,
         ref_coporate_id: corporate.corporate_id,
         ref_policy_id: active_policy.id,
-        ref_policy_feature_template_field_id: room_field.id,
-        ref_policy_feature_template_field_type_id: room_field.field_type_id,
+        ref_policy_feature_template_field_id: room_field.template_field_id,
+        ref_policy_feature_template_field_type_id: room_field.ref_master_temp_field_Type,
         policy_feature_template_field_visibility_role_ids: "1,2,3",
         ref_policyidentifier_id: parent_mapping.policy_feature_template_field_value_id,
         status: 1

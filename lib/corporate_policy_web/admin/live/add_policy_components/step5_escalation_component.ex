@@ -197,7 +197,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         event="paginate_table"
         target={@myself}
       />
-      <div class="flex justify-end gap-4 mt-4 border-t pt-4">
+      <div class="corp-form-actions border-t pt-4">
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>

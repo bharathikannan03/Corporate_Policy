@@ -126,8 +126,8 @@ defmodule CorporatePolicy.EmployeePortal do
     requested_policy_id = parse_int(requested_policy_id)
 
     Enum.find(policies, &(&1.id == requested_policy_id)) ||
-      Enum.find(policies, &(&1.id == employee.ref_policy_id)) ||
-      List.first(policies)
+      List.first(policies) ||
+      Enum.find(policies, &(&1.id == employee.ref_policy_id))
   end
 
   def scoped_employee_for_policy(%SessionEmployee{} = employee, %Policy{} = policy) do
@@ -250,15 +250,7 @@ defmodule CorporatePolicy.EmployeePortal do
           select: p
       )
 
-    Enum.sort_by(policies, fn p ->
-      type = String.downcase(p.policy_type || "")
-
-      cond do
-        type == "gmc" -> {0, p.policy_number}
-        String.contains?(type, "gmc") -> {1, p.policy_number}
-        true -> {2, type}
-      end
-    end)
+    Enum.sort_by(policies, &policy_priority/1)
   end
 
   def format_relationship(value) do
@@ -310,6 +302,27 @@ defmodule CorporatePolicy.EmployeePortal do
   end
 
   defp parse_int(_value), do: nil
+
+  defp policy_priority(%Policy{} = policy) do
+    type =
+      policy.policy_type
+      |> StringUtils.normalize()
+      |> String.downcase()
+
+    number = StringUtils.normalize(policy.policy_number)
+
+    rank =
+      cond do
+        type == "gmc" -> 0
+        type == "gpa" -> 1
+        type == "parent policy" -> 2
+        type == "top up policy" -> 3
+        type == "gtl" -> 4
+        true -> 5
+      end
+
+    {rank, type, number, policy.id}
+  end
 
   defp resolve_employee_user_id(%TrnMappingLiveEmployee{} = employee) do
     employee_code = StringUtils.normalize(employee.employee_code)

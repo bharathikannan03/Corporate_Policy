@@ -51,7 +51,10 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
           )
           |> assign(
             :page_title,
-            if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
+            if(@portal == :admin,
+              do: if(claim, do: "Edit Claim", else: "Add Claim"),
+              else: if(claim, do: "Edit Claim Submission", else: "Add Claim Submission")
+            )
           )
           |> assign(:active_path, portal_path(@portal, "/claims-submission/add"))
           |> assign(:claim, claim)
@@ -272,6 +275,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
                 current_user={@current_user}
                 page_title={@page_title}
                 active_path={@active_path}
+                show_navigation={false}
               >
                 <.claim_form
                   portal={@portal}

@@ -10,6 +10,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
   attr :page_title, :string, required: true
   attr :active_path, :string, default: ""
   attr :selected_policy_id, :integer, default: nil
+  attr :show_navigation, :boolean, default: true
   slot :inner_block, required: true
 
   def portal_shell(assigns) do
@@ -40,24 +41,26 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
         </div>
       </div>
       
-      <div class="mb-6 border-b border-gray-200">
-        <div class="flex gap-3 flex-wrap">
-          <.link
-            navigate={policy_aware_path(@portal, "/claims-submission", @selected_policy_id)}
-            class={tab_class(@active_path == portal_path(@portal, "/claims-submission"))}
-          >
-            All Submissions
-          </.link>
-          
-          <.link
-            navigate={policy_aware_path(@portal, "/claims-submission/add", @selected_policy_id)}
-            class={tab_class(@active_path == portal_path(@portal, "/claims-submission/add"))}
-          >
-            Add Claim
-          </.link>
+      <%= if @show_navigation do %>
+        <div class="mb-6 border-b border-gray-200">
+          <div class="flex gap-3 flex-wrap">
+            <.link
+              navigate={policy_aware_path(@portal, "/claims-submission", @selected_policy_id)}
+              class={tab_class(@active_path == portal_path(@portal, "/claims-submission"))}
+            >
+              All Claims
+            </.link>
+
+            <.link
+              navigate={policy_aware_path(@portal, "/claims-submission/add", @selected_policy_id)}
+              class={tab_class(@active_path == portal_path(@portal, "/claims-submission/add"))}
+            >
+              Add Claim
+            </.link>
+          </div>
         </div>
-      </div>
-       {render_slot(@inner_block)}
+      <% end %>
+      {render_slot(@inner_block)}
     </div>
     """
   end

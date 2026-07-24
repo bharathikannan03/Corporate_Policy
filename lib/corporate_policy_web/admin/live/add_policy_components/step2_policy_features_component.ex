@@ -4,8 +4,6 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
   alias CorporatePolicy.Policies
   alias CorporatePolicy.Corporates
   alias CorporatePolicyWeb.Pagination
-  alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
-  alias CorporatePolicy.Repo
 
   @impl true
   def update(assigns, socket) do
@@ -96,7 +94,6 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
     template_id = socket.assigns.template_id
     editing_feature_id = socket.assigns[:editing_feature_id]
 
-<<<<<<< HEAD
     corp_id = policy.ref_corporate_id || policy[:corporate_id] || 1
 
     if editing_feature_id do
@@ -258,60 +255,6 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
     policy = socket.assigns.policy
 
     Policies.delete_mapped_feature(policy.id, feature_id)
-=======
-    # 1. Find parent "Feature Identifier" field
-    parent_field = Enum.find(template_fields, &(&1.name == "Feature Identifier"))
-    parent_value = parent_field && params["field_#{parent_field.id}"]
-    parent_role_id = parent_field && params["visibility_role_#{parent_field.id}"]
-
-    if parent_value && parent_value != "" do
-      # 2. Insert parent mapping
-      {:ok, parent_mapping} =
-        Policies.create_mapped_feature(%{
-          ref_policy_feature_template_field_name: parent_field.name,
-          policy_feature_template_field_value: parent_value,
-          ref_template_id: template_id,
-          ref_coporate_id: policy.ref_corporate_id,
-          ref_policy_id: policy.id,
-          ref_policy_feature_template_field_id: parent_field.id,
-          ref_policy_feature_template_field_type_id: parent_field.field_type_id,
-          policy_feature_template_field_visibility_role_ids: parent_role_id,
-          status: 1
-        })
-
-      parent_id = parent_mapping.policy_feature_template_field_value_id
-
-      # 3. Update parent mapping with self ref
-      parent_mapping
-      |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-        ref_policyidentifier_id: parent_id
-      })
-      |> Repo.update!()
-
-      # 4. Create other features referencing parent_id
-      Enum.each(template_fields, fn field ->
-        if field.id != parent_field.id do
-          value = params["field_#{field.id}"]
-          role_id = params["visibility_role_#{field.id}"]
-
-          if value && value != "" do
-            Policies.create_mapped_feature(%{
-              ref_policy_feature_template_field_name: field.name,
-              policy_feature_template_field_value: value,
-              ref_template_id: template_id,
-              ref_coporate_id: policy.ref_corporate_id,
-              ref_policy_id: policy.id,
-              ref_policy_feature_template_field_id: field.id,
-              ref_policy_feature_template_field_type_id: field.field_type_id,
-              policy_feature_template_field_visibility_role_ids: role_id,
-              ref_policyidentifier_id: parent_id,
-              status: 1
-            })
-          end
-        end
-      end)
-    end
->>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
 
     mapped_features = Policies.list_mapped_features_by_policy(policy.id)
 
@@ -341,15 +284,10 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
       <%= if @show_form do %>
         <%!-- Form View --%>
         <div class="flex justify-between items-center mb-6">
-<<<<<<< HEAD
           <h3 class="text-lg font-semibold text-slate-800">
             {if @editing_feature_id, do: "Edit Policy Feature", else: "Add Policy Feature"}
           </h3>
-          <span class="text-sm text-slate-500">Template: POLICY_001</span>
-=======
-          <h3 class="text-lg font-semibold text-slate-800">Add Policy Feature</h3>
            <span class="text-sm text-slate-500">Template: POLICY_001</span>
->>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
         </div>
         
         <%= if @template_fields == [] do %>
@@ -377,8 +315,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                     <span class="corp-required text-red-500 font-bold">*</span>
                   <% end %>
                 </label>
-<<<<<<< HEAD
-
+                
                 <div class="grid grid-cols-2 gap-4 items-center">
                   <div>
                     <%= if field.ref_master_temp_field_Type == 4 do %>
@@ -390,9 +327,9 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                             value="Yes"
                             checked={@form_data["field_#{field.template_field_id}"] == "Yes"}
                             class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          />
-                          <span class="text-sm font-medium text-slate-700">Yes</span>
+                          /> <span class="text-sm font-medium text-slate-700">Yes</span>
                         </label>
+                        
                         <label class="inline-flex items-center gap-2 cursor-pointer">
                           <input
                             type="radio"
@@ -404,8 +341,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                                    is_nil(@form_data["field_#{field.template_field_id}"]))
                             }
                             class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          />
-                          <span class="text-sm font-medium text-slate-700">No</span>
+                          /> <span class="text-sm font-medium text-slate-700">No</span>
                         </label>
                       </div>
                     <% else %>
@@ -426,11 +362,11 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                       <% end %>
                     <% end %>
                   </div>
-
+                  
                   <div>
                     <select name={"visibility_role_#{field.template_field_id}"} class="corp-input">
                       <option value="">Select Visibility Role</option>
-
+                      
                       <%= for role <- @visibility_roles do %>
                         <option
                           value={role.role_id}
@@ -447,29 +383,8 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                 </div>
               </div>
             <% end %>
-
-            <div class="corp-field-group corp-field-group--full corp-form-actions flex justify-end gap-3 mt-4">
-=======
-                
-                <input
-                  type="text"
-                  name={"field_#{field.id}"}
-                  value={@form_data["field_#{field.id}"] || ""}
-                  class="corp-input"
-                  placeholder={field.placeholder}
-                />
-                <select name={"visibility_role_#{field.id}"} class="corp-input mt-2">
-                  <option value="">Select Visibility Role</option>
-                  
-                  <%= for role <- @visibility_roles do %>
-                    <option value={role.role_id}>{role.role}</option>
-                  <% end %>
-                </select>
-              </div>
-            <% end %>
             
-            <div class="corp-field-group corp-field-group--full corp-form-actions">
->>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
+            <div class="corp-field-group corp-field-group--full corp-form-actions justify-end">
               <button
                 type="button"
                 phx-click="hide_form"
@@ -478,16 +393,11 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               >
                 Cancel
               </button>
-<<<<<<< HEAD
-
-              <button type="submit" class="btn btn-success">
-                <.icon name="hero-check" class="w-4 h-4 mr-1" />
-                {if @editing_feature_id, do: "Update Feature", else: "Save Features"}
-=======
               
-              <button type="submit" class="btn btn-primary">
-                <.icon name="hero-check" class="w-4 h-4 mr-1" /> Save Features
->>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
+              <button type="submit" class="btn btn-success">
+                <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @editing_feature_id,
+                  do: "Update Feature",
+                  else: "Save Features"}
               </button>
             </div>
           </.form>
@@ -579,8 +489,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           </button>
         </div>
       <% end %>
-
-      <%!-- Delete Confirmation Modal --%>
+       <%!-- Delete Confirmation Modal --%>
       <%= if @confirm_delete_id do %>
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-slate-200">
@@ -588,9 +497,11 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               <.icon name="hero-exclamation-triangle" class="w-6 h-6" />
               <h3 class="text-lg font-semibold text-slate-900">Delete Policy Feature</h3>
             </div>
+            
             <p class="text-slate-600 text-sm mb-6">
               Are you sure you want to delete this policy feature? This action cannot be undone.
             </p>
+            
             <div class="flex justify-end gap-3">
               <button
                 type="button"
@@ -600,6 +511,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               >
                 Cancel
               </button>
+              
               <button
                 type="button"
                 phx-click="delete_feature"

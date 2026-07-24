@@ -399,7 +399,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
         event="paginate_table"
         target={@myself}
       />
-      <div class="mt-4 flex justify-end gap-4 border-t pt-4">
+      <div class="corp-form-actions border-t pt-4">
         <button type="button" phx-click="save_step7" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Complete Policy"}
         </button>

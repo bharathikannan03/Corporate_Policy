@@ -30,7 +30,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
              else: nil
            )
          )
-         |> assign(:page_title, "Claim Submission")
+         |> assign(:page_title, if(@portal == :admin, do: "All Claims", else: "Claim Submission"))
          |> assign(:active_path, portal_path(@portal, "/claims-submission"))
          |> assign(:claim_statuses, Claims.claim_statuses())
          |> load_claims(%{})}
@@ -71,6 +71,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionIndexLive do
                 current_user={@current_user}
                 page_title={@page_title}
                 active_path={@active_path}
+                show_navigation={false}
               >
                 <.submissions_index
                   claims_page={@claims_page}

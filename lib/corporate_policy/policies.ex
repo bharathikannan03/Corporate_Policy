@@ -759,7 +759,6 @@ defmodule CorporatePolicy.Policies do
     |> Repo.insert()
   end
 
-<<<<<<< HEAD
   @doc "Updates an existing mapped feature row."
   def update_mapped_feature(%MappingPolicyFeatureTemplatesCorporatesPolicy{} = mapping, attrs) do
     mapping
@@ -776,7 +775,8 @@ defmodule CorporatePolicy.Policies do
              m.policy_feature_template_field_value_id == ^feature_id)
     )
     |> Repo.delete_all()
-=======
+  end
+
   @doc "Lists all active sum insured values for a policy."
   def list_sum_insureds_for_policy(policy_id) do
     Repo.all(
@@ -799,7 +799,6 @@ defmodule CorporatePolicy.Policies do
             is_nil(m.deleted_at) and m.status >= 0,
         order_by: [asc: m.ref_policy_feature_template_field_id]
     )
->>>>>>> c9199cba319ca189d4ac3b64081009594288aa6e
   end
 
   defp normalize_page(value) when is_integer(value) and value > 0, do: value

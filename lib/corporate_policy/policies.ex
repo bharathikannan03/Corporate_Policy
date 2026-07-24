@@ -129,6 +129,20 @@ defmodule CorporatePolicy.Policies do
     ) || 0
   end
 
+  @doc """
+  Counts employees in trn_mapping_live_employees filtered by relationship and status.
+  Useful for dashboard stats showing, e.g., active Employee-relationship members.
+  """
+  def count_live_employees_by_relationship_and_status(relationship, status) do
+    Repo.aggregate(
+      from(e in TrnMappingLiveEmployee,
+        where: e.relationship == ^relationship and e.status == ^status and is_nil(e.deleted_at)
+      ),
+      :count,
+      :id
+    ) || 0
+  end
+
   def get_global_claims_corner_summary do
     claims =
       from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at))

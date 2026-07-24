@@ -9,12 +9,14 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
         id -> CorporatePolicy.Accounts.get_user(id)
       end
 
+    user_stats = build_user_stats()
+
     socket =
       socket
       |> assign(:page_title, "Dashboard")
       |> assign(:current_user, current_user)
       |> assign(:active_path, "/admin/dashboard")
-      |> assign(:stats, build_stats())
+      |> assign(:stats, build_stats(user_stats))
       |> assign(:claims_corner, build_claims_corner())
       |> assign(:bottom_stats, build_bottom_stats())
       |> assign(:chart_data, build_chart_data())
@@ -33,16 +35,16 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
           <div class="stat-card-icon stat-card-icon--blue">
             <.icon name="hero-building-office-2" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Active</span>
                 <span class="stat-value">{@stats.corporate.active}</span>
               </div>
-
+              
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Inactive</span>
                 <span class="stat-value">{@stats.corporate.inactive}</span>
@@ -50,21 +52,21 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             </div>
           </div>
         </.link>
-        <%!-- Policies --%>
+         <%!-- Policies --%>
         <div class="stat-card" id="stat-policies">
           <div class="stat-card-icon stat-card-icon--indigo">
             <.icon name="hero-document-text" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Policies</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Live</span>
                 <span class="stat-value">{@stats.policies.live}</span>
               </div>
-
+              
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Draft</span>
                 <span class="stat-value">{@stats.policies.draft}</span>
@@ -72,15 +74,15 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             </div>
           </div>
         </div>
-        <%!-- Expired Policies --%>
+         <%!-- Expired Policies --%>
         <div class="stat-card" id="stat-expired-policies">
           <div class="stat-card-icon stat-card-icon--cyan">
             <.icon name="hero-clock" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Expired Policies</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-gray-400">Total</span>
@@ -89,15 +91,15 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             </div>
           </div>
         </div>
-        <%!-- Claims --%>
+         <%!-- Claims --%>
         <div class="stat-card" id="stat-claims">
           <div class="stat-card-icon stat-card-icon--purple">
             <.icon name="hero-clipboard-document-check" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Claims</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Reported</span>
@@ -107,12 +109,12 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
           </div>
         </div>
       </div>
-      <%!-- Middle section: Chart + Users & Claims Corner --%>
+       <%!-- Middle section: Chart + Users & Claims Corner --%>
       <div class="dashboard-middle">
         <%!-- Chart card --%>
         <div class="chart-card" id="chart-card">
           <h3 class="chart-title">Upcoming Policy Renewals</h3>
-
+          
           <div class="chart-container-wrapper">
             <canvas
               id="renewals-chart"
@@ -124,23 +126,23 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             ></canvas>
           </div>
         </div>
-        <%!-- Right panel: Users + Claims Corner --%>
+         <%!-- Right panel: Users + Claims Corner --%>
         <div class="dashboard-right-panel">
           <%!-- Users card --%>
           <div class="stat-card" id="stat-users">
             <div class="stat-card-icon stat-card-icon--teal">
               <.icon name="hero-users" class="w-6 h-6" />
             </div>
-
+            
             <div class="stat-card-body">
               <h3 class="stat-card-title">Users</h3>
-
+              
               <div class="stat-card-rows">
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">Corporate Users</span>
-                  <span class="stat-value">35</span>
+                  <span class="stat-value">{@stats.user_stats.corporate_users}</span>
                 </div>
-
+                
                 <div class="stat-row">
                   <span class="stat-label text-blue-500">Broker Users</span>
                   <span class="stat-value">2</span>
@@ -148,14 +150,14 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
               </div>
             </div>
           </div>
-          <%!-- Claims Corner --%>
+           <%!-- Claims Corner --%>
           <div class="claims-corner-card" id="claims-corner">
             <h3 class="claims-corner-title">CLAIMS CORNER</h3>
-
+            
             <div class="claims-corner-header">
               <span>CLAIMS</span> <span>AMOUNT</span>
             </div>
-
+            
             <div class="claims-corner-rows">
               <%= for item <- @claims_corner do %>
                 <div
@@ -163,7 +165,7 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
                   id={"claims-#{String.downcase(String.replace(item.label, " ", "-"))}"}
                 >
                   <div class={"claims-dot claims-dot--#{item.color}"}></div>
-                  <span class="claims-label">{item.label}</span>
+                   <span class="claims-label">{item.label}</span>
                   <span class="claims-amount">{item.amount}</span>
                 </div>
               <% end %>
@@ -171,50 +173,33 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
           </div>
         </div>
       </div>
-      <%!-- Bottom stat cards --%>
+       <%!-- Bottom stat cards --%>
       <div class="dashboard-stats-grid" id="bottom-stats">
         <div class="stat-card" id="stat-corporate-users">
           <div class="stat-card-icon stat-card-icon--blue">
             <.icon name="hero-user-group" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Corporate Users</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span>
-                <span class="stat-value">2410</span>
+                <span class="stat-value">{@stats.user_stats.corporate_users}</span>
               </div>
             </div>
           </div>
         </div>
-
+        
         <div class="stat-card" id="stat-employee-activity">
           <div class="stat-card-icon stat-card-icon--indigo">
             <.icon name="hero-bolt" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Activity</h3>
-
-            <div class="stat-card-rows">
-              <div class="stat-row">
-                <span class="stat-label text-blue-500">Total</span>
-                <span class="stat-value">0</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="stat-card" id="stat-online-claims">
-          <div class="stat-card-icon stat-card-icon--cyan">
-            <.icon name="hero-arrow-up-tray" class="w-6 h-6" />
-          </div>
-
-          <div class="stat-card-body">
-            <h3 class="stat-card-title">Online Claim Submission</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
@@ -222,15 +207,31 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
             </div>
           </div>
         </div>
-
+        
+        <div class="stat-card" id="stat-online-claims">
+          <div class="stat-card-icon stat-card-icon--cyan">
+            <.icon name="hero-arrow-up-tray" class="w-6 h-6" />
+          </div>
+          
+          <div class="stat-card-body">
+            <h3 class="stat-card-title">Online Claim Submission</h3>
+            
+            <div class="stat-card-rows">
+              <div class="stat-row">
+                <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="stat-card" id="stat-health-activity">
           <div class="stat-card-icon stat-card-icon--purple">
             <.icon name="hero-heart" class="w-6 h-6" />
           </div>
-
+          
           <div class="stat-card-body">
             <h3 class="stat-card-title">Employee Health Activity</h3>
-
+            
             <div class="stat-card-rows">
               <div class="stat-row">
                 <span class="stat-label text-blue-500">Total</span> <span class="stat-value">0</span>
@@ -245,7 +246,17 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
 
   # ─── Private helpers ──────────────────────────────────────────────────────────
 
-  defp build_stats do
+  defp build_user_stats do
+    %{
+      corporate_users:
+        CorporatePolicy.Policies.count_live_employees_by_relationship_and_status(
+          "Employee",
+          "active"
+        )
+    }
+  end
+
+  defp build_stats(user_stats) do
     %{
       corporate: %{
         active: CorporatePolicy.Corporates.count_active_corporates(),
@@ -256,7 +267,8 @@ defmodule CorporatePolicyWeb.Admin.DashboardLive do
         draft: CorporatePolicy.Policies.count_policies_by_statuses([0, 2])
       },
       expired_policies: CorporatePolicy.Policies.count_policies_by_status(3),
-      claims_reported: CorporatePolicy.Policies.count_total_claim_reports()
+      claims_reported: CorporatePolicy.Policies.count_total_claim_reports(),
+      user_stats: user_stats
     }
   end
 

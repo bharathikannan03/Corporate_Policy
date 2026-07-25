@@ -1,0 +1,381 @@
+// Database Markup Language (DBML) schema definition for Corporate Policy application
+// Import this file into dbdiagram.io or dbdocs.io to view and export the interactive ER Diagram.
+
+Table users {
+  id bigint [pk, increment]
+  first_name varchar(255) [not null]
+  last_name varchar(255) [not null]
+  email_address varchar(255) [unique, not null]
+  password varchar(255) [not null]
+  status integer [default: 0, not null]
+  remember_token varchar(255)
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  mobile_no varchar(20)
+  full_name varchar(255)
+  gender varchar(20)
+  dob date
+  ref_corporate_id bigint
+  ref_md_department_id bigint
+  department_name varchar(50)
+  location varchar(100)
+  onboarding_status_id integer [default: 0]
+  reporting varchar(100)
+  ref_reporting_id bigint
+  designation varchar(100)
+  assign_corporate varchar(100)
+  test_user integer [default: 0]
+  corporate_username varchar(100) [unique]
+  department_id integer
+}
+
+Table master_corporates {
+  corporate_id bigint [pk, increment]
+  corporate_name varchar(255) [not null]
+  ref_master_corporate_logos_id integer
+  coporate_contact_email varchar(255)
+  corporate_landline varchar(255)
+  ref_master_pincode_pincode_id integer [default: 0, not null]
+  ref_master_city_city_id integer [default: 0, not null]
+  ref_master_state_state_id integer [default: 0, not null]
+  corporate_address varchar(255) [not null]
+  corporate_group_code varchar(255)
+  industry_type varchar(255)
+  corporate_buffer_visibility integer [default: 0, not null]
+  corporate_status integer [default: 1, not null]
+  pincode varchar(10) [default: '', not null]
+  city varchar(25) [default: '', not null]
+  state varchar(25) [default: '', not null]
+  helpline_no varchar(255)
+  pan_number varchar(15)
+  branch_name varchar(255)
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table master_add_policies {
+  id bigint [pk, increment]
+  corporate_name varchar(100) [not null]
+  ref_corporate_id bigint [not null]
+  ref_md_line_of_businesses_id bigint [not null]
+  line_of_business varchar(100) [not null]
+  ref_md_policy_types_id bigint [not null]
+  policy_type varchar(100) [not null]
+  ref_md_sum_insured_types_id bigint
+  sum_insured_type varchar(100)
+  ref_select_insurer_id bigint [not null]
+  select_insurer varchar(255) [not null]
+  select_tpa text
+  ref_tpa_id bigint
+  have_policy_number integer [default: 0, not null]
+  policy_number varchar(100)
+  policy_start_date date
+  policy_end_date date
+  ref_md_family_definitions_id bigint
+  family_definition varchar(100)
+  ref_md_claim_submission_visibilities_id bigint [default: 0]
+  claim_submission_additional_email text
+  ref_intimate_claim_visibilities_id bigint
+  intimate_claim_visibility varchar(50)
+  status integer [default: 0, not null]
+  user_id bigint
+  ref_fy_year_id bigint [not null]
+  created_by bigint
+  updated_by bigint
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  policy_number_identifier varchar(100)
+}
+
+Table master_cd_accounts {
+  id bigint [pk, increment]
+  cd_name varchar(100) [not null]
+  cd_number varchar(100) [not null]
+  ref_corporate_id bigint [not null]
+  corporate_name varchar(100) [not null]
+  ref_insurer_id bigint [not null]
+  insurer_name varchar(100) [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  ref_policy_id bigint
+  policy_number varchar(100)
+  deleted_at timestamp
+  created_by bigint
+  updated_by bigint
+}
+
+Table master_policy_cd_statements {
+  id bigint [pk, increment]
+  corporate_name varchar(255) [not null]
+  corporate_id integer [not null]
+  cd_number varchar(255) [not null]
+  cd_account_id integer [not null]
+  data_upload_file varchar(255)
+  policy_id integer
+  is_dataupload boolean [default: true]
+  created_by bigint
+  updated_by bigint
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table master_cd_statement_data_uploads {
+  id bigint [pk, increment]
+  ref_policy_cd_statement_id bigint [not null]
+  particular varchar(100)
+  transaction_type varchar(50)
+  employee_count integer
+  dependant_count integer
+  policy_endorsement_no varchar(150)
+  endorsement_issued_date varchar(30)
+  debit_amount decimal(15,2)
+  credit_amount decimal(15,2)
+  bank_name varchar(150)
+  cheque_no varchar(30)
+  policy_number varchar(100)
+  remark text
+  corporate_name varchar(150)
+  corporate_id bigint
+  policy_id bigint
+  cd_number varchar(255)
+  status integer [default: 0, not null]
+  deleted_at timestamp
+  created_by bigint
+  updated_by bigint
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table master_claim_submission {
+  id bigint [pk, increment]
+  ref_corporate_id integer [not null]
+  ref_policy_id bigint [not null]
+  portal_id integer [not null]
+  claim_number varchar(255) [unique, not null]
+  intimation_number varchar(255) [unique]
+  corporate_name varchar(255)
+  policy_number varchar(255)
+  policy_type varchar(255)
+  insurer_name varchar(255)
+  tpa_name varchar(255)
+  employee_code varchar(255) [not null]
+  employee_name varchar(255)
+  patient_name varchar(255) [not null]
+  relationship varchar(255)
+  estimated_amount decimal(12,2) [not null]
+  claim_reason text [not null]
+  claim_type varchar(255) [not null]
+  hospital_name varchar(255) [not null]
+  hospital_address text [not null]
+  hospitalization_date date [not null]
+  discharge_date date [not null]
+  city varchar(255) [not null]
+  state varchar(255) [not null]
+  pincode varchar(255) [not null]
+  treatment_details text
+  remarks text
+  claim_status varchar(255) [default: 'Draft', not null]
+  submitted_at timestamp
+  submitted_by bigint
+  created_by bigint
+  updated_by bigint
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table master_claim_submission_documents {
+  id bigint [pk, increment]
+  claim_id bigint [not null]
+  policy_id integer [not null]
+  document_name varchar(255) [not null]
+  original_file_name varchar(255) [not null]
+  file_path varchar(255) [not null]
+  mime_type varchar(255)
+  file_size integer
+  status integer [default: 1]
+  created_by bigint
+  updated_by bigint
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table trp_claim_submission_logs {
+  id bigint [pk, increment]
+  claim_id bigint [not null]
+  policy_id integer [not null]
+  portal_id integer [not null]
+  action varchar(255) [not null]
+  remarks text
+  user_id bigint
+  inserted_at timestamp [not null]
+  submitted_by bigint
+}
+
+Table trn_mapping_live_employees {
+  id bigint [pk, increment]
+  ref_policy_id bigint [not null]
+  ref_corporate_id bigint [not null]
+  employee_code varchar(255)
+  employee_name varchar(255)
+  gender varchar(255)
+  relationship varchar(255)
+  dob varchar(255)
+  age integer
+  mobile_number varchar(255)
+  email varchar(255)
+  sum_insured double
+  doj varchar(255)
+  endorsement_number varchar(255)
+  endorsement_date varchar(255)
+  endorsement_type varchar(255)
+  dol varchar(255)
+  member_card_number varchar(255)
+  designation varchar(255)
+  status varchar(255) [default: 'active']
+  source_type varchar(255)
+  created_by integer
+  updated_by integer
+  deleted_at timestamp
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table trn_endorsement_deletion_logs {
+  id bigint [pk, increment]
+  ref_policy_id bigint [not null]
+  ref_corporate_id bigint [not null]
+  employee_code varchar(255)
+  employee_name varchar(255)
+  relationship varchar(255)
+  endorsement_number varchar(255)
+  endorsement_date varchar(255)
+  endorsement_type varchar(255)
+  deletion_category varchar(255) [default: 'Dependant Deletion']
+  deleted_at timestamp
+  created_by integer
+  updated_by integer
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  upload_id bigint
+  action varchar(255)
+}
+
+Table md_line_of_businesses {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table md_policy_types {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  ref_md_line_of_businesses_id bigint
+}
+
+Table md_insurer_lists {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+  ref_md_line_of_businesses_id bigint
+}
+
+Table md_policy_tpas {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table md_financial_years {
+  id bigint [pk, increment]
+  year_name varchar(50) [unique, not null]
+  start_date date [not null]
+  end_date date [not null]
+  status integer [default: 1, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table md_family_definitions {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  display_id integer [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table md_intimate_claim_visibilities {
+  id bigint [pk, increment]
+  name varchar(100) [not null]
+  display_id integer [not null]
+  status integer [default: 0, not null]
+  inserted_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// Relationships
+Ref: users.ref_corporate_id > master_corporates.corporate_id
+Ref: users.ref_reporting_id > users.id
+
+Ref: master_add_policies.ref_corporate_id > master_corporates.corporate_id
+Ref: master_add_policies.ref_md_line_of_businesses_id > md_line_of_businesses.id
+Ref: master_add_policies.ref_md_policy_types_id > md_policy_types.id
+Ref: master_add_policies.ref_select_insurer_id > md_insurer_lists.id
+Ref: master_add_policies.ref_tpa_id > md_policy_tpas.id
+Ref: master_add_policies.ref_md_family_definitions_id > md_family_definitions.id
+Ref: master_add_policies.ref_intimate_claim_visibilities_id > md_intimate_claim_visibilities.id
+Ref: master_add_policies.ref_fy_year_id > md_financial_years.id
+
+Ref: master_cd_accounts.ref_corporate_id > master_corporates.corporate_id
+Ref: master_cd_accounts.ref_policy_id > master_add_policies.id
+Ref: master_cd_accounts.ref_insurer_id > md_insurer_lists.id
+Ref: master_cd_accounts.created_by > users.id
+Ref: master_cd_accounts.updated_by > users.id
+
+Ref: master_policy_cd_statements.corporate_id > master_corporates.corporate_id
+Ref: master_policy_cd_statements.policy_id > master_add_policies.id
+Ref: master_policy_cd_statements.cd_account_id > master_cd_accounts.id
+Ref: master_policy_cd_statements.created_by > users.id
+Ref: master_policy_cd_statements.updated_by > users.id
+
+Ref: master_cd_statement_data_uploads.ref_policy_cd_statement_id > master_policy_cd_statements.id
+Ref: master_cd_statement_data_uploads.policy_id > master_add_policies.id
+Ref: master_cd_statement_data_uploads.corporate_id > master_corporates.corporate_id
+Ref: master_cd_statement_data_uploads.created_by > users.id
+Ref: master_cd_statement_data_uploads.updated_by > users.id
+
+Ref: master_claim_submission.ref_corporate_id > master_corporates.corporate_id
+Ref: master_claim_submission.ref_policy_id > master_add_policies.id
+Ref: master_claim_submission.created_by > users.id
+Ref: master_claim_submission.updated_by > users.id
+
+Ref: master_claim_submission_documents.claim_id > master_claim_submission.id [delete: cascade]
+Ref: master_claim_submission_documents.created_by > users.id
+Ref: master_claim_submission_documents.updated_by > users.id
+
+Ref: trp_claim_submission_logs.claim_id > master_claim_submission.id [delete: cascade]
+Ref: trp_claim_submission_logs.user_id > users.id
+
+Ref: trn_mapping_live_employees.ref_policy_id > master_add_policies.id
+Ref: trn_mapping_live_employees.ref_corporate_id > master_corporates.corporate_id
+
+Ref: trn_endorsement_deletion_logs.ref_policy_id > master_add_policies.id
+Ref: trn_endorsement_deletion_logs.ref_corporate_id > master_corporates.corporate_id
+
+Ref: md_policy_types.ref_md_line_of_businesses_id > md_line_of_businesses.id
+Ref: md_insurer_lists.ref_md_line_of_businesses_id > md_line_of_businesses.id

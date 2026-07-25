@@ -2,8 +2,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
   use CorporatePolicyWeb, :live_view
 
   alias CorporatePolicy.Accounts
-  alias CorporatePolicy.Claims
-  alias CorporatePolicy.Claims.MasterClaimSubmission
+  alias CorporatePolicy.Policies
   alias CorporatePolicy.StringUtils
 
   @impl true
@@ -19,10 +18,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
      |> assign(:page_title, "Total Claim Reported")
      |> assign(:current_user, current_user)
      |> assign(:active_path, "/admin/total-claim-reported")
-     |> assign(:claim_statuses, Claims.claim_statuses())
-     |> assign(:show_documents_modal, false)
-     |> assign(:show_logs_modal, false)
-     |> assign(:selected_claim, nil)
+     |> assign(:claim_statuses, Policies.total_claim_report_statuses())
      |> load_claims(%{})}
   end
 
@@ -50,34 +46,6 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
     {:noreply, load_claims(socket, params)}
   end
 
-  def handle_event("view_documents", %{"id" => id}, socket) do
-    claim = Claims.get_claim_with_details!(id)
-
-    {:noreply,
-     socket
-     |> assign(:selected_claim, claim)
-     |> assign(:show_documents_modal, true)
-     |> assign(:show_logs_modal, false)}
-  end
-
-  def handle_event("view_logs", %{"id" => id}, socket) do
-    claim = Claims.get_claim_with_details!(id)
-
-    {:noreply,
-     socket
-     |> assign(:selected_claim, claim)
-     |> assign(:show_logs_modal, true)
-     |> assign(:show_documents_modal, false)}
-  end
-
-  def handle_event("close_modal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:show_documents_modal, false)
-     |> assign(:show_logs_modal, false)
-     |> assign(:selected_claim, nil)}
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -85,10 +53,10 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
       <div class="corp-list-page" id="total-claim-reported-page">
         <div class="corp-list-header" id="total-claim-reported-header">
           <div>
-            <h1 class="corp-list-title">Claims Reported List</h1>
+            <h1 class="corp-list-title">Total Claim Reported</h1>
 
             <p class="corp-list-subtitle">
-              Displays all details captured from the Claim Details form, including status and timestamps.
+              Displays all claim records uploaded from TPA/insurer claim report files.
             </p>
           </div>
 
@@ -113,13 +81,13 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                   type="text"
                   name="search"
                   value={@claims_page.search}
-                  placeholder="Claim no, corporate, patient..."
+                  placeholder="Employee code, name, TPA claim no, hospital..."
                   class="corp-input"
                 />
               </div>
 
               <div>
-                <label class="corp-label">Status</label>
+                <label class="corp-label">Claim Status</label>
                 <select name="status" class="corp-input">
                   <option value="">All Statuses</option>
 
@@ -140,74 +108,104 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                   <th class="corp-th">SI NO</th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Corporate Name", "corporate_name")}
+                    {sortable_link(assigns, "Employee Code", "employee_code")}
                   </th>
 
-                  <th class="corp-th">{sortable_link(assigns, "Policy Number", "policy_number")}</th>
-
-                  <th class="corp-th">{sortable_link(assigns, "Employee Code", "employee_code")}</th>
-
-                  <th class="corp-th">Employee Name</th>
+                  <th class="corp-th">
+                    {sortable_link(assigns, "Employee Name", "employee_name")}
+                  </th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Beneficiary Name", "patient_name")}
+                    {sortable_link(assigns, "Patient Name", "patient_name")}
                   </th>
 
                   <th class="corp-th">Relation</th>
 
                   <th class="corp-th">Claim Type</th>
 
-                  <th class="corp-th">{sortable_link(assigns, "Claim Status", "claim_status")}</th>
+                  <th class="corp-th">
+                    {sortable_link(assigns, "TPA Claim No", "tpa_claim_no")}
+                  </th>
 
-                  <th class="corp-th">{sortable_link(assigns, "Claim No", "claim_number")}</th>
-
-                  <th class="corp-th">Intimation No</th>
+                  <th class="corp-th">Insurance Claim No</th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Hospitalization Date", "hospitalization_date")}
+                    {sortable_link(assigns, "Claim Status", "claim_status")}
+                  </th>
+
+                  <th class="corp-th">Claim Sub Status</th>
+
+                  <th class="corp-th">
+                    {sortable_link(assigns, "Hosp. Date", "date_of_hospitalization")}
                   </th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Discharge Date", "discharge_date")}
+                    {sortable_link(assigns, "Discharge Date", "date_of_discharge")}
                   </th>
 
                   <th class="corp-th">Hospital Name</th>
 
-                  <th class="corp-th">Amount Claimed</th>
-
-                  <th class="corp-th">Claim Reason</th>
-
-                  <th class="corp-th">Hospital Address</th>
+                  <th class="corp-th">Hospital State</th>
 
                   <th class="corp-th">City</th>
 
-                  <th class="corp-th">State</th>
+                  <th class="corp-th">Network Status</th>
 
-                  <th class="corp-th">Pincode</th>
+                  <th class="corp-th">Treatment Type</th>
 
-                  <th class="corp-th">Treatment Details</th>
+                  <th class="corp-th">Level of Care</th>
 
-                  <th class="corp-th">Remarks</th>
+                  <th class="corp-th">
+                    {sortable_link(assigns, "Amount Claimed", "amount_claimed")}
+                  </th>
 
-                  <th class="corp-th">Portal</th>
+                  <th class="corp-th">
+                    {sortable_link(assigns, "Amount Sanctioned", "amount_sanctioned")}
+                  </th>
 
-                  <th class="corp-th">{sortable_link(assigns, "Submitted At", "submitted_at")}</th>
+                  <th class="corp-th">Claim Paid Amount</th>
 
-                  <th class="corp-th">{sortable_link(assigns, "Created At", "inserted_at")}</th>
+                  <th class="corp-th">Sum Insured</th>
 
-                  <th class="corp-th">Claim Docs</th>
+                  <th class="corp-th">TDS Amount</th>
 
-                  <th class="corp-th">Logs</th>
+                  <th class="corp-th">Deduction Amount</th>
+
+                  <th class="corp-th">Deduction Reason</th>
+
+                  <th class="corp-th">Gender</th>
+
+                  <th class="corp-th">Age</th>
+
+                  <th class="corp-th">Cause</th>
+
+                  <th class="corp-th">Disease Category</th>
+
+                  <th class="corp-th">ICD Code</th>
+
+                  <th class="corp-th">Intimation Method</th>
+
+                  <th class="corp-th">Claim Registered Date</th>
+
+                  <th class="corp-th">Claim File Submitted Date</th>
+
+                  <th class="corp-th">Claim Settled Date</th>
+
+                  <th class="corp-th">Deficiency Reason</th>
+
+                  <th class="corp-th">Close Reasons</th>
+
+                  <th class="corp-th">Policy</th>
                 </tr>
               </thead>
 
               <tbody>
                 <%= if @claims_page.entries == [] do %>
                   <tr class="corp-empty-row">
-                    <td colspan="27" class="corp-empty-cell">
+                    <td colspan="37" class="corp-empty-cell">
                       <div class="corp-empty-state">
                         <.icon name="hero-inbox" class="w-12 h-12 text-gray-300 mb-3" />
-                        <p class="corp-empty-text">No claims reported yet</p>
+                        <p class="corp-empty-text">No claim reports found</p>
                       </div>
                     </td>
                   </tr>
@@ -218,78 +216,82 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                         {(@claims_page.page - 1) * @claims_page.page_size + index}
                       </td>
 
-                      <td class="corp-td">{claim.corporate_name}</td>
-
-                      <td class="corp-td">{claim.policy_number}</td>
-
-                      <td class="corp-td">{claim.employee_code}</td>
+                      <td class="corp-td">{blank_dash(claim.employee_code)}</td>
 
                       <td class="corp-td">{blank_dash(claim.employee_name)}</td>
 
-                      <td class="corp-td">{claim.patient_name}</td>
+                      <td class="corp-td">{blank_dash(claim.patient_name)}</td>
 
                       <td class="corp-td">{blank_dash(claim.relationship)}</td>
 
-                      <td class="corp-td">{claim.claim_type}</td>
+                      <td class="corp-td">{blank_dash(claim.claim_type)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.tpa_claim_no)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.insurance_claim_no)}</td>
 
                       <td class="corp-td">
-                        <span class={MasterClaimSubmission.status_badge_class(claim.claim_status)}>
-                          {claim.claim_status}
+                        <span class={status_badge_class(claim.claim_status)}>
+                          {blank_dash(claim.claim_status)}
                         </span>
                       </td>
 
-                      <td class="corp-td">{claim.claim_number}</td>
+                      <td class="corp-td">{blank_dash(claim.claim_sub_status)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.intimation_number)}</td>
+                      <td class="corp-td">{blank_dash(claim.date_of_hospitalization)}</td>
 
-                      <td class="corp-td">{format_date(claim.hospitalization_date)}</td>
+                      <td class="corp-td">{blank_dash(claim.date_of_discharge)}</td>
 
-                      <td class="corp-td">{format_date(claim.discharge_date)}</td>
+                      <td class="corp-td">{blank_dash(claim.hospital_name)}</td>
 
-                      <td class="corp-td">{claim.hospital_name}</td>
-
-                      <td class="corp-td">{format_amount(claim.estimated_amount)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.claim_reason)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.hospital_address)}</td>
+                      <td class="corp-td">{blank_dash(claim.hospital_state)}</td>
 
                       <td class="corp-td">{blank_dash(claim.city)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.state)}</td>
+                      <td class="corp-td">{blank_dash(claim.network_status)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.pincode)}</td>
+                      <td class="corp-td">{blank_dash(claim.treatment_type)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.treatment_details)}</td>
+                      <td class="corp-td">{blank_dash(claim.level_of_care)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.remarks)}</td>
+                      <td class="corp-td">{format_amount(claim.amount_claimed)}</td>
 
-                      <td class="corp-td">{portal_label(claim.portal_id)}</td>
+                      <td class="corp-td">{format_amount(claim.amount_sanctioned)}</td>
 
-                      <td class="corp-td">{format_datetime(claim.submitted_at)}</td>
+                      <td class="corp-td">{format_amount(claim.claim_paid_amount)}</td>
 
-                      <td class="corp-td">{format_datetime(claim.inserted_at)}</td>
+                      <td class="corp-td">{format_amount(claim.sum_insured)}</td>
+
+                      <td class="corp-td">{format_amount(claim.tds_amount)}</td>
+
+                      <td class="corp-td">{format_amount(claim.deduction_amount)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.deduction_reason)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.patient_gender)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.age)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.cause)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.disease_category)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.icd_code)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.intimation_method)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.claim_registered_date)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.claim_file_submitted_dt)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.claim_settled_date)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.deficiency_reason)}</td>
+
+                      <td class="corp-td">{blank_dash(claim.close_reasons)}</td>
 
                       <td class="corp-td">
-                        <button
-                          type="button"
-                          phx-click="view_documents"
-                          phx-value-id={claim.id}
-                          class="btn-primary text-xs px-3 py-1"
-                        >
-                          View
-                        </button>
-                      </td>
-
-                      <td class="corp-td">
-                        <button
-                          type="button"
-                          phx-click="view_logs"
-                          phx-value-id={claim.id}
-                          class="btn-secondary text-xs px-3 py-1"
-                        >
-                          View
-                        </button>
+                        {if claim.policy, do: claim.policy.policy_number, else: "-"}
                       </td>
                     </tr>
                   <% end %>
@@ -336,160 +338,14 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
           </div>
         </div>
       </div>
-
-      <%= if @show_documents_modal and @selected_claim do %>
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div class="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h3 class="text-lg font-semibold">Claim Documents</h3>
-
-                <p class="text-sm text-gray-500">
-                  {@selected_claim.claim_number} - {@selected_claim.patient_name}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                phx-click="close_modal"
-                class="text-gray-400 transition hover:text-gray-600"
-              >
-                <.icon name="hero-x-mark" class="w-5 h-5" />
-              </button>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="corp-table">
-                <thead>
-                  <tr>
-                    <th class="corp-th">SI NO</th>
-
-                    <th class="corp-th">Document Name</th>
-
-                    <th class="corp-th">Attachment</th>
-
-                    <th class="corp-th">Uploaded At</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <%= if @selected_claim.documents == [] do %>
-                    <tr class="corp-empty-row">
-                      <td colspan="4" class="corp-empty-cell">No documents uploaded.</td>
-                    </tr>
-                  <% else %>
-                    <%= for {document, index} <- Enum.with_index(@selected_claim.documents, 1) do %>
-                      <tr class="corp-tr">
-                        <td class="corp-td">{index}</td>
-
-                        <td class="corp-td">{document.document_name}</td>
-
-                        <td class="corp-td">
-                          <a
-                            href={static_upload_path(document.file_path)}
-                            target="_blank"
-                            class="text-blue-600 hover:underline"
-                          >
-                            {document.original_file_name}
-                          </a>
-                        </td>
-
-                        <td class="corp-td">{format_datetime(document.inserted_at)}</td>
-                      </tr>
-                    <% end %>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      <% end %>
-
-      <%= if @show_logs_modal and @selected_claim do %>
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div class="w-full max-w-5xl rounded-2xl bg-white p-6 shadow-2xl">
-            <div class="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h3 class="text-lg font-semibold">Claim Logs</h3>
-
-                <p class="text-sm text-gray-500">
-                  Complete audit trail for {@selected_claim.claim_number}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                phx-click="close_modal"
-                class="text-gray-400 transition hover:text-gray-600"
-              >
-                <.icon name="hero-x-mark" class="w-5 h-5" />
-              </button>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="corp-table">
-                <thead>
-                  <tr>
-                    <th class="corp-th">SI NO</th>
-
-                    <th class="corp-th">Claim ID</th>
-
-                    <th class="corp-th">Policy ID</th>
-
-                    <th class="corp-th">Portal ID</th>
-
-                    <th class="corp-th">Submitted By</th>
-
-                    <th class="corp-th">Action</th>
-
-                    <th class="corp-th">User ID</th>
-
-                    <th class="corp-th">Timestamp</th>
-
-                    <th class="corp-th">Remarks</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <%= if @selected_claim.logs == [] do %>
-                    <tr class="corp-empty-row">
-                      <td colspan="9" class="corp-empty-cell">No logs available for this claim.</td>
-                    </tr>
-                  <% else %>
-                    <%= for {log, index} <- Enum.with_index(@selected_claim.logs, 1) do %>
-                      <tr class="corp-tr">
-                        <td class="corp-td">{index}</td>
-
-                        <td class="corp-td">{log.claim_id}</td>
-
-                        <td class="corp-td">{log.policy_id}</td>
-
-                        <td class="corp-td">{log.portal_id}</td>
-
-                        <td class="corp-td">{blank_dash(log.submitted_by)}</td>
-
-                        <td class="corp-td">{log.action}</td>
-
-                        <td class="corp-td">{blank_dash(log.user_id)}</td>
-
-                        <td class="corp-td">{format_datetime(log.inserted_at)}</td>
-
-                        <td class="corp-td">{blank_dash(log.remarks)}</td>
-                      </tr>
-                    <% end %>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      <% end %>
     </Layouts.admin>
     """
   end
 
+  # ─── Private helpers ──────────────────────────────────────────────────────────
+
   defp load_claims(socket, params) do
-    claims_page = Claims.list_claims(socket.assigns.current_user, :admin, params)
+    claims_page = Policies.list_total_claim_reports(params)
     assign(socket, :claims_page, claims_page)
   end
 
@@ -523,29 +379,35 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
     """
   end
 
-  defp format_date(nil), do: "-"
-  defp format_date(%Date{} = date), do: Calendar.strftime(date, "%d-%m-%Y")
+  defp status_badge_class(nil), do: "badge badge-ghost"
+  defp status_badge_class(""), do: "badge badge-ghost"
 
-  defp format_datetime(nil), do: "-"
-  defp format_datetime(%DateTime{} = datetime), do: Calendar.strftime(datetime, "%d-%m-%Y %H:%M")
+  defp status_badge_class(status) do
+    normalized = status |> String.trim() |> String.downcase()
 
-  defp format_datetime(%NaiveDateTime{} = datetime),
-    do: Calendar.strftime(datetime, "%d-%m-%Y %H:%M")
+    cond do
+      String.contains?(normalized, "paid") or String.contains?(normalized, "settle") ->
+        "badge badge-success text-white"
+
+      String.contains?(normalized, "reject") ->
+        "badge badge-error text-white"
+
+      String.contains?(normalized, "close") ->
+        "badge badge-warning text-white"
+
+      String.contains?(normalized, "process") or String.contains?(normalized, "pending") ->
+        "badge badge-info text-white"
+
+      true ->
+        "badge badge-ghost"
+    end
+  end
 
   defp format_amount(nil), do: "-"
-  defp format_amount(%Decimal{} = amount), do: Decimal.to_string(amount)
-  defp format_amount(amount), do: to_string(amount)
-
-  defp portal_label(1), do: "Admin"
-  defp portal_label(2), do: "Corporate"
-  defp portal_label(3), do: "Employee"
-  defp portal_label(_), do: "-"
+  defp format_amount(val) when is_float(val), do: "₹#{:erlang.float_to_binary(val, decimals: 2)}"
+  defp format_amount(val), do: to_string(val)
 
   defp blank_dash(nil), do: "-"
   defp blank_dash(""), do: "-"
   defp blank_dash(value), do: value
-
-  defp static_upload_path(path) when is_binary(path) do
-    "/#{path |> String.replace("\\", "/") |> String.trim_leading("/")}"
-  end
 end

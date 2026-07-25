@@ -105,6 +105,178 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  def count_policies_by_status(status) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status == ^status),
+      :count,
+      :id
+    )
+  end
+
+  def count_policies_by_statuses(statuses) when is_list(statuses) do
+    Repo.aggregate(
+      from(p in Policy, where: p.status in ^statuses),
+      :count,
+      :id
+    )
+  end
+
+  def count_total_claim_reports do
+    Repo.aggregate(
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at)),
+      :count,
+      :id
+    ) || 0
+  end
+
+  def list_total_claim_reports(params \\ %{}) do
+    page = params |> Map.get("page", 1) |> normalize_page()
+    search = StringUtils.normalize(Map.get(params, "search", ""))
+    status = StringUtils.normalize(Map.get(params, "status", ""))
+    sort_by = Map.get(params, "sort_by", "id")
+    sort_dir = if Map.get(params, "sort_dir", "desc") == "asc", do: :asc, else: :desc
+
+    base_query =
+      from r in MasterTotalClaimReport,
+        where: is_nil(r.deleted_at),
+        preload: [:policy]
+
+    base_query =
+      if search != "" do
+        like = "%#{search}%"
+
+        where(
+          base_query,
+          [r],
+          ilike(r.employee_code, ^like) or
+            ilike(r.employee_name, ^like) or
+            ilike(r.patient_name, ^like) or
+            ilike(r.tpa_claim_no, ^like) or
+            ilike(r.hospital_name, ^like) or
+            ilike(r.insurance_claim_no, ^like)
+        )
+      else
+        base_query
+      end
+
+    base_query =
+      if status != "" do
+        where(
+          base_query,
+          [r],
+          fragment("lower(trim(?))", r.claim_status) == ^StringUtils.downcase(status)
+        )
+      else
+        base_query
+      end
+
+    sort_field =
+      case sort_by do
+        "employee_code" -> :employee_code
+        "employee_name" -> :employee_name
+        "patient_name" -> :patient_name
+        "tpa_claim_no" -> :tpa_claim_no
+        "claim_status" -> :claim_status
+        "amount_claimed" -> :amount_claimed
+        "amount_sanctioned" -> :amount_sanctioned
+        "date_of_hospitalization" -> :date_of_hospitalization
+        "date_of_discharge" -> :date_of_discharge
+        _ -> :id
+      end
+
+    total_entries = Repo.aggregate(base_query, :count, :id)
+    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+    page = min(page, total_pages)
+
+    entries =
+      base_query
+      |> order_by(^[{sort_dir, sort_field}])
+      |> offset(^((page - 1) * @page_size))
+      |> limit(^@page_size)
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      page_size: @page_size,
+      total_entries: total_entries,
+      total_pages: total_pages,
+      search: search,
+      status: status,
+      sort_by: sort_by,
+      sort_dir: if(sort_dir == :asc, do: "asc", else: "desc")
+    }
+  end
+
+  def list_total_claim_reports_for_export do
+    from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at), order_by: [desc: r.id])
+    |> Repo.all()
+  end
+
+  def total_claim_report_statuses do
+    from(r in MasterTotalClaimReport,
+      where: is_nil(r.deleted_at) and not is_nil(r.claim_status) and r.claim_status != "",
+      select: r.claim_status,
+      distinct: true,
+      order_by: r.claim_status
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Counts employees in trn_mapping_live_employees filtered by relationship and status.
+  Useful for dashboard stats showing, e.g., active Employee-relationship members.
+  """
+  def count_live_employees_by_relationship_and_status(relationship, status) do
+    Repo.aggregate(
+      from(e in TrnMappingLiveEmployee,
+        where: e.relationship == ^relationship and e.status == ^status and is_nil(e.deleted_at)
+      ),
+      :count,
+      :id
+    ) || 0
+  end
+
+  def get_global_claims_corner_summary do
+    claims =
+      from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at))
+      |> Repo.all()
+
+    Enum.reduce(
+      claims,
+      %{
+        closed_amount: 0.0,
+        paid_amount: 0.0,
+        rejected_amount: 0.0,
+        process_amount: 0.0
+      },
+      fn claim, acc ->
+        status = (claim.claim_status || "") |> String.trim() |> String.downcase()
+        claimed = claim.amount_claimed || 0.0
+        paid = claim.claim_paid_amount || claim.amount_sanctioned || claimed
+
+        cond do
+          status == "closed" or String.contains?(status, "close") ->
+            %{acc | closed_amount: acc.closed_amount + claimed}
+
+          status in ["paid", "settled", "claim paid"] or String.contains?(status, "paid") or
+              String.contains?(status, "settle") ->
+            %{acc | paid_amount: acc.paid_amount + paid}
+
+          status == "rejected" or String.contains?(status, "reject") ->
+            %{acc | rejected_amount: acc.rejected_amount + claimed}
+
+          status in ["under process", "in process", "processing", "pending"] or
+            String.contains?(status, "process") or String.contains?(status, "pending") ->
+            %{acc | process_amount: acc.process_amount + claimed}
+
+          true ->
+            acc
+        end
+      end
+    )
+  end
+
   def list_active_policies do
     Repo.all(
       from p in Policy,
@@ -134,12 +306,13 @@ defmodule CorporatePolicy.Policies do
           where:
             (p.ref_corporate_id == ^corporate_id or
                fragment("lower(trim(?))", p.corporate_name) == ^normalized_corporate_name) and
-              p.status == 1 and not is_nil(p.policy_number) and
+              p.status in [0, 1, 2] and not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       else
         from p in Policy,
           where:
-            p.ref_corporate_id == ^corporate_id and p.status == 1 and not is_nil(p.policy_number) and
+            p.ref_corporate_id == ^corporate_id and p.status in [0, 1, 2] and
+              not is_nil(p.policy_number) and
               fragment("trim(?) <> ''", p.policy_number)
       end
 
@@ -778,6 +951,8 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc "Lists all active sum insured values for a policy."
+  def list_sum_insureds_for_policy(policy_id) when policy_id in [nil, "", "nil"], do: []
+
   def list_sum_insureds_for_policy(policy_id) do
     Repo.all(
       from s in MasterSumInsured,
@@ -787,6 +962,9 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc "Lists features associated with a specific feature identifier ID."
+  def list_features_by_identifier(policy_id, _feature_identifier_id)
+      when policy_id in [nil, "", "nil"], do: []
+
   def list_features_by_identifier(_policy_id, nil), do: []
 
   def list_features_by_identifier(policy_id, feature_identifier_id) do
@@ -1086,6 +1264,266 @@ defmodule CorporatePolicy.Policies do
   end
 
   @doc """
+  Returns statistics for the Corporate Portal dashboard (claim analysis in amount/ratio/count, enrollment list counts).
+  """
+  def get_dashboard_claim_stats(nil) do
+    %{
+      claim_analysis_in_amount: %{
+        claims_paid: 0.0,
+        claims_underprocess: 0.0,
+        claims_closed: 0.0,
+        claims_rejected: 0.0,
+        reported_claims: 0.0
+      },
+      claim_analysis_in_ratio: %{
+        claims_paid_ratio: 0.0,
+        claims_underprocess_ratio: 0.0
+      },
+      claim_analysis_in_count: %{
+        claims_paid_count: 0,
+        claims_underprocess_count: 0,
+        claims_closed_count: 0,
+        claims_rejected_count: 0,
+        reported_claims_count: 0
+      },
+      enrollment_list: %{
+        active_list: 0,
+        inception_list: 0,
+        addition_list: 0,
+        deletion_list: 0
+      }
+    }
+  end
+
+  def get_dashboard_claim_stats(policy_id) do
+    # 1. claim_analysis_in_amount
+    claims_paid =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "paid"
+        ),
+        :sum,
+        :claim_paid_amount
+      ) || 0.0
+
+    claims_underprocess =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "under process"
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    claims_closed =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "closed"
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    claims_rejected =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "rejected"
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    reported_claims =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :amount_claimed
+      ) || 0.0
+
+    # 2. claim_analysis_in_ratio
+    total_paid_amount =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :claim_paid_amount
+      ) || 0.0
+
+    total_amount_sanctioned =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    ratio_denominator = total_paid_amount + total_amount_sanctioned
+
+    claims_underprocess_ratio_numerator =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) in [
+                "under process",
+                "closed",
+                "rejected"
+              ]
+        ),
+        :sum,
+        :amount_sanctioned
+      ) || 0.0
+
+    claims_paid_ratio = calculate_ratio(claims_paid, ratio_denominator)
+
+    claims_underprocess_ratio =
+      calculate_ratio(claims_underprocess_ratio_numerator, ratio_denominator)
+
+    # 3. claim_analysis_in_count
+    claims_paid_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "paid"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_underprocess_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "under process"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_closed_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "closed"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    claims_rejected_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where:
+            c.ref_policy_id == ^policy_id and is_nil(c.deleted_at) and
+              fragment("lower(trim(?))", c.claim_status) == "rejected"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    reported_claims_count =
+      Repo.aggregate(
+        from(c in MasterTotalClaimReport,
+          where: c.ref_policy_id == ^policy_id and is_nil(c.deleted_at)
+        ),
+        :count,
+        :id
+      ) || 0
+
+    # 4. enrollment_list
+    inception_list =
+      Repo.aggregate(
+        from(m in MasterInceptionDataUpload,
+          where:
+            m.ref_policy_id == ^policy_id and is_nil(m.deleted_at) and
+              fragment("lower(trim(?))", m.relationship) == "employee"
+        ),
+        :count,
+        :id
+      ) || 0
+
+    addition_list =
+      Repo.aggregate(
+        from(e in MasterEndorsementDataUpload,
+          where:
+            e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+              fragment("lower(trim(?))", e.endorsement_type) in [
+                "employee_addition",
+                "employee addition"
+              ]
+        ),
+        :count,
+        :id
+      ) || 0
+
+    deletion_list =
+      Repo.aggregate(
+        from(e in MasterEndorsementDataUpload,
+          where:
+            e.ref_policy_id == ^policy_id and is_nil(e.deleted_at) and
+              fragment("lower(trim(?))", e.endorsement_type) in [
+                "employee_deletion",
+                "employee deletion"
+              ]
+        ),
+        :count,
+        :id
+      ) || 0
+
+    active_list = inception_list + addition_list - deletion_list
+
+    %{
+      claim_analysis_in_amount: %{
+        claims_paid: claims_paid,
+        claims_underprocess: claims_underprocess,
+        claims_closed: claims_closed,
+        claims_rejected: claims_rejected,
+        reported_claims: reported_claims
+      },
+      claim_analysis_in_ratio: %{
+        claims_paid_ratio: claims_paid_ratio,
+        claims_underprocess_ratio: claims_underprocess_ratio
+      },
+      claim_analysis_in_count: %{
+        claims_paid_count: claims_paid_count,
+        claims_underprocess_count: claims_underprocess_count,
+        claims_closed_count: claims_closed_count,
+        claims_rejected_count: claims_rejected_count,
+        reported_claims_count: reported_claims_count
+      },
+      enrollment_list: %{
+        active_list: active_list,
+        inception_list: inception_list,
+        addition_list: addition_list,
+        deletion_list: deletion_list
+      }
+    }
+  end
+
+  defp calculate_ratio(_numerator, denominator) when denominator == 0 or denominator == 0.0 do
+    0.0
+  end
+
+  defp calculate_ratio(numerator, denominator) do
+    Float.round(numerator / denominator * 100.0, 2)
+  end
+
+  @doc """
   Returns paginated list view entries (page size 10) for a given list_type ("active", "inception", "addition", "deletion").
   """
   def list_policy_list_view_paginated(nil, _list_type, _params) do
@@ -1314,7 +1752,20 @@ defmodule CorporatePolicy.Policies do
 
   @total_claim_page_size 10
 
-  def list_total_claim_reports_paginated(policy_id, params \\ %{}) do
+  def list_total_claim_reports_paginated(policy_id, params \\ %{})
+
+  def list_total_claim_reports_paginated(policy_id, _params) when policy_id in [nil, "", "nil"] do
+    %{
+      entries: [],
+      page: 1,
+      page_size: @total_claim_page_size,
+      total_entries: 0,
+      total_pages: 1,
+      search: ""
+    }
+  end
+
+  def list_total_claim_reports_paginated(policy_id, params) do
     page = positive_int(Map.get(params, "page", 1), 1)
     search = StringUtils.normalize(Map.get(params, "search", ""))
 
@@ -1360,6 +1811,8 @@ defmodule CorporatePolicy.Policies do
       search: search
     }
   end
+
+  def list_total_claim_reports_for_export(policy_id) when policy_id in [nil, "", "nil"], do: []
 
   def list_total_claim_reports_for_export(policy_id) do
     from(r in MasterTotalClaimReport,
@@ -1613,4 +2066,30 @@ defmodule CorporatePolicy.Policies do
   Gets a single master policy document by ID.
   """
   def get_master_policy_document(id), do: Repo.get(MasterPolicyDocument, id)
+
+  @doc """
+  Returns line chart data showing count of policies expiring per calendar month.
+  Queries the database for policies where policy_end_date >= NOW(), groups by month of policy_end_date,
+  and maps them to a list corresponding to Jan-Dec.
+  """
+  def get_expiring_policies_chart_data do
+    query =
+      from p in Policy,
+        where: p.policy_end_date >= fragment("NOW()"),
+        group_by: fragment("extract(month from ?)", p.policy_end_date),
+        select: {
+          fragment("extract(month from ?)::integer", p.policy_end_date),
+          count(p.id)
+        }
+
+    results = Repo.all(query) |> Map.new()
+
+    labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    values = Enum.map(1..12, fn m -> Map.get(results, m, 0) end)
+
+    %{
+      labels: labels,
+      values: values
+    }
+  end
 end

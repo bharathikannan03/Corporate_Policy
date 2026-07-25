@@ -69,4 +69,71 @@ defmodule CorporatePolicyWeb.DashboardLiveTest do
 
     assert corp_html =~ "All Corporates"
   end
+
+  test "displays expiring policies renewals chart correctly", %{
+    conn: conn,
+    user: user,
+    active_corp: corporate
+  } do
+    alias CorporatePolicy.Policies
+    alias CorporatePolicy.Repo
+
+    # 1. Fetch metadata records so we don't violate foreign key constraints
+    gmc_pt =
+      case Repo.get_by(Policies.PolicyType, policy_type_value: "GMC") do
+        nil ->
+          %Policies.PolicyType{}
+          |> Policies.PolicyType.changeset(%{
+            policy_type_value: "GMC",
+            display_id: 1,
+            status: 1,
+            ref_md_line_of_businesses_id: 1
+          })
+          |> Repo.insert!()
+
+        existing ->
+          existing
+      end
+
+    lob = List.first(Policies.list_line_of_businesses())
+    insurer = List.first(Policies.list_insurers())
+    tpa = List.first(Policies.list_tpas())
+    family_def = List.first(Policies.list_family_definitions())
+
+    # Create a future end date
+    today = Date.utc_today()
+    future_date = Date.add(today, 30)
+    future_month = future_date.month
+
+    {:ok, _policy} =
+      Policies.create_policy(%{
+        "ref_corporate_id" => corporate.corporate_id,
+        "corporate_name" => corporate.corporate_name,
+        "ref_md_line_of_businesses_id" => (lob && lob.id) || 1,
+        "line_of_business" => (lob && lob.line_of_business_value) || "Health",
+        "ref_md_policy_types_id" => gmc_pt.id,
+        "policy_type" => "GMC",
+        "ref_select_insurer_id" => (insurer && insurer.id) || 1,
+        "select_insurer" => "Aditya Birla Health Insurance Co. Limited",
+        "ref_tpa_id" => tpa && tpa.id,
+        "select_tpa" => "Internal TPA",
+        "ref_md_family_definitions_id" => (family_def && family_def.id) || 1,
+        "policy_number" => "TEST-POLICY-123",
+        "policy_start_date" => Date.to_iso8601(today),
+        "policy_end_date" => Date.to_iso8601(future_date)
+      })
+
+    # 2. Get chart data directly and check
+    chart_data = Policies.get_expiring_policies_chart_data()
+    expected_value_at_index = Enum.at(chart_data.values, future_month - 1)
+    assert expected_value_at_index >= 1
+
+    # 3. Mount dashboard and assert page contains hook and JSON data for chart
+    conn = conn |> init_test_session(current_user_id: user.id)
+    {:ok, _view, html} = live(conn, ~p"/admin/dashboard")
+
+    # Assert renewals-chart element and data exists in DOM
+    assert html =~ "renewals-chart"
+    assert html =~ "data-values"
+  end
 end

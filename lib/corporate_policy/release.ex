@@ -18,13 +18,13 @@ defmodule CorporatePolicy.Release do
     {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
   end
 
-  @seeds_path "priv/repo/seeds.exs"
+  @seeds_path "priv/repo/seeds/seeds.exs"
 
   @doc """
   Runs the application seeds when invoked from a compiled release.
 
   IMPORTANT: Mix releases do not include the project's `priv` source files
-  (such as `priv/repo/seeds.exs` and the modular files under
+  (such as `priv/repo/seeds/seeds.exs` and the modular files under
   `priv/repo/seeds/`) by default. Only `priv` directories that are copied in
   as part of the build (e.g. static assets referenced via
   `Application.app_dir/2`) ship with the release. As a result, calling this
@@ -37,7 +37,7 @@ defmodule CorporatePolicy.Release do
   seed data should be applied using one of the following approaches:
 
     1. Run seeds locally/from CI against the production database using
-       `MIX_ENV=prod mix run priv/repo/seeds.exs`, with `DATABASE_URL`
+       `MIX_ENV=prod mix run priv/repo/seeds/seeds.exs`, with `DATABASE_URL`
        (and any other required env vars) pointed at the target environment.
        This works because `mix run` has access to the full source tree,
        unlike a compiled release.
@@ -56,10 +56,10 @@ defmodule CorporatePolicy.Release do
   bundled by `mix release` (Mix copies the whole `priv/` directory for the
   app by default, but Railpack/Docker-based builds may prune source files
   first). A custom release step (e.g. a `Mix.Release` step in `mix.exs` or a
-  post-build script in the Railpack config) could copy `priv/repo/seeds.exs`
+  post-build script in the Railpack config) could copy `priv/repo/seeds/seeds.exs`
   and `priv/repo/seeds/` into the release's `priv` directory before
   packaging, after which `Code.eval_file/1` (resolved via
-  `Application.app_dir(:corporate_policy, "priv/repo/seeds.exs")`) would
+  `Application.app_dir(:corporate_policy, "priv/repo/seeds/seeds.exs")`) would
   succeed at runtime.
   """
   def seed do
@@ -78,9 +78,9 @@ defmodule CorporatePolicy.Release do
       IO.warn("""
       Skipping CorporatePolicy.Release.seed/0: could not find #{seeds_file}.
 
-      Seed source files (priv/repo/seeds.exs and priv/repo/seeds/*.exs) are \
+      Seed source files (priv/repo/seeds/seeds.exs and priv/repo/seeds/*.exs) are \
       not included in this compiled release. Run seeds with \
-      `MIX_ENV=prod mix run priv/repo/seeds.exs` from the source tree \
+      `MIX_ENV=prod mix run priv/repo/seeds/seeds.exs` from the source tree \
       (e.g. via Railway CLI or CI) instead, or package the seed files into \
       the release. See the @doc for CorporatePolicy.Release.seed/0 for details.
       """)

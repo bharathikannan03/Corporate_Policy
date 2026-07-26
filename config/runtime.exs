@@ -83,19 +83,18 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-host =
-  System.get_env("PHX_HOST") || "vibe-elixir.up.railway.app"
+  host =
+    System.get_env("PHX_HOST") || "vibe-elixir.up.railway.app"
 
-config :corporate_policy, :dns_cluster_query,
-  System.get_env("DNS_CLUSTER_QUERY")
+  config :corporate_policy, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-config :corporate_policy, CorporatePolicyWeb.Endpoint,
-  url: [host: host, port: 443, scheme: "https"],
-  check_origin: ["https://#{host}"],
-  http: [
-    ip: {0, 0, 0, 0},
-    port: String.to_integer(System.get_env("PORT") || "4000")
-  ],
+  config :corporate_policy, CorporatePolicyWeb.Endpoint,
+    url: [host: host, port: 443, scheme: "https"],
+    check_origin: ["https://#{host}"],
+    http: [
+      ip: {0, 0, 0, 0},
+      port: String.to_integer(System.get_env("PORT") || "4000")
+    ],
     secret_key_base: secret_key_base
 
   # ## SSL Support

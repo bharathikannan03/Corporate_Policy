@@ -8,8 +8,10 @@ defmodule CorporatePolicyWeb.Pagination do
   def paginate_list(entries, page_param, opts \\ []) when is_list(entries) do
     page_size = Keyword.get(opts, :page_size, @page_size)
     total_entries = length(entries)
-   total_pages =
-  max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
+
+    total_pages =
+      max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
+
     page = normalize_page(page_param, total_pages)
 
     paged_entries =

@@ -55,7 +55,8 @@ defmodule CorporatePolicy.Policies do
         order_by: [desc: p.id]
 
     total_entries = Repo.aggregate(base_query, :count, :id)
-    total_pages = max(ceil(max(total_entries, 1), @page_size), 1)
+    total_pages =
+  max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
     page = min(page, total_pages)
 
     entries =
@@ -185,7 +186,8 @@ defmodule CorporatePolicy.Policies do
       end
 
     total_entries = Repo.aggregate(base_query, :count, :id)
-    total_pages = max(ceil(max(total_entries, 1), @page_size), 1)
+    total_pages =
+  max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
     page = min(page, total_pages)
 
     entries =

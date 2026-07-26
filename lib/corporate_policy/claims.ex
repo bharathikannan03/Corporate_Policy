@@ -52,7 +52,7 @@ defmodule CorporatePolicy.Claims do
       |> maybe_filter_status(status)
 
     total_entries = Repo.aggregate(query, :count, :id)
-    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+    total_pages = max(ceil(max(total_entries, 1), @page_size), 1)
     page = min(page, total_pages)
 
     entries =

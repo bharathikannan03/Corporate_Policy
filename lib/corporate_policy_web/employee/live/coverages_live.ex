@@ -179,7 +179,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
                 </div>
               </div>
             <% end %>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               <%!-- Left Column --%>
               <div class="flex flex-col gap-4">
@@ -187,7 +187,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
                   <.accordion_item group={group} />
                 <% end %>
               </div>
-               <%!-- Right Column --%>
+              <%!-- Right Column --%>
               <div class="flex flex-col gap-4">
                 <%= for group <- @right_col do %>
                   <.accordion_item group={group} />
@@ -210,7 +210,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
           <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0">
             <.icon name={get_icon_for_group(@group.group_id)} class="w-4 h-4" />
           </div>
-          
+
           <div class="flex flex-col min-w-0">
             <span class="font-semibold text-slate-800 text-sm">{@group.group_name}</span>
             <%= if @group.fields_summary != "" do %>
@@ -219,7 +219,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
           </div>
         </div>
       </div>
-      
+
       <div class="collapse-content bg-slate-50/20 border-t border-slate-100/80 p-4">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -229,7 +229,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
                   <td class="py-2.5 pr-4 text-xs font-medium text-slate-500 whitespace-nowrap align-middle">
                     {field.name}
                   </td>
-                  
+
                   <td class={"py-2.5 text-xs font-semibold text-right align-middle " <> get_value_class(field.value)}>
                     {if field.value == "", do: "Not Configured", else: field.value}
                   </td>

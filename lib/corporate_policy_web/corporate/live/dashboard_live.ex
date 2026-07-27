@@ -207,7 +207,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </p>
           </div>
         </div>
-         <%!-- Policy Number --%>
+        <%!-- Policy Number --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--red">
             <.icon name="hero-document" class="w-6 h-6" />
@@ -221,7 +221,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </p>
           </div>
         </div>
-         <%!-- Policy Period --%>
+        <%!-- Policy Period --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--green">
             <.icon name="hero-calendar" class="w-6 h-6" />
@@ -235,7 +235,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </p>
           </div>
         </div>
-         <%!-- TPA --%>
+        <%!-- TPA --%>
         <div class="corp-info-card">
           <div class="corp-info-icon-box corp-info-icon-box--orange">
             <.icon name="hero-user-group" class="w-6 h-6" />
@@ -252,12 +252,12 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
           </div>
         </div>
       </div>
-       <%!-- Middle Row: Premium Analysis + Claim Ratio Analysis + Active Employees --%>
+      <%!-- Middle Row: Premium Analysis + Claim Ratio Analysis + Active Employees --%>
       <div class="corp-middle-grid">
         <%!-- Premium Analysis Card --%>
         <div class="corp-chart-card">
           <h3 class="corp-card-title">PREMIUM ANALYSIS</h3>
-           <%!-- Donut Chart SVG --%>
+          <%!-- Donut Chart SVG --%>
           <div class="relative w-44 h-44 my-2 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" stroke-width="4"></circle>
@@ -302,7 +302,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
               </circle>
             </svg>
           </div>
-           <%!-- Legend --%>
+          <%!-- Legend --%>
           <div class="w-full space-y-1.5 text-xs text-gray-600 mt-2">
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-blue-500 rounded-xs inline-block"></span>
@@ -320,10 +320,10 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </div>
           </div>
         </div>
-         <%!-- Claim Ratio Analysis Card --%>
+        <%!-- Claim Ratio Analysis Card --%>
         <div class="corp-chart-card">
           <h3 class="corp-card-title">CLAIM RATIO ANALYSIS</h3>
-           <%!-- Donut Chart SVG --%>
+          <%!-- Donut Chart SVG --%>
           <div class="relative w-44 h-44 my-2 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" stroke-width="4"></circle>
@@ -353,7 +353,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
               </circle>
             </svg>
           </div>
-           <%!-- Legend --%>
+          <%!-- Legend --%>
           <div class="w-full space-y-1.5 text-xs text-gray-600 mt-2">
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 bg-pink-500 rounded-xs inline-block"></span>
@@ -366,7 +366,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             </div>
           </div>
         </div>
-         <%!-- Active Employees Card --%>
+        <%!-- Active Employees Card --%>
         <div class="corp-active-employees-card">
           <div class="corp-employees-header">
             <h3 class="corp-employees-header-title">ACTIVE EMPLOYEES</h3>
@@ -392,7 +392,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
           </div>
         </div>
       </div>
-       <%!-- Bottom Row: Claims Analysis (Amount) & Claims Analysis (Count) --%>
+      <%!-- Bottom Row: Claims Analysis (Amount) & Claims Analysis (Count) --%>
       <div class="corp-claims-grid">
         <%!-- Claims Analysis (In Amount) --%>
         <div class="corp-claims-card">
@@ -402,7 +402,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
             No Data Found
           </div>
         </div>
-         <%!-- Claims Analysis (In Count) --%>
+        <%!-- Claims Analysis (In Count) --%>
         <div class="corp-claims-card">
           <h3 class="corp-card-title text-left">CLAIM ANALYSIS (IN COUNT)</h3>
 
@@ -416,52 +416,6 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLive do
   end
 
   # ─── Helpers ─────────────────────────────────────────────────────────────────
-
-  defp format_currency(amount) do
-    if is_number(amount) do
-      parts = :erlang.float_to_binary(amount / 1.0, decimals: 2) |> String.split(".")
-      integer_part = Enum.at(parts, 0)
-      decimal_part = Enum.at(parts, 1)
-
-      "₹" <> format_indian_style(integer_part) <> "." <> decimal_part
-    else
-      "₹0.00"
-    end
-  end
-
-  defp format_indian_style(num_str) when is_binary(num_str) do
-    len = String.length(num_str)
-
-    cond do
-      len <= 3 ->
-        num_str
-
-      true ->
-        {rest, last_three} = String.split_at(num_str, -3)
-        rest_formatted = format_twos(rest)
-        rest_formatted <> "," <> last_three
-    end
-  end
-
-  defp format_twos(str) do
-    str
-    |> String.reverse()
-    |> String.codepoints()
-    |> Enum.chunk_every(2)
-    |> Enum.map(&Enum.join/1)
-    |> Enum.join(",")
-    |> String.reverse()
-  end
-
-  defp format_y_label(val) when is_float(val) do
-    if val == Float.floor(val) do
-      round(val)
-    else
-      Float.round(val, 1)
-    end
-  end
-
-  defp format_y_label(val), do: val
 
   defp get_policy_type_name(policy) do
     policy.policy_type || (policy.policy_type_ref && policy.policy_type_ref.policy_type_value)

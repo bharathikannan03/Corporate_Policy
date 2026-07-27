@@ -9,6 +9,10 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
   alias CorporatePolicy.Policies
 
   setup do
+    today = Date.utc_today()
+    start_date = Date.add(today, -5) |> Date.to_string()
+    end_date = Date.add(today, 360) |> Date.to_string()
+
     {:ok, corporate} =
       Corporates.create_corporate(%{
         "corporate_name" => "PURPLE TALK INDIA PRIVATE LIMITED",
@@ -81,8 +85,8 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
         "select_tpa" => "Internal TPA",
         "ref_md_family_definitions_id" => (family_def && family_def.id) || 1,
         "policy_number" => "2-81-25-00003017-000",
-        "policy_start_date" => "2025-07-25",
-        "policy_end_date" => "2026-07-24",
+        "policy_start_date" => start_date,
+        "policy_end_date" => end_date,
         "status" => 1,
         "have_policy_number" => 1
       })
@@ -98,8 +102,8 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
         "ref_select_insurer_id" => (insurer && insurer.id) || 1,
         "select_insurer" => "Draft Insurer Ltd",
         "ref_md_family_definitions_id" => (family_def && family_def.id) || 1,
-        "policy_start_date" => "2025-07-25",
-        "policy_end_date" => "2026-07-24",
+        "policy_start_date" => start_date,
+        "policy_end_date" => end_date,
         "status" => 0,
         "have_policy_number" => 0
       })

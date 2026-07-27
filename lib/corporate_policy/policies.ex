@@ -967,6 +967,74 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
+  @doc """
+  Saves the list of sum insured values for a policy by soft-deleting existing ones
+  and inserting new ones.
+  """
+  def save_policy_sum_insureds(policy_id, sum_insured_list, user_id \\ nil) do
+    Repo.transaction(fn ->
+      # Soft-delete all existing non-deleted sum insureds for this policy
+      from(s in MasterSumInsured,
+        where: s.policy_id == ^policy_id and is_nil(s.deleted_at)
+      )
+      |> Repo.update_all(set: [deleted_at: NaiveDateTime.utc_now(), updated_by: user_id])
+
+      policy = Repo.get(Policy, policy_id)
+      template_id = get_template_id_for_policy(policy)
+      mapped_features = list_mapped_features_by_policy(policy_id)
+
+      Enum.each(sum_insured_list, fn si ->
+        selected_ident =
+          Map.get(si, :policy_feature_identifier) || Map.get(si, "policy_feature_identifier")
+
+        feature_identifier_id =
+          case Enum.find(mapped_features, &(&1.feature_identifier == selected_ident)) do
+            nil -> 1
+            mf -> mf.id
+          end
+
+        si_amount_str = to_string(Map.get(si, :sum_insured) || Map.get(si, "sum_insured"))
+        si_amount = parse_sum_insured_amount(si_amount_str)
+
+        params = %{
+          policy_id: policy_id,
+          sum_insured: si_amount,
+          policy_feature_identifier: selected_ident,
+          template_id: template_id,
+          feature_identifier_id: feature_identifier_id,
+          # Active
+          status: 1,
+          created_by: user_id,
+          updated_by: user_id
+        }
+
+        %MasterSumInsured{}
+        |> MasterSumInsured.changeset(params)
+        |> Repo.insert!()
+      end)
+    end)
+  end
+
+  defp parse_sum_insured_amount(str) do
+    str = str |> to_string() |> String.replace(~r/[\s,]/, "") |> String.downcase()
+
+    cond do
+      str =~ ~r/^(\d+)l$/ ->
+        [_, num_str] = Regex.run(~r/^(\d+)l$/, str)
+        String.to_integer(num_str) * 100_000
+
+      str =~ ~r/^(\d+)lakh$/ ->
+        [_, num_str] = Regex.run(~r/^(\d+)lakh$/, str)
+        String.to_integer(num_str) * 100_000
+
+      true ->
+        case Integer.parse(str) do
+          {val, _} -> val
+          _ -> 0
+        end
+    end
+  end
+
   @doc "Lists features associated with a specific feature identifier ID."
   def list_features_by_identifier(policy_id, _feature_identifier_id)
       when policy_id in [nil, "", "nil"], do: []
@@ -2035,16 +2103,53 @@ defmodule CorporatePolicy.Policies do
         level: p.level,
         user_id: p.user_id,
         fullname: coalesce(m.fullname, p.user_fullname),
+        user_fullname: coalesce(m.fullname, p.user_fullname),
         phone_number: m.phone_number,
         mobile_number: m.mobile_number,
         email_id: m.email_id,
         alt_email_id: m.alt_email_id,
         company_fulladdress: m.company_fulladdress,
         type: m.type,
+        user_type: m.type,
         status: p.status
       }
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Saves the list of escalation matrices for a policy by soft-deleting existing ones
+  and inserting new ones.
+  """
+  def save_policy_escalation_matrices(policy_id, matrices_list, user_id \\ nil) do
+    Repo.transaction(fn ->
+      # Soft-delete all existing non-deleted escalation matrices for this policy
+      from(p in MasterPolicyEscalationMatrix,
+        where: p.policy_id == ^policy_id and is_nil(p.deleted_at)
+      )
+      |> Repo.update_all(set: [deleted_at: NaiveDateTime.utc_now(), updated_by: user_id])
+
+      # Insert new entries
+      Enum.each(matrices_list, fn matrix ->
+        params = %{
+          policy_id: policy_id,
+          escalation_level_id:
+            Map.get(matrix, :escalation_level_id) || Map.get(matrix, "escalation_level_id"),
+          level: Map.get(matrix, :level) || Map.get(matrix, "level"),
+          user_id: Map.get(matrix, :user_id) || Map.get(matrix, "user_id"),
+          user_fullname:
+            Map.get(matrix, :user_fullname) || Map.get(matrix, "user_fullname") ||
+              Map.get(matrix, :fullname) || Map.get(matrix, "fullname"),
+          status: Map.get(matrix, :status) || Map.get(matrix, "status") || 1,
+          created_by: user_id,
+          updated_by: user_id
+        }
+
+        %MasterPolicyEscalationMatrix{}
+        |> MasterPolicyEscalationMatrix.changeset(params)
+        |> Repo.insert!()
+      end)
+    end)
   end
 
   # === Master Policy Documents ===
@@ -2081,6 +2186,37 @@ defmodule CorporatePolicy.Policies do
   Gets a single master policy document by ID.
   """
   def get_master_policy_document(id), do: Repo.get(MasterPolicyDocument, id)
+
+  @doc """
+  Creates a new policy document.
+  """
+  def create_policy_document(attrs, user_id \\ nil) do
+    %MasterPolicyDocument{}
+    |> MasterPolicyDocument.changeset(
+      attrs
+      |> Map.put("created_by", user_id)
+      |> Map.put("updated_by", user_id)
+    )
+    |> Repo.insert()
+  end
+
+  @doc """
+  Soft-deletes a policy document by ID.
+  """
+  def delete_policy_document(id, user_id \\ nil) do
+    case Repo.get(MasterPolicyDocument, id) do
+      nil ->
+        {:error, :not_found}
+
+      doc ->
+        doc
+        |> MasterPolicyDocument.changeset(%{
+          deleted_at: NaiveDateTime.utc_now(),
+          updated_by: user_id
+        })
+        |> Repo.update()
+    end
+  end
 
   @doc """
   Returns line chart data showing count of policies expiring per calendar month.

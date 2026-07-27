@@ -1,11 +1,19 @@
 defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
   use CorporatePolicyWeb, :live_component
 
+  alias CorporatePolicy.Policies
   alias CorporatePolicyWeb.Pagination
 
   @impl true
   def update(assigns, socket) do
-    documents = assigns[:documents] || []
+    policy = assigns.policy
+
+    documents =
+      cond do
+        assigns[:documents] -> assigns[:documents]
+        policy && policy.id -> Policies.list_documents_for_policy(policy.id, nil)
+        true -> []
+      end
 
     doc_types = [
       %{id: 1, name: "Policy Document"},
@@ -65,9 +73,11 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
       ) do
     uploaded_files =
       consume_uploaded_entries(socket, :policy_doc, fn %{path: path}, entry ->
-        dest = Path.join("priv/static/uploads", filename(entry))
+        filename = filename(entry)
+        dest = Path.join("priv/static/uploads", filename)
+        File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
-        {:ok, %{original_file_name: entry.client_name, file_path: dest}}
+        {:ok, %{original_file_name: entry.client_name, file_path: "/uploads/" <> filename}}
       end)
 
     case uploaded_files do
@@ -78,26 +88,36 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         type = Enum.find(socket.assigns.doc_types, &(&1.id == type_id))
         name = Enum.find(socket.assigns.all_doc_names, &(&1.id == name_id))
 
-        new_doc = %{
-          id: System.unique_integer([:positive]),
-          document_type_id: type.id,
-          document_type: type.name,
-          document_name_id: name.id,
-          document_name: name.name,
-          note: note,
-          original_file_name: file_info.original_file_name,
-          file_path: file_info.file_path,
-          status: 0
+        attrs = %{
+          "policy_id" => socket.assigns.policy.id,
+          "document_type_id" => type.id,
+          "document_type" => type.name,
+          "document_name_id" => name.id,
+          "document_name" => name.name,
+          "note" => note,
+          "original_file_name" => file_info.original_file_name,
+          "file_path" => file_info.file_path,
+          "status" => 1
         }
 
-        {:noreply,
-         socket
-         |> assign(:documents, [new_doc | socket.assigns.documents])
-         |> assign_documents_page([new_doc | socket.assigns.documents])
-         |> assign(
-           :form,
-           to_form(%{"document_type_id" => "", "document_name_id" => "", "note" => ""})
-         )}
+        user_id = socket.assigns[:current_user] && socket.assigns.current_user.id
+
+        case Policies.create_policy_document(attrs, user_id) do
+          {:ok, persisted_doc} ->
+            updated_docs = [persisted_doc | socket.assigns.documents]
+
+            {:noreply,
+             socket
+             |> assign(:documents, updated_docs)
+             |> assign_documents_page(updated_docs)
+             |> assign(
+               :form,
+               to_form(%{"document_type_id" => "", "document_name_id" => "", "note" => ""})
+             )}
+
+          {:error, _changeset} ->
+            {:noreply, put_flash(socket, :error, "Failed to save document to database.")}
+        end
 
       _ ->
         {:noreply, put_flash(socket, :error, "Failed to upload document.")}
@@ -112,12 +132,21 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
   @impl true
   def handle_event("remove_document", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
-    updated_list = Enum.reject(socket.assigns.documents, &(&1.id == id))
+    user_id = socket.assigns[:current_user] && socket.assigns.current_user.id
 
-    {:noreply,
-     socket
-     |> assign(:documents, updated_list)
-     |> assign_documents_page(updated_list)}
+    case Policies.delete_policy_document(id, user_id) do
+      {:ok, _deleted_doc} ->
+        updated_list = Enum.reject(socket.assigns.documents, &(&1.id == id))
+
+        {:noreply,
+         socket
+         |> assign(:documents, updated_list)
+         |> assign_documents_page(updated_list)
+         |> put_flash(:info, "Document removed successfully.")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete document from database.")}
+    end
   end
 
   @impl true

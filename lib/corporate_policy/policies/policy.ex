@@ -51,6 +51,12 @@ defmodule CorporatePolicy.Policies.Policy do
     belongs_to :creator, CorporatePolicy.Accounts.User, foreign_key: :created_by
     belongs_to :updater, CorporatePolicy.Accounts.User, foreign_key: :updated_by
 
+    has_many :escalation_matrices, CorporatePolicy.Policies.MasterPolicyEscalationMatrix,
+      foreign_key: :policy_id
+
+    has_many :documents, CorporatePolicy.Policies.MasterPolicyDocument, foreign_key: :policy_id
+    has_many :sum_insureds, CorporatePolicy.Policies.MasterSumInsured, foreign_key: :policy_id
+
     timestamps()
   end
 

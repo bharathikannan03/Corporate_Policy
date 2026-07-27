@@ -7,7 +7,13 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
   @impl true
   def update(assigns, socket) do
     policy = assigns[:policy]
-    sum_insureds = assigns[:sum_insureds] || []
+
+    sum_insureds =
+      cond do
+        assigns[:sum_insureds] -> assigns[:sum_insureds]
+        policy && policy.id -> Policies.list_sum_insureds_for_policy(policy.id)
+        true -> []
+      end
 
     policy_identifiers = Policies.list_policy_identifiers_for_policy(policy)
 
@@ -73,8 +79,18 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
     if Enum.empty?(socket.assigns.sum_insureds) do
       {:noreply, socket |> put_flash(:error, "Please add at least one Sum Insured entry.")}
     else
-      send(self(), {:step_completed, :step3, socket.assigns.policy})
-      {:noreply, socket |> put_flash(:info, "Sum Insured saved successfully.")}
+      policy = socket.assigns.policy
+      current_user = socket.assigns[:current_user]
+      user_id = current_user && current_user.id
+
+      case Policies.save_policy_sum_insureds(policy.id, socket.assigns.sum_insureds, user_id) do
+        {:ok, _} ->
+          send(self(), {:step_completed, :step3, policy})
+          {:noreply, socket |> put_flash(:info, "Sum Insured saved successfully.")}
+
+        {:error, _reason} ->
+          {:noreply, socket |> put_flash(:error, "Failed to save sum insured.")}
+      end
     end
   end
 

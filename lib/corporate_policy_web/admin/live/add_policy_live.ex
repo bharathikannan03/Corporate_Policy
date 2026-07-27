@@ -20,7 +20,11 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
       case socket.assigns.live_action do
         :edit ->
           id = params["id"]
-          policy = Policies.get_policy!(id)
+
+          policy =
+            Policies.get_policy!(id)
+            |> CorporatePolicy.Repo.preload([:escalation_matrices, :documents, :sum_insureds])
+
           step = params["step"] |> then(&if &1, do: String.to_existing_atom(&1), else: :step1)
           {policy, true, step}
 
@@ -168,6 +172,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                   id="step3"
                   policy={@policy}
                   edit_mode={@edit_mode}
+                  current_user={@current_user}
                 />
               <% :step4 -> %>
                 <.live_component
@@ -182,6 +187,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                   id="step5"
                   policy={@policy}
                   edit_mode={@edit_mode}
+                  current_user={@current_user}
                 />
               <% :step6 -> %>
                 <.live_component
@@ -189,6 +195,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                   id="step6"
                   policy={@policy}
                   edit_mode={@edit_mode}
+                  current_user={@current_user}
                 />
               <% :step7 -> %>
                 <.live_component

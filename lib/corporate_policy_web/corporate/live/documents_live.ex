@@ -68,13 +68,15 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
     policy_id = selected_policy && selected_policy.id
 
-    active_doc_type = "policy"
-    documents = fetch_documents(policy_id, active_doc_type)
+    is_hr = is_hr?(current_user)
+    active_doc_type = if is_hr, do: "policy", else: "service"
+    documents = fetch_documents(policy_id, active_doc_type, is_hr)
 
     socket =
       socket
       |> assign(:page_title, "Documents - Corporate Portal")
       |> assign(:current_user, current_user)
+      |> assign(:is_hr, is_hr)
       |> assign(:corporate, corporate)
       |> assign(:corporate_name, corporate_name)
       |> assign(:corporate_id, corporate_id)
@@ -98,7 +100,9 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
 
   @impl true
   def handle_event("select_doc_type", %{"type" => doc_type}, socket) do
-    documents = fetch_documents(socket.assigns.policy_id, doc_type)
+    is_hr = socket.assigns.is_hr
+    doc_type = if not is_hr and doc_type == "policy", do: "service", else: doc_type
+    documents = fetch_documents(socket.assigns.policy_id, doc_type, is_hr)
 
     {:noreply,
      socket
@@ -115,7 +119,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
       get_selected_policy(socket.assigns.policies, type, active_policy_number)
 
     policy_id = selected_policy && selected_policy.id
-    documents = fetch_documents(policy_id, socket.assigns.active_doc_type)
+    documents = fetch_documents(policy_id, socket.assigns.active_doc_type, socket.assigns.is_hr)
 
     {:noreply,
      socket
@@ -133,7 +137,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
       get_selected_policy(socket.assigns.policies, socket.assigns.active_policy_type, number)
 
     policy_id = selected_policy && selected_policy.id
-    documents = fetch_documents(policy_id, socket.assigns.active_doc_type)
+    documents = fetch_documents(policy_id, socket.assigns.active_doc_type, socket.assigns.is_hr)
 
     {:noreply,
      socket
@@ -170,7 +174,7 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
 
     selected_policy = get_selected_policy(policies, active_policy_type, active_policy_number)
     policy_id = selected_policy && selected_policy.id
-    documents = fetch_documents(policy_id, socket.assigns.active_doc_type)
+    documents = fetch_documents(policy_id, socket.assigns.active_doc_type, socket.assigns.is_hr)
 
     {:noreply,
      socket
@@ -186,7 +190,8 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
      |> assign(:documents, documents)}
   end
 
-  defp fetch_documents(policy_id, doc_type) do
+  defp fetch_documents(policy_id, doc_type, is_hr) do
+    doc_type = if not is_hr and doc_type == "policy", do: "service", else: doc_type
     db_docs = Policies.list_documents_for_policy(policy_id, doc_type)
 
     Enum.map(db_docs, fn doc ->
@@ -197,6 +202,12 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
         original_file_name: doc.original_file_name || doc.document_name
       }
     end)
+  end
+
+  defp is_hr?(nil), do: false
+
+  defp is_hr?(user) do
+    user.department_name == "HR" or user.department_id == 4
   end
 
   defp get_policy_type_name(policy) do
@@ -264,35 +275,37 @@ defmodule CorporatePolicyWeb.Corporate.DocumentsLive do
             {if @active_doc_type == "policy", do: "Policy Document", else: "Service Document"}
           </h2>
 
-          <div class="inline-flex rounded-md shadow-xs p-1 bg-gray-100 border border-gray-200">
-            <button
-              type="button"
-              phx-click="select_doc_type"
-              phx-value-type="policy"
-              class={[
-                "px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all duration-150",
-                @active_doc_type == "policy" && "bg-blue-600 text-white shadow-xs",
-                @active_doc_type != "policy" &&
-                  "text-gray-700 hover:text-gray-900 hover:bg-gray-200/60"
-              ]}
-            >
-              Policy Document
-            </button>
+          <%= if @is_hr do %>
+            <div class="inline-flex rounded-md shadow-xs p-1 bg-gray-100 border border-gray-200">
+              <button
+                type="button"
+                phx-click="select_doc_type"
+                phx-value-type="policy"
+                class={[
+                  "px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all duration-150",
+                  @active_doc_type == "policy" && "bg-blue-600 text-white shadow-xs",
+                  @active_doc_type != "policy" &&
+                    "text-gray-700 hover:text-gray-900 hover:bg-gray-200/60"
+                ]}
+              >
+                Policy Document
+              </button>
 
-            <button
-              type="button"
-              phx-click="select_doc_type"
-              phx-value-type="service"
-              class={[
-                "px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all duration-150",
-                @active_doc_type == "service" && "bg-blue-600 text-white shadow-xs",
-                @active_doc_type != "service" &&
-                  "text-gray-700 hover:text-gray-900 hover:bg-gray-200/60"
-              ]}
-            >
-              Service Document
-            </button>
-          </div>
+              <button
+                type="button"
+                phx-click="select_doc_type"
+                phx-value-type="service"
+                class={[
+                  "px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all duration-150",
+                  @active_doc_type == "service" && "bg-blue-600 text-white shadow-xs",
+                  @active_doc_type != "service" &&
+                    "text-gray-700 hover:text-gray-900 hover:bg-gray-200/60"
+                ]}
+              >
+                Service Document
+              </button>
+            </div>
+          <% end %>
         </div>
         <%!-- Documents Grid Display Card --%>
         <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-6 sm:p-10 min-h-[300px]">

@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
   use CorporatePolicyWeb, :live_component
 
   alias CorporatePolicy.EscalationMatrices
+  alias CorporatePolicy.Policies
   alias CorporatePolicyWeb.Pagination
 
   @levels [
@@ -12,7 +13,14 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
 
   @impl true
   def update(assigns, socket) do
-    matrices = assigns[:matrices] || []
+    policy = assigns.policy
+
+    matrices =
+      cond do
+        assigns[:matrices] -> assigns[:matrices]
+        policy && policy.id -> Policies.list_escalation_matrices_for_policy(policy.id)
+        true -> []
+      end
 
     available_users = EscalationMatrices.list_escalation_matrices()
 
@@ -88,8 +96,18 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
     if Enum.empty?(socket.assigns.matrices) do
       {:noreply, socket |> put_flash(:error, "Please configure at least one Escalation level.")}
     else
-      send(self(), {:step_completed, :step5, socket.assigns.policy})
-      {:noreply, socket |> put_flash(:info, "Escalation matrix saved successfully.")}
+      policy = socket.assigns.policy
+      current_user = socket.assigns[:current_user]
+      user_id = current_user && current_user.id
+
+      case Policies.save_policy_escalation_matrices(policy.id, socket.assigns.matrices, user_id) do
+        {:ok, _} ->
+          send(self(), {:step_completed, :step5, policy})
+          {:noreply, socket |> put_flash(:info, "Escalation matrix saved successfully.")}
+
+        {:error, _reason} ->
+          {:noreply, socket |> put_flash(:error, "Failed to save escalation matrix.")}
+      end
     end
   end
 

@@ -15,81 +15,57 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedExportController do
 
   defp to_csv(claims) do
     header = [
+      "Claim No",
+      "Intimation No",
+      "Policy Number",
       "Employee Code",
       "Employee Name",
       "Patient Name",
       "Relationship",
       "Claim Type",
-      "TPA Claim No",
-      "Insurance Claim No",
       "Claim Status",
-      "Claim Sub Status",
-      "Date of Hospitalization",
-      "Date of Discharge",
+      "Insurer",
+      "TPA",
       "Hospital Name",
-      "Hospital State",
+      "Hospital Address",
       "City",
-      "Network Status",
-      "Treatment Type",
-      "Level of Care",
-      "Amount Claimed",
-      "Amount Sanctioned",
-      "Claim Paid Amount",
-      "Sum Insured",
-      "TDS Amount",
-      "Deduction Amount",
-      "Deduction Reason",
-      "Patient Gender",
-      "Age",
-      "Cause",
-      "Disease Category",
-      "ICD Code",
-      "Intimation Method",
-      "Claim Registered Date",
-      "Claim File Submitted Date",
-      "Claim Settled Date",
-      "Deficiency Reason",
-      "Close Reasons"
+      "State",
+      "Pincode",
+      "Hospitalization Date",
+      "Discharge Date",
+      "Estimated Amount",
+      "Claim Reason",
+      "Treatment Details",
+      "Remarks",
+      "Submitted At"
     ]
 
     rows =
       Enum.map(claims, fn c ->
         [
+          c.claim_number,
+          c.intimation_number,
+          if(c.policy, do: c.policy.policy_number, else: nil),
           c.employee_code,
           c.employee_name,
           c.patient_name,
           c.relationship,
           c.claim_type,
-          c.tpa_claim_no,
-          c.insurance_claim_no,
           c.claim_status,
-          c.claim_sub_status,
-          c.date_of_hospitalization,
-          c.date_of_discharge,
+          c.insurer_name,
+          c.tpa_name,
           c.hospital_name,
-          c.hospital_state,
+          c.hospital_address,
           c.city,
-          c.network_status,
-          c.treatment_type,
-          c.level_of_care,
-          c.amount_claimed,
-          c.amount_sanctioned,
-          c.claim_paid_amount,
-          c.sum_insured,
-          c.tds_amount,
-          c.deduction_amount,
-          c.deduction_reason,
-          c.patient_gender,
-          c.age,
-          c.cause,
-          c.disease_category,
-          c.icd_code,
-          c.intimation_method,
-          c.claim_registered_date,
-          c.claim_file_submitted_dt,
-          c.claim_settled_date,
-          c.deficiency_reason,
-          c.close_reasons
+          c.state,
+          c.pincode,
+          c.hospitalization_date,
+          c.discharge_date,
+          c.estimated_amount,
+          c.claim_reason,
+          c.treatment_details,
+          c.remarks,
+          c.submitted_at
         ]
       end)
 
@@ -99,8 +75,11 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedExportController do
   end
 
   defp csv_escape(nil), do: ""
+  defp csv_escape(%Decimal{} = val), do: Decimal.to_string(val)
   defp csv_escape(val) when is_float(val), do: to_string(val)
   defp csv_escape(val) when is_integer(val), do: to_string(val)
+  defp csv_escape(%DateTime{} = val), do: Calendar.strftime(val, "%d-%m-%Y %H:%M")
+  defp csv_escape(%Date{} = val), do: Calendar.strftime(val, "%d-%m-%Y")
 
   defp csv_escape(val) do
     str = to_string(val)

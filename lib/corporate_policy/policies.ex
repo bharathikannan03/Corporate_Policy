@@ -26,6 +26,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.MasterPolicyDocument
   alias CorporatePolicy.EscalationMatrices.EscalationMatrix, as: MasterEscalationMatrix
   alias CorporatePolicy.Policies.MasterSumInsured
+  alias CorporatePolicy.Claims.MasterClaimSubmission
 
   @page_size 15
 
@@ -132,16 +133,19 @@ defmodule CorporatePolicy.Policies do
     ) || 0
   end
 
+  @doc """
+  Lists all claim submissions (from the Claims Intimation form) for the Total Claim Reported admin view.
+  """
   def list_total_claim_reports(params \\ %{}) do
     page = params |> Map.get("page", 1) |> normalize_page()
     search = StringUtils.normalize(Map.get(params, "search", ""))
     status = StringUtils.normalize(Map.get(params, "status", ""))
-    sort_by = Map.get(params, "sort_by", "id")
+    sort_by = Map.get(params, "sort_by", "inserted_at")
     sort_dir = if Map.get(params, "sort_dir", "desc") == "asc", do: :asc, else: :desc
 
     base_query =
-      from r in MasterTotalClaimReport,
-        where: is_nil(r.deleted_at),
+      from c in MasterClaimSubmission,
+        where: is_nil(c.deleted_at),
         preload: [:policy]
 
     base_query =
@@ -150,13 +154,13 @@ defmodule CorporatePolicy.Policies do
 
         where(
           base_query,
-          [r],
-          ilike(r.employee_code, ^like) or
-            ilike(r.employee_name, ^like) or
-            ilike(r.patient_name, ^like) or
-            ilike(r.tpa_claim_no, ^like) or
-            ilike(r.hospital_name, ^like) or
-            ilike(r.insurance_claim_no, ^like)
+          [c],
+          ilike(c.employee_code, ^like) or
+            ilike(c.employee_name, ^like) or
+            ilike(c.patient_name, ^like) or
+            ilike(c.claim_number, ^like) or
+            ilike(c.hospital_name, ^like) or
+            ilike(c.intimation_number, ^like)
         )
       else
         base_query
@@ -166,8 +170,8 @@ defmodule CorporatePolicy.Policies do
       if status != "" do
         where(
           base_query,
-          [r],
-          fragment("lower(trim(?))", r.claim_status) == ^StringUtils.downcase(status)
+          [c],
+          fragment("lower(trim(?))", c.claim_status) == ^StringUtils.downcase(status)
         )
       else
         base_query
@@ -178,13 +182,12 @@ defmodule CorporatePolicy.Policies do
         "employee_code" -> :employee_code
         "employee_name" -> :employee_name
         "patient_name" -> :patient_name
-        "tpa_claim_no" -> :tpa_claim_no
+        "claim_number" -> :claim_number
         "claim_status" -> :claim_status
-        "amount_claimed" -> :amount_claimed
-        "amount_sanctioned" -> :amount_sanctioned
-        "date_of_hospitalization" -> :date_of_hospitalization
-        "date_of_discharge" -> :date_of_discharge
-        _ -> :id
+        "estimated_amount" -> :estimated_amount
+        "hospitalization_date" -> :hospitalization_date
+        "discharge_date" -> :discharge_date
+        _ -> :inserted_at
       end
 
     total_entries = Repo.aggregate(base_query, :count, :id)
@@ -215,18 +218,16 @@ defmodule CorporatePolicy.Policies do
   end
 
   def list_total_claim_reports_for_export do
-    from(r in MasterTotalClaimReport, where: is_nil(r.deleted_at), order_by: [desc: r.id])
+    from(c in MasterClaimSubmission,
+      where: is_nil(c.deleted_at),
+      order_by: [desc: c.id],
+      preload: [:policy]
+    )
     |> Repo.all()
   end
 
   def total_claim_report_statuses do
-    from(r in MasterTotalClaimReport,
-      where: is_nil(r.deleted_at) and not is_nil(r.claim_status) and r.claim_status != "",
-      select: r.claim_status,
-      distinct: true,
-      order_by: r.claim_status
-    )
-    |> Repo.all()
+    ["Draft", "Submitted", "Under Review", "Approved", "Rejected"]
   end
 
   @doc """

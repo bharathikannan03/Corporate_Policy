@@ -56,7 +56,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
             <h1 class="corp-list-title">Total Claim Reported</h1>
 
             <p class="corp-list-subtitle">
-              Displays all claim records uploaded from TPA/insurer claim report files.
+              Displays all claim intimation submissions from the Corporate & Employee portals.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                   type="text"
                   name="search"
                   value={@claims_page.search}
-                  placeholder="Employee code, name, TPA claim no, hospital..."
+                  placeholder="Employee code, name, claim number, hospital..."
                   class="corp-input"
                 />
               </div>
@@ -108,6 +108,14 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                   <th class="corp-th">SI NO</th>
 
                   <th class="corp-th">
+                    {sortable_link(assigns, "Claim No", "claim_number")}
+                  </th>
+
+                  <th class="corp-th">Intimation No</th>
+
+                  <th class="corp-th">Policy</th>
+
+                  <th class="corp-th">
                     {sortable_link(assigns, "Employee Code", "employee_code")}
                   </th>
 
@@ -124,88 +132,52 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                   <th class="corp-th">Claim Type</th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "TPA Claim No", "tpa_claim_no")}
-                  </th>
-
-                  <th class="corp-th">Insurance Claim No</th>
-
-                  <th class="corp-th">
                     {sortable_link(assigns, "Claim Status", "claim_status")}
                   </th>
 
-                  <th class="corp-th">Claim Sub Status</th>
+                  <th class="corp-th">Insurer</th>
 
-                  <th class="corp-th">
-                    {sortable_link(assigns, "Hosp. Date", "date_of_hospitalization")}
-                  </th>
-
-                  <th class="corp-th">
-                    {sortable_link(assigns, "Discharge Date", "date_of_discharge")}
-                  </th>
+                  <th class="corp-th">TPA</th>
 
                   <th class="corp-th">Hospital Name</th>
 
-                  <th class="corp-th">Hospital State</th>
+                  <th class="corp-th">Hospital Address</th>
 
                   <th class="corp-th">City</th>
 
-                  <th class="corp-th">Network Status</th>
+                  <th class="corp-th">State</th>
 
-                  <th class="corp-th">Treatment Type</th>
-
-                  <th class="corp-th">Level of Care</th>
+                  <th class="corp-th">Pincode</th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Amount Claimed", "amount_claimed")}
+                    {sortable_link(assigns, "Hosp. Date", "hospitalization_date")}
                   </th>
 
                   <th class="corp-th">
-                    {sortable_link(assigns, "Amount Sanctioned", "amount_sanctioned")}
+                    {sortable_link(assigns, "Discharge Date", "discharge_date")}
                   </th>
 
-                  <th class="corp-th">Claim Paid Amount</th>
+                  <th class="corp-th">
+                    {sortable_link(assigns, "Est. Amount", "estimated_amount")}
+                  </th>
 
-                  <th class="corp-th">Sum Insured</th>
+                  <th class="corp-th">Claim Reason</th>
 
-                  <th class="corp-th">TDS Amount</th>
+                  <th class="corp-th">Treatment Details</th>
 
-                  <th class="corp-th">Deduction Amount</th>
+                  <th class="corp-th">Remarks</th>
 
-                  <th class="corp-th">Deduction Reason</th>
-
-                  <th class="corp-th">Gender</th>
-
-                  <th class="corp-th">Age</th>
-
-                  <th class="corp-th">Cause</th>
-
-                  <th class="corp-th">Disease Category</th>
-
-                  <th class="corp-th">ICD Code</th>
-
-                  <th class="corp-th">Intimation Method</th>
-
-                  <th class="corp-th">Claim Registered Date</th>
-
-                  <th class="corp-th">Claim File Submitted Date</th>
-
-                  <th class="corp-th">Claim Settled Date</th>
-
-                  <th class="corp-th">Deficiency Reason</th>
-
-                  <th class="corp-th">Close Reasons</th>
-
-                  <th class="corp-th">Policy</th>
+                  <th class="corp-th">Submitted At</th>
                 </tr>
               </thead>
 
               <tbody>
                 <%= if @claims_page.entries == [] do %>
                   <tr class="corp-empty-row">
-                    <td colspan="37" class="corp-empty-cell">
+                    <td colspan="24" class="corp-empty-cell">
                       <div class="corp-empty-state">
                         <.icon name="hero-inbox" class="w-12 h-12 text-gray-300 mb-3" />
-                        <p class="corp-empty-text">No claim reports found</p>
+                        <p class="corp-empty-text">No claim submissions found</p>
                       </div>
                     </td>
                   </tr>
@@ -214,6 +186,14 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                     <tr class="corp-tr">
                       <td class="corp-td">
                         {(@claims_page.page - 1) * @claims_page.page_size + index}
+                      </td>
+
+                      <td class="corp-td font-mono text-xs">{blank_dash(claim.claim_number)}</td>
+
+                      <td class="corp-td font-mono text-xs">{blank_dash(claim.intimation_number)}</td>
+
+                      <td class="corp-td">
+                        {if claim.policy, do: claim.policy.policy_number, else: "-"}
                       </td>
 
                       <td class="corp-td">{blank_dash(claim.employee_code)}</td>
@@ -226,72 +206,45 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
 
                       <td class="corp-td">{blank_dash(claim.claim_type)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.tpa_claim_no)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.insurance_claim_no)}</td>
-
                       <td class="corp-td">
                         <span class={status_badge_class(claim.claim_status)}>
                           {blank_dash(claim.claim_status)}
                         </span>
                       </td>
 
-                      <td class="corp-td">{blank_dash(claim.claim_sub_status)}</td>
+                      <td class="corp-td">{blank_dash(claim.insurer_name)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.date_of_hospitalization)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.date_of_discharge)}</td>
+                      <td class="corp-td">{blank_dash(claim.tpa_name)}</td>
 
                       <td class="corp-td">{blank_dash(claim.hospital_name)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.hospital_state)}</td>
+                      <td class="corp-td">{blank_dash(claim.hospital_address)}</td>
 
                       <td class="corp-td">{blank_dash(claim.city)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.network_status)}</td>
+                      <td class="corp-td">{blank_dash(claim.state)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.treatment_type)}</td>
+                      <td class="corp-td">{blank_dash(claim.pincode)}</td>
 
-                      <td class="corp-td">{blank_dash(claim.level_of_care)}</td>
+                      <td class="corp-td">{blank_dash(claim.hospitalization_date)}</td>
 
-                      <td class="corp-td">{format_amount(claim.amount_claimed)}</td>
+                      <td class="corp-td">{blank_dash(claim.discharge_date)}</td>
 
-                      <td class="corp-td">{format_amount(claim.amount_sanctioned)}</td>
+                      <td class="corp-td">{format_amount(claim.estimated_amount)}</td>
 
-                      <td class="corp-td">{format_amount(claim.claim_paid_amount)}</td>
+                      <td class="corp-td">{blank_dash(claim.claim_reason)}</td>
 
-                      <td class="corp-td">{format_amount(claim.sum_insured)}</td>
+                      <td class="corp-td">{blank_dash(claim.treatment_details)}</td>
 
-                      <td class="corp-td">{format_amount(claim.tds_amount)}</td>
-
-                      <td class="corp-td">{format_amount(claim.deduction_amount)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.deduction_reason)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.patient_gender)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.age)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.cause)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.disease_category)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.icd_code)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.intimation_method)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.claim_registered_date)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.claim_file_submitted_dt)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.claim_settled_date)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.deficiency_reason)}</td>
-
-                      <td class="corp-td">{blank_dash(claim.close_reasons)}</td>
+                      <td class="corp-td">{blank_dash(claim.remarks)}</td>
 
                       <td class="corp-td">
-                        {if claim.policy, do: claim.policy.policy_number, else: "-"}
+                        {if claim.submitted_at,
+                          do:
+                            claim.submitted_at
+                            |> DateTime.shift_zone!("Asia/Kolkata")
+                            |> Calendar.strftime("%d %b %Y %H:%M"),
+                          else: "-"}
                       </td>
                     </tr>
                   <% end %>
@@ -386,16 +339,16 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
     normalized = status |> String.trim() |> String.downcase()
 
     cond do
-      String.contains?(normalized, "paid") or String.contains?(normalized, "settle") ->
+      normalized == "approved" ->
         "badge badge-success text-white"
 
-      String.contains?(normalized, "reject") ->
+      normalized == "rejected" ->
         "badge badge-error text-white"
 
-      String.contains?(normalized, "close") ->
+      normalized == "under review" ->
         "badge badge-warning text-white"
 
-      String.contains?(normalized, "process") or String.contains?(normalized, "pending") ->
+      normalized == "submitted" ->
         "badge badge-info text-white"
 
       true ->
@@ -404,7 +357,14 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
   end
 
   defp format_amount(nil), do: "-"
-  defp format_amount(val) when is_float(val), do: "₹#{:erlang.float_to_binary(val, decimals: 2)}"
+
+  defp format_amount(%Decimal{} = val) do
+    "₹#{Decimal.to_string(val)}"
+  end
+
+  defp format_amount(val) when is_float(val),
+    do: "₹#{:erlang.float_to_binary(val, decimals: 2)}"
+
   defp format_amount(val), do: to_string(val)
 
   defp blank_dash(nil), do: "-"

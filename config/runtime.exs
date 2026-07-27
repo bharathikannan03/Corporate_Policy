@@ -167,6 +167,9 @@ if config_env() != :test do
       ssl: ssl,
       tls: tls,
       tls_options: [verify: :verify_none],
-      socket_options: [:inet]
+      # Force IPv4 to avoid timeouts on restricted egress environments
+      socket_options: [:inet],
+      # Skip DNS MX lookup — connect directly to the relay host
+      no_mx_lookups: true
   end
 end

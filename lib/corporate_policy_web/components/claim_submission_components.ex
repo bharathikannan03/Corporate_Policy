@@ -789,6 +789,7 @@ defmodule CorporatePolicyWeb.ClaimSubmissionComponents do
               <.form
                 for={@document_form}
                 id={"#{@portal}-claim-document-form"}
+                phx-change="validate_document"
                 phx-submit="save_document"
                 class="space-y-4"
               >

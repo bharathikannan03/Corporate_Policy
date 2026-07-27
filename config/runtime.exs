@@ -166,6 +166,7 @@ if config_env() != :test do
       port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
       ssl: ssl,
       tls: tls,
-      tls_options: [verify: :verify_none]
+      tls_options: [verify: :verify_none],
+      socket_options: [:inet]
   end
 end

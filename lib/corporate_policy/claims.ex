@@ -862,10 +862,19 @@ defmodule CorporatePolicy.Claims do
       ],
       attrs,
       fn field, acc ->
-        Map.update(acc, field, nil, fn
-          value when is_binary(value) -> StringUtils.normalize(value)
-          value -> value
-        end)
+        case Map.fetch(acc, field) do
+          {:ok, value} ->
+            normalized_value =
+              case value do
+                value when is_binary(value) -> StringUtils.normalize(value)
+                value -> value
+              end
+
+            Map.put(acc, field, normalized_value)
+
+          :error ->
+            acc
+        end
       end
     )
   end

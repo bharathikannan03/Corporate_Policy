@@ -45,13 +45,13 @@ if System.get_env("PHX_SERVER") || System.get_env("RAILWAY_ENVIRONMENT") ||
   config :corporate_policy, CorporatePolicyWeb.Endpoint, server: true
 end
 
-config :corporate_policy, CorporatePolicyWeb.Endpoint,
-  http: [
-    port: String.to_integer(System.get_env("PORT", "4000")),
-    thousand_island_options: [
-      silent_terminate_on_error: true
-    ]
-  ]
+# config :corporate_policy, CorporatePolicyWeb.Endpoint,
+#   http: [
+#     port: String.to_integer(System.get_env("PORT", "4000")),
+#     thousand_island_options: [
+#       silent_terminate_on_error: true
+#     ]
+#   ]
 
 if config_env() == :prod do
   database_url =
@@ -91,10 +91,13 @@ if config_env() == :prod do
     url: [host: host, port: 443, scheme: "https"],
     check_origin: ["https://vibe-elixir.up.railway.app"],
     secret_key_base: secret_key_base,
-    http: [
-      ip: {0, 0, 0, 0},
-      port: String.to_integer(System.get_env("PORT") || "4000")
-    ]
+   http: [
+       ip: {0, 0, 0, 0},
+       port: String.to_integer(System.get_env("PORT") || "4000"),
+       thousand_island_options: [
+       silent_terminate_on_error: true
+  ]
+]
 
   # ## SSL Support
   #

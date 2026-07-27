@@ -52,7 +52,10 @@ defmodule CorporatePolicy.Claims do
       |> maybe_filter_status(status)
 
     total_entries = Repo.aggregate(query, :count, :id)
-    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+
+    total_pages =
+      max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
+
     page = min(page, total_pages)
 
     entries =
@@ -859,10 +862,19 @@ defmodule CorporatePolicy.Claims do
       ],
       attrs,
       fn field, acc ->
-        Map.update(acc, field, nil, fn
-          value when is_binary(value) -> StringUtils.normalize(value)
-          value -> value
-        end)
+        case Map.fetch(acc, field) do
+          {:ok, value} ->
+            normalized_value =
+              case value do
+                value when is_binary(value) -> StringUtils.normalize(value)
+                value -> value
+              end
+
+            Map.put(acc, field, normalized_value)
+
+          :error ->
+            acc
+        end
       end
     )
   end

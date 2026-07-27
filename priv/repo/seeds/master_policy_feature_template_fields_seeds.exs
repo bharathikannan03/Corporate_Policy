@@ -100,8 +100,11 @@ defmodule SQLParserHelper do
   end
 end
 
-sql_path = Path.expand("live_vibe_engine_master_policy_feature_template_fields.sql")
-
+sql_path =
+  Application.app_dir(
+    :corporate_policy,
+    "priv/static/meta_documents/live_vibe_engine_master_policy_feature_template_fields.sql"
+  )
 if File.exists?(sql_path) do
   IO.puts("Seeding master policy feature template fields from SQL reference...")
   sql = File.read!(sql_path)

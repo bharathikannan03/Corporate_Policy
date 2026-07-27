@@ -146,6 +146,14 @@ defmodule CorporatePolicyWeb.ClaimSubmissionFormLive do
         end
       end
 
+      def handle_event("validate_document", %{"document" => document_params}, socket) do
+        {:noreply, assign(socket, :document_form, to_form(document_params, as: :document))}
+      end
+
+      def handle_event("validate_document", params, socket) do
+        {:noreply, assign(socket, :document_form, to_form(params, as: :document))}
+      end
+
       def handle_event("open_upload_modal", _params, socket) do
         {:noreply, assign(socket, :show_upload_modal, true)}
       end

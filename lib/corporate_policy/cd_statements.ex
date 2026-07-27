@@ -530,7 +530,10 @@ defmodule CorporatePolicy.CdStatements do
 
   defp paginate_query(base_query, page) do
     total_entries = Repo.aggregate(base_query, :count, :id)
-    total_pages = max(Integer.ceil_div(max(total_entries, 1), @page_size), 1)
+
+    total_pages =
+      max(div(max(total_entries, 1) + @page_size - 1, @page_size), 1)
+
     page = min(page, total_pages)
 
     entries =

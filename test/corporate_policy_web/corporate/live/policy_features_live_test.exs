@@ -14,6 +14,10 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
   alias CorporatePolicy.Policies.MasterSumInsured
 
   setup do
+    today = Date.utc_today()
+    start_date = Date.add(today, -5) |> Date.to_string()
+    end_date = Date.add(today, 360) |> Date.to_string()
+
     # Create Corporate
     {:ok, corporate} =
       Corporates.create_corporate(%{
@@ -75,8 +79,8 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLiveTest do
         "select_tpa" => "Internal TPA",
         "ref_md_family_definitions_id" => (family_def && family_def.id) || 1,
         "policy_number" => "2-81-25-00003017-000",
-        "policy_start_date" => "2025-07-25",
-        "policy_end_date" => "2026-07-24",
+        "policy_start_date" => start_date,
+        "policy_end_date" => end_date,
         "ref_fy_year_id" => fy && fy.id,
         "status" => 1,
         "have_policy_number" => 1

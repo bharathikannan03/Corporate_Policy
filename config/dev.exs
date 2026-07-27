@@ -32,7 +32,7 @@ config :corporate_policy, CorporatePolicyWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "Hi2pKR9uimLvFV8fUCiq5atc6MFbFak+ErUY7TKBhIyY0by7M+ainoY6o8pPoEmE",
+  secret_key_base: "1wXpJTD2e9Q1HCWSPUX5rGkQxhbcXAq8Bbm3HpV/tIauJYkHZiwGSDn+jrZA54sR",
   watchers: dev_watchers
 
 # ## SSL Support

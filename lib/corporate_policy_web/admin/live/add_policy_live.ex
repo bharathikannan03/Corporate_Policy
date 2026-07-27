@@ -57,6 +57,16 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
   end
 
   @impl true
+  def handle_info({:step_completed, :step7, _policy}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, "Submitted successfully.")
+      |> push_navigate(to: ~p"/admin/policy-details")
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({:put_flash, kind, msg}, socket) do
     {:noreply, put_flash(socket, kind, msg)}
   end

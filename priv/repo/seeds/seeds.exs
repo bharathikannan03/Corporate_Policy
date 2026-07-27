@@ -35,6 +35,11 @@ alias CorporatePolicy.Corporates.LocationImporter
 
 priv_dir = :code.priv_dir(:corporate_policy)
 
+seed_dir =
+  priv_dir
+  |> to_string()
+  |> Path.join("repo/seeds")
+
 states_csv = Path.join(priv_dir, "static/meta_documents/master_states.csv")
 cities_csv = Path.join(priv_dir, "static/meta_documents/master_cities.csv")
 pincodes_csv = Path.join(priv_dir, "static/meta_documents/master_pincodes.csv")
@@ -74,9 +79,9 @@ end
 
 # ─── Line of Business & Policy Types are now modular ─────────
 IO.puts("\nRunning LOB and Policy Type modular seed scripts...")
-Code.eval_file("priv/repo/seeds/md_line_of_businesses.exs")
+Code.eval_file(Path.join(seed_dir, "md_line_of_businesses.exs"))
 IO.puts("✓ md_line_of_businesses.exs")
-Code.eval_file("priv/repo/seeds/md_policy_types.exs")
+Code.eval_file(Path.join(seed_dir, "md_policy_types.exs"))
 IO.puts("✓ md_policy_types.exs")
 
 # Fetch LOB IDs for reference in downstream seeds (e.g. Insurers)
@@ -304,31 +309,6 @@ Enum.each([current_year - 1, current_year, current_year + 1], fn year ->
   end
 end)
 
-IO.puts("\nRunning modular master data seed scripts...")
-
-Code.eval_file("priv/repo/seeds/md_data_types.exs")
-IO.puts("✓ md_data_types.exs")
-
-Code.eval_file("priv/repo/seeds/md_document_types.exs")
-IO.puts("✓ md_document_types.exs")
-
-Code.eval_file("priv/repo/seeds/md_document_names.exs")
-IO.puts("✓ md_document_names.exs")
-
-Code.eval_file("priv/repo/seeds/md_escalation_matrices.exs")
-IO.puts("✓ md_escalation_matrices.exs")
-
-Code.eval_file("priv/repo/seeds/master_policy_documents_seeds.exs")
-IO.puts("✓ master_policy_documents_seeds.exs")
-
-# There is an existing script for template fields, let's also run it if it exists
-if File.exists?("priv/repo/seeds_master_policy_feature_template_fields.exs") do
-  Code.eval_file("priv/repo/seeds_master_policy_feature_template_fields.exs")
-  IO.puts("✓ seeds_master_policy_feature_template_fields.exs")
-end
-
-IO.puts("\n✔ Seed data loaded successfully!")
-
 # ─── Sum Insured Types ──────────────────────────────────────────────────────────
 sum_insured_types = [
   %{name: "Slab wise", display_id: 1, status: 1},
@@ -345,3 +325,71 @@ Enum.each(sum_insured_types, fn attrs ->
       :ok
   end
 end)
+
+IO.puts("\nRunning modular master data seed scripts...")
+
+Code.eval_file(Path.join(seed_dir, "md_data_types.exs"))
+IO.puts("✓ md_data_types.exs")
+
+Code.eval_file(Path.join(seed_dir, "md_document_types.exs"))
+IO.puts("✓ md_document_types.exs")
+
+Code.eval_file(Path.join(seed_dir, "md_document_names.exs"))
+IO.puts("✓ md_document_names.exs")
+
+Code.eval_file(Path.join(seed_dir, "md_escalation_matrices.exs"))
+IO.puts("✓ md_escalation_matrices.exs")
+
+Code.eval_file(Path.join(seed_dir, "master_policy_documents_seeds.exs"))
+IO.puts("✓ master_policy_documents_seeds.exs")
+
+# Ensure all modular seed scripts use seed_dir and are evaluated
+master_policy_feature_templates_seeds_path =
+  Path.join(seed_dir, "master_policy_feature_templates_seeds.exs")
+
+if File.exists?(master_policy_feature_templates_seeds_path) do
+  Code.eval_file(master_policy_feature_templates_seeds_path)
+  IO.puts("✓ master_policy_feature_templates_seeds.exs")
+end
+
+master_policy_feature_template_fields_seeds_path =
+  Path.join(seed_dir, "master_policy_feature_template_fields_seeds.exs")
+
+if File.exists?(master_policy_feature_template_fields_seeds_path) do
+  Code.eval_file(master_policy_feature_template_fields_seeds_path)
+  IO.puts("✓ master_policy_feature_template_fields_seeds.exs")
+end
+
+mapping_policy_feature_templates_corporates_policies_seeds_path =
+  Path.join(seed_dir, "mapping_policy_feature_templates_corporates_policies_seeds.exs")
+
+if File.exists?(mapping_policy_feature_templates_corporates_policies_seeds_path) do
+  Code.eval_file(mapping_policy_feature_templates_corporates_policies_seeds_path)
+  IO.puts("✓ mapping_policy_feature_templates_corporates_policies_seeds.exs")
+end
+
+md_visibility_role_id_feature_tmps_seed_path =
+  Path.join(seed_dir, "md_visibility_role_id_feature_tmps_seed.exs")
+
+if File.exists?(md_visibility_role_id_feature_tmps_seed_path) do
+  Code.eval_file(md_visibility_role_id_feature_tmps_seed_path)
+  IO.puts("✓ md_visibility_role_id_feature_tmps_seed.exs")
+end
+
+policy_features_seeds_path = Path.join(seed_dir, "02_policy_features.exs")
+
+if File.exists?(policy_features_seeds_path) do
+  Code.eval_file(policy_features_seeds_path)
+  IO.puts("✓ 02_policy_features.exs")
+end
+
+# There is an existing script for template fields, let's also run it if it exists
+old_template_fields_path =
+  Path.join(seed_dir, "../seeds_master_policy_feature_template_fields.exs")
+
+if File.exists?(old_template_fields_path) do
+  Code.eval_file(old_template_fields_path)
+  IO.puts("✓ seeds_master_policy_feature_template_fields.exs")
+end
+
+IO.puts("\n✔ Seed data loaded successfully!")

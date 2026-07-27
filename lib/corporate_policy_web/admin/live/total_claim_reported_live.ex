@@ -242,7 +242,7 @@ defmodule CorporatePolicyWeb.Admin.TotalClaimReportedLive do
                         {if claim.submitted_at,
                           do:
                             claim.submitted_at
-                            |> DateTime.shift_zone!("Asia/Kolkata")
+                            |> DateTime.add(5 * 3600 + 30 * 60, :second)
                             |> Calendar.strftime("%d %b %Y %H:%M"),
                           else: "-"}
                       </td>

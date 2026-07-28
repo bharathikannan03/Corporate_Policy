@@ -124,8 +124,6 @@ defmodule CorporatePolicyWeb.Layouts do
                 do: "#{@current_user.first_name} #{@current_user.last_name}",
                 else: "Admin"}
             </p>
-
-            <p class="user-role">Vibe Admin</p>
           </div>
 
           <div class="user-actions">

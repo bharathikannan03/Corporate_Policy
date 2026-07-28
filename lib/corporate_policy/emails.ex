@@ -9,8 +9,7 @@ defmodule CorporatePolicy.Emails do
   """
   def welcome_contact(user, plain_text_password) do
     from_email =
-      System.get_env("SENDER_EMAIL") || System.get_env("RESEND_FROM_EMAIL") ||
-        "no-reply@corppolicy.com"
+      System.get_env("SENDER_EMAIL") || "no-reply@corppolicy.com"
 
     new()
     |> to({user.full_name, user.email_address})

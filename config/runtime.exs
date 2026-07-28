@@ -150,14 +150,14 @@ if config_env() == :prod do
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
 end
 
-# Configure Resend Mailer if environment variables are provided
+# Configure Brevo Mailer if environment variables are provided
 if config_env() != :test do
-  resend_api_key = System.get_env("RESEND_API_KEY")
+  brevo_api_key = System.get_env("BREVO_API_KEY")
 
-  if resend_api_key do
+  if brevo_api_key do
     config :corporate_policy, CorporatePolicy.Mailer,
-      adapter: Swoosh.Adapters.Resend,
-      api_key: resend_api_key
+      adapter: Swoosh.Adapters.Brevo,
+      api_key: brevo_api_key
 
     config :swoosh, :api_client, Swoosh.ApiClient.Req
   end

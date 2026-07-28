@@ -150,26 +150,15 @@ if config_env() == :prod do
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
 end
 
-# Configure SMTP Mailer if environment variables are provided
+# Configure Brevo Mailer if environment variables are provided
 if config_env() != :test do
-  smtp_relay = System.get_env("SMTP_RELAY") || System.get_env("SMTP_HOST")
+  brevo_api_key = System.get_env("BREVO_API_KEY")
 
-  if smtp_relay do
-    ssl = System.get_env("SMTP_SSL") == "true"
-    tls = if ssl, do: :never, else: :always
-
+  if brevo_api_key do
     config :corporate_policy, CorporatePolicy.Mailer,
-      adapter: Swoosh.Adapters.SMTP,
-      relay: smtp_relay,
-      username: System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME"),
-      password: System.get_env("SMTP_PASSWORD") || System.get_env("MAIL_PASSWORD"),
-      port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
-      ssl: ssl,
-      tls: tls,
-      tls_options: [verify: :verify_none],
-      # Force IPv4 to avoid timeouts on restricted egress environments
-      socket_options: [:inet],
-      # Skip DNS MX lookup — connect directly to the relay host
-      no_mx_lookups: true
+      adapter: Swoosh.Adapters.Brevo,
+      api_key: brevo_api_key
+
+    config :swoosh, :api_client, Swoosh.ApiClient.Req
   end
 end

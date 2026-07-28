@@ -150,22 +150,32 @@ if config_env() == :prod do
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
 end
 
-# Configure SMTP Mailer if environment variables are provided
+# Configure SMTP or Resend Mailer if environment variables are provided
 if config_env() != :test do
-  smtp_relay = System.get_env("SMTP_RELAY") || System.get_env("SMTP_HOST")
+  resend_api_key = System.get_env("RESEND_API_KEY")
 
-  if smtp_relay do
-    ssl = System.get_env("SMTP_SSL") == "true"
-    tls = if ssl, do: :never, else: :always
-
+  if resend_api_key do
     config :corporate_policy, CorporatePolicy.Mailer,
-      adapter: Swoosh.Adapters.SMTP,
-      relay: smtp_relay,
-      username: System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME"),
-      password: System.get_env("SMTP_PASSWORD") || System.get_env("MAIL_PASSWORD"),
-      port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
-      ssl: ssl,
-      tls: tls,
-      tls_options: [verify: :verify_none]
+      adapter: Swoosh.Adapters.Resend,
+      api_key: resend_api_key
+
+    config :swoosh, :api_client, Swoosh.ApiClient.Req
+  else
+    smtp_relay = System.get_env("SMTP_RELAY") || System.get_env("SMTP_HOST")
+
+    if smtp_relay do
+      ssl = System.get_env("SMTP_SSL") == "true"
+      tls = if ssl, do: :never, else: :always
+
+      config :corporate_policy, CorporatePolicy.Mailer,
+        adapter: Swoosh.Adapters.SMTP,
+        relay: smtp_relay,
+        username: System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME"),
+        password: System.get_env("SMTP_PASSWORD") || System.get_env("MAIL_PASSWORD"),
+        port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
+        ssl: ssl,
+        tls: tls,
+        tls_options: [verify: :verify_none]
+    end
   end
 end

@@ -89,6 +89,121 @@ defmodule CorporatePolicy.Release do
     end
   end
 
+  @doc """
+  Creates and executes the `truncate_master_and_mapping_tables` stored procedure
+  against the primary repo. Safe to run multiple times (uses CREATE OR REPLACE).
+
+  ## Options
+    - `dry_run` (boolean, default: `false`) – when `true`, prints the TRUNCATE
+      statements without deleting any data.
+
+  ## Usage from a Railway one-off command / release eval
+
+      # Dry run (preview only – no data deleted)
+      bin/corporate_policy eval "CorporatePolicy.Release.truncate_master_and_mapping_tables(true)"
+
+      # Actual truncate
+      bin/corporate_policy eval "CorporatePolicy.Release.truncate_master_and_mapping_tables()"
+
+  ## Usage via Railway CLI (from source tree)
+
+      railway run mix run -e "CorporatePolicy.Release.truncate_master_and_mapping_tables()"
+  """
+  def truncate_master_and_mapping_tables(dry_run \\ false) do
+    load_app()
+
+    create_procedure_sql = """
+    CREATE OR REPLACE PROCEDURE truncate_master_and_mapping_tables(
+        dry_run BOOLEAN DEFAULT FALSE
+    )
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        tables_to_truncate TEXT[] := ARRAY[
+            'trp_claim_submission_logs',
+            'trn_endorsement_deletion_logs',
+            'trn_mapping_corporate_contact_email_logs',
+            'trn_mapping_corporateid_corporatecontactsids',
+            'trn_mapping_live_employees',
+            'trn_mapping_roleid_roleaccessdetails',
+            'mapping_policy_completions',
+            'mapping_policy_feature_templates_corporates_policies',
+            'master_claim_submission_documents',
+            'master_claim_submission',
+            'master_cdstatement_upload_errors',
+            'master_cd_statement_data_uploads',
+            'master_policy_cd_statements',
+            'master_cd_accounts',
+            'master_ecards_data_uploads',
+            'master_endorsement_data_uploads',
+            'master_inception_data_uploads',
+            'master_total_claim_reports',
+            'master_policy_data_uploads',
+            'master_policy_documents',
+            'master_policy_escalation_matrices',
+            'master_escalation_matrices',
+            'master_policy_corporate_buffer_transactions',
+            'master_policy_corporate_buffer_amounts',
+            'master_policy_feature_templates',
+            'master_sum_insureds',
+            'master_add_policies',
+            'master_logos',
+            'master_corporates'
+        ];
+        tbl           TEXT;
+        sql_statement TEXT;
+        truncated_cnt INT := 0;
+        skipped_cnt   INT := 0;
+    BEGIN
+        RAISE NOTICE '================================================';
+        RAISE NOTICE '  truncate_master_and_mapping_tables dry_run=%', dry_run;
+        RAISE NOTICE '================================================';
+
+        FOREACH tbl IN ARRAY tables_to_truncate LOOP
+            sql_statement := format('TRUNCATE TABLE %I RESTART IDENTITY CASCADE', tbl);
+            IF dry_run THEN
+                RAISE NOTICE '[DRY RUN] %', sql_statement;
+            ELSE
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.tables
+                    WHERE table_schema = current_schema() AND table_name = tbl
+                ) THEN
+                    EXECUTE sql_statement;
+                    RAISE NOTICE '[OK] Truncated -> %', tbl;
+                    truncated_cnt := truncated_cnt + 1;
+                ELSE
+                    RAISE WARNING '[SKIP] Not found -> %', tbl;
+                    skipped_cnt := skipped_cnt + 1;
+                END IF;
+            END IF;
+        END LOOP;
+
+        IF dry_run THEN
+            RAISE NOTICE 'DRY RUN complete — % tables listed, 0 rows deleted.', array_length(tables_to_truncate, 1);
+        ELSE
+            RAISE NOTICE 'Done — % truncated, % skipped.', truncated_cnt, skipped_cnt;
+        END IF;
+        RAISE NOTICE '================================================';
+    END;
+    $$;
+    """
+
+    call_procedure_sql = "CALL truncate_master_and_mapping_tables($1)"
+
+    for repo <- repos() do
+      {:ok, _, _} =
+        Ecto.Migrator.with_repo(repo, fn repo ->
+          IO.puts("==> [Release] Creating stored procedure...")
+          Ecto.Adapters.SQL.query!(repo, create_procedure_sql, [])
+
+          IO.puts("==> [Release] Calling procedure (dry_run=#{dry_run})...")
+          Ecto.Adapters.SQL.query!(repo, call_procedure_sql, [dry_run])
+
+          IO.puts("==> [Release] truncate_master_and_mapping_tables complete.")
+        end)
+    end
+  end
+
   defp repos do
     Application.fetch_env!(@app, :ecto_repos)
   end

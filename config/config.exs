@@ -46,6 +46,9 @@ config :phoenix_live_view, :colocated_assets,
 # at the `config/runtime.exs`.
 config :corporate_policy, CorporatePolicy.Mailer, adapter: Swoosh.Adapters.Local
 
+# Configure Swoosh API Client
+config :swoosh, :api_client, Swoosh.ApiClient.Req
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

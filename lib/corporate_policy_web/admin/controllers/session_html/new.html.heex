@@ -5,10 +5,10 @@
         <p class="text-xs font-semibold uppercase tracking-widest text-primary">
           Admin Portal Access
         </p>
-        
+
         <h1 class="mt-2 text-xl font-bold text-base-content">Sign in to Admin Portal</h1>
       </div>
-      
+
       <.form for={@form} id="login-form" action={~p"/admin/login"} method="post" class="space-y-4">
         <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
         <.input

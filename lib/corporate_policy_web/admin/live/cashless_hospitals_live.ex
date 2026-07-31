@@ -49,6 +49,11 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
   end
 
   @impl true
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("search_insurer", %{"value" => query}, socket) do
     socket = socket |> assign(:insurer_query, query)
     results = filter_list(socket.assigns.all_insurers, query, 5)
@@ -219,6 +224,7 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
           <.form
             for={%{}}
             id="cashless-upload-form"
+            phx-change="validate"
             phx-submit="save_upload"
             class="grid grid-cols-1 md:grid-cols-2 gap-6"
           >

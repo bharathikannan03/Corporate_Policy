@@ -27,6 +27,8 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.EscalationMatrices.EscalationMatrix, as: MasterEscalationMatrix
   alias CorporatePolicy.Policies.MasterSumInsured
   alias CorporatePolicy.Claims.MasterClaimSubmission
+  alias CorporatePolicy.Policies.CashlessHospital
+  alias CorporatePolicy.Policies.CashlessHospitalUpload
 
   @page_size 15
 
@@ -2243,5 +2245,186 @@ defmodule CorporatePolicy.Policies do
       labels: labels,
       values: values
     }
+  end
+
+  # === Cashless Hospitals ===
+
+  def search_insurers_by_name(query) do
+    search_pattern = "%#{query}%"
+
+    Repo.all(
+      from i in Insurer,
+        where: i.status == 1 and ilike(i.name, ^search_pattern),
+        order_by: [asc: i.name],
+        limit: 10
+    )
+  end
+
+  def search_tpas_by_name(query) do
+    search_pattern = "%#{query}%"
+
+    Repo.all(
+      from t in Tpa,
+        where: t.status == 1 and ilike(t.name, ^search_pattern),
+        order_by: [asc: t.name],
+        limit: 10
+    )
+  end
+
+  def list_cashless_hospitals_paginated(opts \\ []) do
+    page = Keyword.get(opts, :page, 1) |> normalize_page()
+    limit = 15
+    offset = (page - 1) * limit
+
+    query = from ch in CashlessHospital, order_by: [desc: ch.id]
+
+    query =
+      if search = opts[:search] do
+        if search != "" do
+          search_pattern = "%#{search}%"
+
+          from ch in query,
+            where: ilike(ch.insurer_name, ^search_pattern) or ilike(ch.tpa_name, ^search_pattern)
+        else
+          query
+        end
+      else
+        query
+      end
+
+    total_entries = Repo.aggregate(query, :count, :id)
+    total_pages = max(div(max(total_entries, 1) + limit - 1, limit), 1)
+    page = min(page, total_pages)
+
+    entries =
+      query
+      |> offset(^((page - 1) * limit))
+      |> limit(^limit)
+      |> Repo.all()
+
+    entries_with_nums =
+      entries
+      |> Enum.with_index()
+      |> Enum.map(fn {item, idx} ->
+        row_num = offset + idx + 1
+        Map.put(item, :row_num, row_num)
+      end)
+
+    %{
+      entries: entries_with_nums,
+      page: page,
+      page_size: limit,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
+  end
+
+  def create_cashless_hospital_import(attrs) do
+    Repo.transaction(fn ->
+      ch_attrs = %{
+        ref_insurer_id: attrs.ref_insurer_id,
+        insurer_name: attrs.insurer_name,
+        ref_tpa_id: attrs.ref_tpa_id,
+        tpa_name: attrs.tpa_name,
+        ch_upload_data: attrs.ch_upload_data,
+        original_file_name: attrs.original_file_name,
+        status: 1,
+        is_dataupload: 1
+      }
+
+      case %CashlessHospital{} |> CashlessHospital.changeset(ch_attrs) |> Repo.insert() do
+        {:ok, cashless_hospital} ->
+          content = File.read!(attrs.ch_upload_data) |> sanitize_utf8()
+          rows = NimbleCSV.RFC4180.parse_string(content, skip_headers: true)
+
+          Enum.each(rows, fn row ->
+            row_attrs = %{
+              hospital_name: clean_string(Enum.at(row, 0)),
+              hospital_address: clean_string(Enum.at(row, 1)),
+              location: clean_string(Enum.at(row, 2)),
+              landmark: clean_string(Enum.at(row, 3)),
+              city: clean_string(Enum.at(row, 4)),
+              state: clean_string(Enum.at(row, 5)),
+              pincode: parse_integer(Enum.at(row, 6)),
+              email: clean_string(Enum.at(row, 7)),
+              stdcode: clean_string(Enum.at(row, 8)),
+              phone: clean_string(Enum.at(row, 9)),
+              insurer_name: attrs.insurer_name,
+              ref_insurer_id: attrs.ref_insurer_id,
+              tpa_name: attrs.tpa_name,
+              ref_tpa_id: if(attrs.ref_tpa_id, do: to_string(attrs.ref_tpa_id), else: nil),
+              status: "1",
+              latitude: parse_decimal(Enum.at(row, 10)),
+              longitude: parse_decimal(Enum.at(row, 11))
+            }
+
+            if row_attrs.hospital_name && row_attrs.hospital_name != "" do
+              %CashlessHospitalUpload{}
+              |> CashlessHospitalUpload.changeset(row_attrs)
+              |> Repo.insert!()
+            end
+          end)
+
+          cashless_hospital
+
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
+  end
+
+  defp parse_integer(nil), do: nil
+  defp parse_integer(""), do: nil
+
+  defp parse_integer(val) when is_binary(val) do
+    case Integer.parse(String.trim(val)) do
+      {num, _} -> num
+      _ -> nil
+    end
+  end
+
+  defp parse_integer(val) when is_integer(val), do: val
+  defp parse_integer(_), do: nil
+
+  defp parse_decimal(nil), do: nil
+  defp parse_decimal(""), do: nil
+
+  defp parse_decimal(val) when is_binary(val) do
+    case Decimal.cast(String.trim(val)) do
+      {:ok, dec} -> dec
+      _ -> nil
+    end
+  end
+
+  defp parse_decimal(val) when is_float(val), do: Decimal.from_float(val)
+  defp parse_decimal(val) when is_integer(val), do: Decimal.new(val)
+  defp parse_decimal(_), do: nil
+
+  defp clean_string(nil), do: ""
+
+  defp clean_string(val) when is_binary(val) do
+    val
+    |> sanitize_utf8()
+    |> String.replace(~r/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\xA0]/, " ")
+    |> String.replace("\u00A0", " ")
+    |> String.trim()
+  end
+
+  defp clean_string(val), do: val |> to_string() |> clean_string()
+
+  defp sanitize_utf8(binary) when is_binary(binary) do
+    if String.valid?(binary) do
+      binary
+      |> String.replace(<<160>>, " ")
+      |> String.replace("\u00A0", " ")
+    else
+      binary
+      |> :binary.bin_to_list()
+      |> Enum.map(fn
+        b when b in 0..127 -> b
+        _ -> ?\s
+      end)
+      |> List.to_string()
+    end
   end
 end

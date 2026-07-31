@@ -65,12 +65,42 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
         socket
       end
 
+    # Find initial insurer/TPA for autocomplete
+    insurer_id = form_data["ref_select_insurer_id"]
+    insurer_id_int = if is_binary(insurer_id), do: String.to_integer(insurer_id), else: insurer_id
+
+    selected_ins =
+      if insurer_id_int && Map.has_key?(socket.assigns, :insurers),
+        do: Enum.find(socket.assigns.insurers || [], fn i -> i.id == insurer_id_int end)
+
+    selected_insurer_name =
+      if selected_ins, do: selected_ins.name, else: form_data["select_insurer"]
+
+    tpa_id = form_data["ref_tpa_id"]
+    tpa_id_int = if is_binary(tpa_id), do: String.to_integer(tpa_id), else: tpa_id
+
+    selected_t =
+      if tpa_id_int && Map.has_key?(socket.assigns, :tpas),
+        do: Enum.find(socket.assigns.tpas || [], fn t -> t.id == tpa_id_int end)
+
+    selected_tpa_name = if selected_t, do: selected_t.name, else: form_data["select_tpa"]
+
     socket =
       socket
       |> assign(assigns)
       |> assign(:form_data, form_data)
       |> assign_derived_state(form_data)
       |> assign(:form, to_form(form_data))
+      |> assign_new(:selected_insurer_id, fn -> insurer_id_int end)
+      |> assign_new(:selected_insurer_name, fn -> selected_insurer_name end)
+      |> assign_new(:insurer_query, fn -> selected_insurer_name || "" end)
+      |> assign_new(:insurer_results, fn -> [] end)
+      |> assign_new(:show_insurer_dropdown, fn -> false end)
+      |> assign_new(:selected_tpa_id, fn -> tpa_id_int end)
+      |> assign_new(:selected_tpa_name, fn -> selected_tpa_name end)
+      |> assign_new(:tpa_query, fn -> selected_tpa_name || "" end)
+      |> assign_new(:tpa_results, fn -> [] end)
+      |> assign_new(:show_tpa_dropdown, fn -> false end)
 
     {:ok, socket}
   end
@@ -199,6 +229,21 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
       |> assign_derived_state(new_form_data)
       |> assign(:form, to_form(new_form_data))
 
+    socket =
+      if old_lob != new_lob do
+        socket
+        |> assign(:selected_insurer_id, nil)
+        |> assign(:selected_insurer_name, nil)
+        |> assign(:insurer_query, "")
+        |> assign(:insurer_results, [])
+        |> assign(:selected_tpa_id, nil)
+        |> assign(:selected_tpa_name, nil)
+        |> assign(:tpa_query, "")
+        |> assign(:tpa_results, [])
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 
@@ -217,6 +262,113 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
          |> put_flash(:error, "Failed to save policy. Please check the errors below.")
          |> assign(:form, to_form(changeset))}
     end
+  end
+
+  @impl true
+  def handle_event("search_insurer", %{"value" => query}, socket) do
+    socket = socket |> assign(:insurer_query, query)
+    results = filter_list(socket.assigns.insurers, query, 5)
+    {:noreply, assign(socket, insurer_results: results, show_insurer_dropdown: true)}
+  end
+
+  @impl true
+  def handle_event("show_insurer_dropdown", _params, socket) do
+    results = filter_list(socket.assigns.insurers, socket.assigns.insurer_query, 5)
+    {:noreply, assign(socket, insurer_results: results, show_insurer_dropdown: true)}
+  end
+
+  @impl true
+  def handle_event("select_insurer", %{"id" => id, "name" => name}, socket) do
+    id_int = String.to_integer(id)
+
+    new_form_data =
+      Map.merge(socket.assigns.form_data, %{
+        "ref_select_insurer_id" => id_int,
+        "select_insurer" => name
+      })
+
+    {:noreply,
+     socket
+     |> assign(:selected_insurer_id, id_int)
+     |> assign(:selected_insurer_name, name)
+     |> assign(:insurer_query, name)
+     |> assign(:show_insurer_dropdown, false)
+     |> assign(:form_data, new_form_data)
+     |> assign(:form, to_form(new_form_data))}
+  end
+
+  @impl true
+  def handle_event("clear_insurer", _params, socket) do
+    new_form_data =
+      Map.merge(socket.assigns.form_data, %{
+        "ref_select_insurer_id" => nil,
+        "select_insurer" => nil
+      })
+
+    {:noreply,
+     socket
+     |> assign(:selected_insurer_id, nil)
+     |> assign(:selected_insurer_name, nil)
+     |> assign(:insurer_query, "")
+     |> assign(:insurer_results, [])
+     |> assign(:form_data, new_form_data)
+     |> assign(:form, to_form(new_form_data))}
+  end
+
+  @impl true
+  def handle_event("search_tpa", %{"value" => query}, socket) do
+    socket = socket |> assign(:tpa_query, query)
+    results = filter_list(socket.assigns.tpas, query, 5)
+    {:noreply, assign(socket, tpa_results: results, show_tpa_dropdown: true)}
+  end
+
+  @impl true
+  def handle_event("show_tpa_dropdown", _params, socket) do
+    results = filter_list(socket.assigns.tpas, socket.assigns.tpa_query, 5)
+    {:noreply, assign(socket, tpa_results: results, show_tpa_dropdown: true)}
+  end
+
+  @impl true
+  def handle_event("select_tpa", %{"id" => id, "name" => name}, socket) do
+    id_int = String.to_integer(id)
+
+    new_form_data =
+      Map.merge(socket.assigns.form_data, %{
+        "ref_tpa_id" => id_int,
+        "select_tpa" => name
+      })
+
+    {:noreply,
+     socket
+     |> assign(:selected_tpa_id, id_int)
+     |> assign(:selected_tpa_name, name)
+     |> assign(:tpa_query, name)
+     |> assign(:show_tpa_dropdown, false)
+     |> assign(:form_data, new_form_data)
+     |> assign(:form, to_form(new_form_data))}
+  end
+
+  @impl true
+  def handle_event("clear_tpa", _params, socket) do
+    new_form_data =
+      Map.merge(socket.assigns.form_data, %{
+        "ref_tpa_id" => nil,
+        "select_tpa" => nil
+      })
+
+    {:noreply,
+     socket
+     |> assign(:selected_tpa_id, nil)
+     |> assign(:selected_tpa_name, nil)
+     |> assign(:tpa_query, "")
+     |> assign(:tpa_results, [])
+     |> assign(:form_data, new_form_data)
+     |> assign(:form, to_form(new_form_data))}
+  end
+
+  @impl true
+  def handle_event("close_dropdowns", _params, socket) do
+    {:noreply, assign(socket, show_insurer_dropdown: false, show_tpa_dropdown: false)}
   end
 
   @impl true
@@ -372,27 +524,62 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           <% end %>
         </div>
 
-        <div class="corp-field-group">
+        <div class="corp-field-group relative" phx-click-away="close_dropdowns">
           <label class="corp-label">
             Select Insurer <span class="corp-required">*</span>
           </label>
 
-          <select
-            name="ref_select_insurer_id"
-            class="corp-input"
-            required
-          >
-            <option value="">Select an insurer</option>
-
-            <%= for ins <- @insurers do %>
-              <option
-                value={ins.id}
-                selected={to_string(@form_data["ref_select_insurer_id"] || "") == to_string(ins.id)}
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Type to search or select..."
+              value={@insurer_query}
+              class="corp-input pr-10"
+              phx-keyup="search_insurer"
+              phx-debounce="300"
+              phx-focus="show_insurer_dropdown"
+              phx-target={@myself}
+              readonly={!is_nil(@selected_insurer_id)}
+              disabled={length(@insurers) == 0}
+            />
+            <%= if @selected_insurer_id do %>
+              <button
+                type="button"
+                phx-click="clear_insurer"
+                phx-target={@myself}
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {ins.name}
-              </option>
+                <.icon name="hero-x-mark" class="w-5 h-5" />
+              </button>
+            <% else %>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <.icon name="hero-chevron-down" class="w-5 h-5" />
+              </div>
             <% end %>
-          </select>
+          </div>
+
+          <input type="hidden" name="ref_select_insurer_id" value={@selected_insurer_id || ""} />
+          <input type="hidden" name="select_insurer" value={@selected_insurer_name || ""} />
+
+          <%= if @show_insurer_dropdown do %>
+            <div class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-36 overflow-y-auto">
+              <%= if Enum.empty?(@insurer_results) do %>
+                <div class="p-3 text-sm text-gray-500">No matching insurers found</div>
+              <% else %>
+                <%= for insurer <- @insurer_results do %>
+                  <div
+                    phx-click="select_insurer"
+                    phx-value-id={insurer.id}
+                    phx-value-name={insurer.name}
+                    phx-target={@myself}
+                    class="p-3 text-sm hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 text-gray-800"
+                  >
+                    {insurer.name}
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
         </div>
 
         <div :if={@show_sum_insured_type} class="corp-field-group">
@@ -420,23 +607,59 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           </select>
         </div>
 
-        <div :if={@show_tpa_family} class="corp-field-group">
+        <div :if={@show_tpa_family} class="corp-field-group relative" phx-click-away="close_dropdowns">
           <label class="corp-label">Select TPA</label>
-          <select
-            name="ref_tpa_id"
-            class="corp-input"
-          >
-            <option value="">Select TPA</option>
 
-            <%= for tpa <- @tpas do %>
-              <option
-                value={tpa.id}
-                selected={to_string(@form_data["ref_tpa_id"] || "") == to_string(tpa.id)}
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Type to search or select..."
+              value={@tpa_query}
+              class="corp-input pr-10"
+              phx-keyup="search_tpa"
+              phx-debounce="300"
+              phx-focus="show_tpa_dropdown"
+              phx-target={@myself}
+              readonly={!is_nil(@selected_tpa_id)}
+            />
+            <%= if @selected_tpa_id do %>
+              <button
+                type="button"
+                phx-click="clear_tpa"
+                phx-target={@myself}
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {tpa.name}
-              </option>
+                <.icon name="hero-x-mark" class="w-5 h-5" />
+              </button>
+            <% else %>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <.icon name="hero-chevron-down" class="w-5 h-5" />
+              </div>
             <% end %>
-          </select>
+          </div>
+
+          <input type="hidden" name="ref_tpa_id" value={@selected_tpa_id || ""} />
+          <input type="hidden" name="select_tpa" value={@selected_tpa_name || ""} />
+
+          <%= if @show_tpa_dropdown do %>
+            <div class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-36 overflow-y-auto">
+              <%= if Enum.empty?(@tpa_results) do %>
+                <div class="p-3 text-sm text-gray-500">No matching TPAs found</div>
+              <% else %>
+                <%= for tpa <- @tpa_results do %>
+                  <div
+                    phx-click="select_tpa"
+                    phx-value-id={tpa.id}
+                    phx-value-name={tpa.name}
+                    phx-target={@myself}
+                    class="p-3 text-sm hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 text-gray-800"
+                  >
+                    {tpa.name}
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
         </div>
 
         <div :if={@show_tpa_family} class="corp-field-group">
@@ -681,6 +904,18 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
 
       _ ->
         ""
+    end
+  end
+
+  defp filter_list(items, query, limit) do
+    if query == "" or is_nil(query) do
+      Enum.take(items || [], limit)
+    else
+      query_lower = String.downcase(query)
+
+      items
+      |> Enum.filter(fn item -> String.contains?(String.downcase(item.name), query_lower) end)
+      |> Enum.take(limit)
     end
   end
 end

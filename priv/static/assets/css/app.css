@@ -3324,6 +3324,9 @@
   .min-h-\[60px\] {
     min-height: 60px;
   }
+  .min-h-\[160px\] {
+    min-height: 160px;
+  }
   .min-h-\[180px\] {
     min-height: 180px;
   }

@@ -176,69 +176,79 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
         phx-target={@myself}
         class="bg-gray-50 p-4 rounded-lg mb-8"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="corp-label">Select Data Type <span class="text-red-500">*</span></label>
-            <select name="data_type" class="corp-input" required>
-              <option value="" disabled selected={@form[:data_type].value == ""}>
-                Select Data Type
-              </option>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+          <!-- Left side: Dropdown fields and remark stacked vertically -->
+          <div class="space-y-4">
+            <div>
+              <label class="corp-label">Select Data Type <span class="text-red-500">*</span></label>
+              <select name="data_type" class="corp-input" required>
+                <option value="" disabled selected={@form[:data_type].value == ""}>
+                  Select Data Type
+                </option>
 
-              <%= for type <- available_data_types(@policy) do %>
-                <option value={type} selected={@form[:data_type].value == type}>{type}</option>
-              <% end %>
-            </select>
+                <%= for type <- available_data_types(@policy) do %>
+                  <option value={type} selected={@form[:data_type].value == type}>{type}</option>
+                <% end %>
+              </select>
 
-            <p class="text-xs text-gray-400 mt-1">
-              Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
-            </p>
-          </div>
+              <p class="text-xs text-gray-400 mt-1">
+                Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
+              </p>
+            </div>
 
-          <div>
-            <label class="corp-label">Remark</label>
-            <input
-              type="text"
-              name="remark"
-              value={@form[:remark].value}
-              class="corp-input"
-              placeholder="Add an optional remark"
-            />
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <label class="corp-label">Upload File <span class="text-red-500">*</span></label>
-          <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
-            phx-drop-target={@uploads.data_file.ref}
-          >
-            <.live_file_input upload={@uploads.data_file} class="hidden" />
-            <label for={@uploads.data_file.ref} class="cursor-pointer text-primary hover:underline">
-              Click to browse
-            </label>
-            <span class="text-gray-500"> or drag and drop here</span>
-          </div>
-        </div>
-        <!-- Preview pending uploads -->
-        <%= for entry <- @uploads.data_file.entries do %>
-          <div class="flex justify-between items-center bg-white p-3 rounded border mb-4">
-            <span class="text-sm text-gray-700">{entry.client_name}</span>
-            <div class="flex items-center gap-4">
-              <span class="text-xs font-semibold text-green-600">{entry.progress}%</span>
-              <button
-                type="button"
-                phx-click="remove_upload_entry"
-                phx-value-ref={entry.ref}
-                phx-target={@myself}
-                class="text-red-500 hover:text-red-700"
-              >
-                &times; Cancel
-              </button>
+            <div>
+              <label class="corp-label">Remark</label>
+              <input
+                type="text"
+                name="remark"
+                value={@form[:remark].value}
+                class="corp-input"
+                placeholder="Add an optional remark"
+              />
             </div>
           </div>
-        <% end %>
 
-        <div class="flex justify-end mt-4">
+          <!-- Right side: Attach Documents/Files -->
+          <div class="flex flex-col h-full justify-between">
+            <div class="flex-1 flex flex-col">
+              <label class="corp-label mb-1.5">Upload File <span class="text-red-500">*</span></label>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col items-center justify-center min-h-[160px]"
+                phx-drop-target={@uploads.data_file.ref}
+              >
+                <.live_file_input upload={@uploads.data_file} class="hidden" />
+                <label
+                  for={@uploads.data_file.ref}
+                  class="cursor-pointer text-primary hover:underline font-medium"
+                >
+                  Click to browse
+                </label>
+                <span class="text-gray-500"> or drag and drop here</span>
+              </div>
+            </div>
+
+            <!-- Preview pending uploads -->
+            <%= for entry <- @uploads.data_file.entries do %>
+              <div class="flex justify-between items-center bg-white p-3 rounded border mt-4">
+                <span class="text-sm text-gray-700">{entry.client_name}</span>
+                <div class="flex items-center gap-4">
+                  <span class="text-xs font-semibold text-green-600">{entry.progress}%</span>
+                  <button
+                    type="button"
+                    phx-click="remove_upload_entry"
+                    phx-value-ref={entry.ref}
+                    phx-target={@myself}
+                    class="text-red-500 hover:text-red-700"
+                  >
+                    &times; Cancel
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex justify-start mt-4">
           <button
             type="submit"
             class="btn btn-outline btn-success"

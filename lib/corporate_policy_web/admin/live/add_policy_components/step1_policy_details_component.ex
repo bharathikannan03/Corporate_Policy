@@ -524,7 +524,7 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           <% end %>
         </div>
 
-        <div class="corp-field-group relative" phx-click-away="close_dropdowns">
+        <div class="corp-field-group relative" phx-click-away="close_dropdowns" phx-target={@myself}>
           <label class="corp-label">
             Select Insurer <span class="corp-required">*</span>
           </label>
@@ -557,10 +557,8 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
               </div>
             <% end %>
           </div>
-
           <input type="hidden" name="ref_select_insurer_id" value={@selected_insurer_id || ""} />
           <input type="hidden" name="select_insurer" value={@selected_insurer_name || ""} />
-
           <%= if @show_insurer_dropdown do %>
             <div class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-36 overflow-y-auto">
               <%= if Enum.empty?(@insurer_results) do %>
@@ -607,9 +605,13 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
           </select>
         </div>
 
-        <div :if={@show_tpa_family} class="corp-field-group relative" phx-click-away="close_dropdowns">
+        <div
+          :if={@show_tpa_family}
+          class="corp-field-group relative"
+          phx-click-away="close_dropdowns"
+          phx-target={@myself}
+        >
           <label class="corp-label">Select TPA</label>
-
           <div class="relative">
             <input
               type="text"
@@ -637,10 +639,8 @@ defmodule CorporatePolicyWeb.Admin.Step1PolicyDetailsComponent do
               </div>
             <% end %>
           </div>
-
           <input type="hidden" name="ref_tpa_id" value={@selected_tpa_id || ""} />
           <input type="hidden" name="select_tpa" value={@selected_tpa_name || ""} />
-
           <%= if @show_tpa_dropdown do %>
             <div class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-36 overflow-y-auto">
               <%= if Enum.empty?(@tpa_results) do %>

@@ -2427,4 +2427,135 @@ defmodule CorporatePolicy.Policies do
       |> List.to_string()
     end
   end
+
+  # === Corporate Cashless Hospitals ===
+
+  def list_cashless_hospitals_by_tpa_paginated(ref_tpa_id, opts \\ []) do
+    page = Keyword.get(opts, :page, 1) |> normalize_page()
+    limit = 15
+    offset = (page - 1) * limit
+    tpa_id_str = if is_integer(ref_tpa_id), do: to_string(ref_tpa_id), else: ref_tpa_id
+
+    if is_nil(tpa_id_str) or tpa_id_str == "" do
+      %{
+        entries: [],
+        page: 1,
+        page_size: limit,
+        total_entries: 0,
+        total_pages: 1
+      }
+    else
+      query =
+        from chu in CashlessHospitalUpload,
+          where: chu.ref_tpa_id == ^tpa_id_str and is_nil(chu.deleted_at),
+          order_by: [asc: chu.hospital_name]
+
+      query =
+        if search = opts[:search] do
+          if search != "" do
+            search_pattern = "%#{search}%"
+
+            from chu in query,
+              where:
+                ilike(chu.hospital_name, ^search_pattern) or
+                  ilike(chu.city, ^search_pattern) or
+                  ilike(chu.state, ^search_pattern) or
+                  ilike(chu.hospital_address, ^search_pattern)
+          else
+            query
+          end
+        else
+          query
+        end
+
+      total_entries = Repo.aggregate(query, :count, :id)
+      total_pages = max(div(max(total_entries, 1) + limit - 1, limit), 1)
+      page = min(page, total_pages)
+
+      entries =
+        query
+        |> offset(^((page - 1) * limit))
+        |> limit(^limit)
+        |> Repo.all()
+
+      entries_with_nums =
+        entries
+        |> Enum.with_index()
+        |> Enum.map(fn {item, idx} ->
+          row_num = offset + idx + 1
+          Map.put(item, :row_num, row_num)
+        end)
+
+      %{
+        entries: entries_with_nums,
+        page: page,
+        page_size: limit,
+        total_entries: total_entries,
+        total_pages: total_pages
+      }
+    end
+  end
+
+  def export_cashless_hospitals_csv(ref_tpa_id, search \\ "") do
+    tpa_id_str = if is_integer(ref_tpa_id), do: to_string(ref_tpa_id), else: ref_tpa_id
+
+    if is_nil(tpa_id_str) or tpa_id_str == "" do
+      ""
+    else
+      query =
+        from chu in CashlessHospitalUpload,
+          where: chu.ref_tpa_id == ^tpa_id_str and is_nil(chu.deleted_at),
+          order_by: [asc: chu.hospital_name]
+
+      query =
+        if search != "" do
+          search_pattern = "%#{search}%"
+
+          from chu in query,
+            where:
+              ilike(chu.hospital_name, ^search_pattern) or
+                ilike(chu.city, ^search_pattern) or
+                ilike(chu.state, ^search_pattern) or
+                ilike(chu.hospital_address, ^search_pattern)
+        else
+          query
+        end
+
+      hospitals = Repo.all(query)
+
+      headers = [
+        "SI NO",
+        "HOSPITAL NAME",
+        "ADDRESS",
+        "LOCATION",
+        "CITY",
+        "STATE",
+        "PINCODE",
+        "PHONE",
+        "EMAIL"
+      ]
+
+      rows =
+        hospitals
+        |> Enum.with_index(1)
+        |> Enum.map(fn {chu, idx} ->
+          [
+            idx,
+            chu.hospital_name || "",
+            chu.hospital_address || "",
+            chu.location || "",
+            chu.city || "",
+            chu.state || "",
+            chu.pincode || "",
+            chu.phone || "",
+            chu.email || ""
+          ]
+        end)
+
+      [headers]
+      |> Enum.concat(rows)
+      |> NimbleCSV.RFC4180.dump_to_iodata()
+      |> IO.iodata_to_binary()
+    end
+  end
 end

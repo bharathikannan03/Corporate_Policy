@@ -96,6 +96,11 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
   end
 
   @impl true
+  def handle_event("close_dropdowns", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
@@ -144,7 +149,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                 <span class={["text-sm", text_color]}>{step_name}</span>
+                <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
@@ -208,7 +213,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-                  
+
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

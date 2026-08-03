@@ -3423,6 +3423,9 @@
   .max-w-\[90\%\] {
     max-width: 90%;
   }
+  .max-w-\[200px\] {
+    max-width: 200px;
+  }
   .max-w-md {
     max-width: var(--container-md);
   }
@@ -3549,6 +3552,9 @@
   }
   .items-start {
     align-items: flex-start;
+  }
+  .items-stretch {
+    align-items: stretch;
   }
   .justify-between {
     justify-content: space-between;

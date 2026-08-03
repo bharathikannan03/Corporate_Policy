@@ -178,98 +178,106 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         phx-target={@myself}
         class="bg-gray-50 p-4 rounded-lg mb-8"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="corp-label">Document Type <span class="text-red-500">*</span></label>
-            <select name="document_type_id" class="corp-input" required>
-              <option value="" disabled selected={@form[:document_type_id].value == ""}>
-                Select Document Type
-              </option>
-              
-              <%= for type <- @doc_types do %>
-                <option
-                  value={type.id}
-                  selected={@form[:document_type_id].value == to_string(type.id)}
-                >
-                  {type.name}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+          <!-- Left side: Dropdown fields and note stacked vertically -->
+          <div class="space-y-4">
+            <div>
+              <label class="corp-label">Document Type <span class="text-red-500">*</span></label>
+              <select name="document_type_id" class="corp-input" required>
+                <option value="" disabled selected={@form[:document_type_id].value == ""}>
+                  Select Document Type
                 </option>
-              <% end %>
-            </select>
-          </div>
-          
-          <div>
-            <label class="corp-label">Document Name <span class="text-red-500">*</span></label>
-            <select
-              name="document_name_id"
-              class="corp-input"
-              required
-              disabled={Enum.empty?(@available_doc_names)}
-            >
-              <option value="" disabled selected={@form[:document_name_id].value == ""}>
-                Type or select Document Name
-              </option>
-              
-              <%= for name <- @available_doc_names do %>
-                <option
-                  value={name.id}
-                  selected={@form[:document_name_id].value == to_string(name.id)}
-                >
-                  {name.name}
-                </option>
-              <% end %>
-            </select>
-          </div>
-        </div>
-        
-        <div class="mb-4">
-          <label class="corp-label">Note</label>
-          <input
-            type="text"
-            name="note"
-            value={@form[:note].value}
-            class="corp-input"
-            placeholder="Enter a note (Optional)"
-          />
-        </div>
-        
-        <div class="mb-4">
-          <label class="corp-label">Attach Documents (PDF only) <span class="text-red-500">*</span></label>
-          <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
-            phx-drop-target={@uploads.policy_doc.ref}
-          >
-            <.live_file_input
-              upload={@uploads.policy_doc}
-              class="hidden"
-            />
-            <label
-              for={@uploads.policy_doc.ref}
-              class="cursor-pointer text-blue-600 hover:underline font-medium"
-            >
-              Click to browse
-            </label>
-             <span class="text-gray-500"> or drag and drop your PDF here</span>
-          </div>
-        </div>
-        <!-- Preview pending uploads -->
-        <%= for entry <- @uploads.policy_doc.entries do %>
-          <div class="flex justify-between items-center bg-white p-3 rounded border mb-4">
-            <span class="text-sm text-gray-700">{entry.client_name}</span>
-            <div class="flex items-center gap-4">
-              <span class="text-xs font-semibold text-green-600">{entry.progress}%</span>
-              <button
-                type="button"
-                phx-click="remove_doc_entry"
-                phx-value-ref={entry.ref}
-                phx-target={@myself}
-                class="text-red-500 hover:text-red-700"
+
+                <%= for type <- @doc_types do %>
+                  <option
+                    value={type.id}
+                    selected={@form[:document_type_id].value == to_string(type.id)}
+                  >
+                    {type.name}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <div>
+              <label class="corp-label">Document Name <span class="text-red-500">*</span></label>
+              <select
+                name="document_name_id"
+                class="corp-input"
+                required
+                disabled={Enum.empty?(@available_doc_names)}
               >
-                &times; Cancel
-              </button>
+                <option value="" disabled selected={@form[:document_name_id].value == ""}>
+                  Type or select Document Name
+                </option>
+
+                <%= for name <- @available_doc_names do %>
+                  <option
+                    value={name.id}
+                    selected={@form[:document_name_id].value == to_string(name.id)}
+                  >
+                    {name.name}
+                  </option>
+                <% end %>
+              </select>
+            </div>
+
+            <div>
+              <label class="corp-label">Note</label>
+              <input
+                type="text"
+                name="note"
+                value={@form[:note].value}
+                class="corp-input"
+                placeholder="Enter a note (Optional)"
+              />
             </div>
           </div>
-        <% end %>
-        
+
+          <!-- Right side: PDF attach/drop area -->
+          <div class="flex flex-col h-full justify-between">
+            <div class="flex-1 flex flex-col">
+              <label class="corp-label mb-1.5">Attach Documents (PDF only)
+              <span class="text-red-500">*</span></label>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col items-center justify-center min-h-[180px]"
+                phx-drop-target={@uploads.policy_doc.ref}
+              >
+                <.live_file_input
+                  upload={@uploads.policy_doc}
+                  class="hidden"
+                />
+                <label
+                  for={@uploads.policy_doc.ref}
+                  class="cursor-pointer text-blue-600 hover:underline font-medium"
+                >
+                  Click to browse
+                </label>
+                <span class="text-gray-500"> or drag and drop your PDF here</span>
+              </div>
+            </div>
+
+            <!-- Preview pending uploads -->
+            <%= for entry <- @uploads.policy_doc.entries do %>
+              <div class="flex justify-between items-center bg-white p-3 rounded border mt-4">
+                <span class="text-sm text-gray-700">{entry.client_name}</span>
+                <div class="flex items-center gap-4">
+                  <span class="text-xs font-semibold text-green-600">{entry.progress}%</span>
+                  <button
+                    type="button"
+                    phx-click="remove_doc_entry"
+                    phx-value-ref={entry.ref}
+                    phx-target={@myself}
+                    class="text-red-500 hover:text-red-700"
+                  >
+                    &times; Cancel
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
         <div class="flex justify-start mt-4">
           <button
             type="submit"
@@ -290,15 +298,15 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
             >
             </path></svg>
           </div>
-          
+
           <div>
             <p class="font-semibold mb-1">Note:</p>
-            
+
             <ul class="list-disc ml-5">
               <li>
                 <strong>Service Document</strong> - Service documents which help for claim procedure
               </li>
-              
+
               <li>
                 <strong>Policy Documents (Policy Copies)</strong>
                 - Policy Documents will be only visible to HR
@@ -313,19 +321,19 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
           <thead>
             <tr>
               <th>S.No</th>
-              
+
               <th>Document Type</th>
-              
+
               <th>Document Name</th>
-              
+
               <th>Attachment</th>
-              
+
               <th>Note</th>
-              
+
               <th class="text-right">Action</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@documents) do %>
               <tr>
@@ -345,17 +353,17 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               <%= for {doc, index} <- Enum.with_index(@documents_page.entries, 1) do %>
                 <tr>
                   <td>{(@documents_page.page - 1) * @documents_page.page_size + index}</td>
-                  
+
                   <td>{doc.document_type}</td>
-                  
+
                   <td>{doc.document_name}</td>
-                  
+
                   <td class="font-medium text-blue-600 hover:underline cursor-pointer">
                     {doc.original_file_name}
                   </td>
-                  
+
                   <td>{doc.note}</td>
-                  
+
                   <td class="text-right">
                     <button
                       type="button"
@@ -373,7 +381,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
           </tbody>
         </table>
       </div>
-      
+
       <.pagination
         page={@documents_page.page}
         page_size={@documents_page.page_size}
@@ -387,7 +395,7 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step6" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
         </button>

@@ -105,7 +105,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
     ~H"""
     <Layouts.admin flash={@flash} current_user={@current_user} active_path={@active_path}>
       <div class="p-6">
-        <div class="max-w-7xl mx-auto">
+        <div class="w-full">
           <h1 class="text-2xl font-bold mb-6">
             {if @edit_mode, do: "Edit Policy", else: "Add Policy"}
           </h1>
@@ -149,7 +149,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                <span class={["text-sm", text_color]}>{step_name}</span>
+                 <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
@@ -213,7 +213,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-
+                  
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

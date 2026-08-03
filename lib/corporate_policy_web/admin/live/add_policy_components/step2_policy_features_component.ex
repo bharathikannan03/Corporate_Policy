@@ -287,14 +287,14 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           <h3 class="text-lg font-semibold text-slate-800">
             {if @editing_feature_id, do: "Edit Policy Feature", else: "Add Policy Feature"}
           </h3>
-           <span class="text-sm text-slate-500">Template: POLICY_001</span>
+          <span class="text-sm text-slate-500">Template: POLICY_001</span>
         </div>
-        
+
         <%= if @template_fields == [] do %>
           <div class="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border">
             <.icon name="hero-exclamation-triangle" class="w-8 h-8 mx-auto mb-2 text-amber-400" />
             <p class="font-medium">No template fields found for this policy type.</p>
-            
+
             <p class="text-sm mt-1">
               Please contact your administrator to configure template fields.
             </p>
@@ -315,7 +315,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                     <span class="corp-required text-red-500 font-bold">*</span>
                   <% end %>
                 </label>
-                
+
                 <div class="grid grid-cols-2 gap-4 items-center">
                   <div>
                     <%= if field.ref_master_temp_field_Type == 4 do %>
@@ -329,7 +329,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                             class="radio radio-primary w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           /> <span class="text-sm font-medium text-slate-700">Yes</span>
                         </label>
-                        
+
                         <label class="inline-flex items-center gap-2 cursor-pointer">
                           <input
                             type="radio"
@@ -362,11 +362,11 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                       <% end %>
                     <% end %>
                   </div>
-                  
+
                   <div>
                     <select name={"visibility_role_#{field.template_field_id}"} class="corp-input">
                       <option value="">Select Visibility Role</option>
-                      
+
                       <%= for role <- @visibility_roles do %>
                         <option
                           value={role.role_id}
@@ -383,7 +383,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                 </div>
               </div>
             <% end %>
-            
+
             <div class="corp-field-group corp-field-group--full corp-form-actions justify-end">
               <button
                 type="button"
@@ -393,7 +393,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               >
                 Cancel
               </button>
-              
+
               <button type="submit" class="btn btn-success">
                 <.icon name="hero-check" class="w-4 h-4 mr-1" /> {if @editing_feature_id,
                   do: "Update Feature",
@@ -406,30 +406,30 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
         <%!-- Table View --%>
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-medium text-slate-800">Policy Features</h3>
-          
+
           <button type="button" phx-click="show_form" phx-target={@myself} class="btn btn-primary">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add New
           </button>
         </div>
-        
+
         <div class="overflow-x-auto">
           <div class="corp-table-card">
             <table class="corp-table">
               <thead>
                 <tr>
                   <th class="corp-th text-left p-4 border-b">POLICY BENEFIT IDENTIFIER</th>
-                  
+
                   <th class="corp-th text-right p-4 border-b w-32">ACTIONS</th>
                 </tr>
               </thead>
-              
+
               <tbody>
                 <%= for mf <- @mapped_features_page.entries do %>
                   <tr class="corp-tr hover:bg-slate-50 transition-colors">
                     <td class="corp-td p-4 border-b font-medium text-slate-900">
                       {mf.feature_identifier}
                     </td>
-                    
+
                     <td class="corp-td p-4 border-b text-right">
                       <div class="flex justify-end gap-2">
                         <button
@@ -442,7 +442,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                         >
                           <.icon name="hero-pencil" class="w-4 h-4" />
                         </button>
-                        
+
                         <button
                           type="button"
                           phx-click="confirm_delete"
@@ -457,7 +457,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
                     </td>
                   </tr>
                 <% end %>
-                
+
                 <%= if Enum.empty?(@mapped_features) do %>
                   <tr>
                     <td colspan="2" class="p-8 text-center text-slate-500 bg-slate-50">
@@ -469,7 +469,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
             </table>
           </div>
         </div>
-        
+
         <.pagination
           page={@mapped_features_page.page}
           page_size={@mapped_features_page.page_size}
@@ -489,7 +489,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
           </button>
         </div>
       <% end %>
-       <%!-- Delete Confirmation Modal --%>
+      <%!-- Delete Confirmation Modal --%>
       <%= if @confirm_delete_id do %>
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-slate-200">
@@ -497,11 +497,11 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               <.icon name="hero-exclamation-triangle" class="w-6 h-6" />
               <h3 class="text-lg font-semibold text-slate-900">Delete Policy Feature</h3>
             </div>
-            
+
             <p class="text-slate-600 text-sm mb-6">
               Are you sure you want to delete this policy feature? This action cannot be undone.
             </p>
-            
+
             <div class="flex justify-end gap-3">
               <button
                 type="button"
@@ -511,7 +511,7 @@ defmodule CorporatePolicyWeb.Admin.Step2PolicyFeaturesComponent do
               >
                 Cancel
               </button>
-              
+
               <button
                 type="button"
                 phx-click="delete_feature"

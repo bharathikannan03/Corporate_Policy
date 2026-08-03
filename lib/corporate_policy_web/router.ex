@@ -115,6 +115,7 @@ defmodule CorporatePolicyWeb.Router do
       live "/escalation-matrix", EscalationMatrixLive
       live "/documents", DocumentsLive
       live "/policy-features", PolicyFeaturesLive
+      live "/cashless-hospitals", CashlessHospitalsLive
 
       live "/claims-submission", ClaimsSubmissionIndexLive, :index
       live "/claims-submission/add", ClaimSubmissionFormLive, :new
@@ -124,6 +125,7 @@ defmodule CorporatePolicyWeb.Router do
     get "/enrollment-details/export", EmployeeExportController, :export
     get "/claims/export", TotalClaimReportExportController, :export
     get "/claims-submission/export", ClaimSubmissionExportController, :export
+    get "/cashless-hospitals/export", CashlessHospitalExportController, :export
   end
 
   scope "/employee", CorporatePolicyWeb.Employee, as: :employee do

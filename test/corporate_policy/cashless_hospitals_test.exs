@@ -93,6 +93,26 @@ defmodule CorporatePolicy.CashlessHospitalsTest do
     assert length(result.entries) == 1
     assert Enum.at(result.entries, 0).insurer_name == insurer.name
 
+    # Test Corporate TPA filtering and pagination
+    res_tpa = Policies.list_cashless_hospitals_by_tpa_paginated(tpa.id)
+    assert res_tpa.total_entries == 1
+    assert length(res_tpa.entries) == 1
+    assert Enum.at(res_tpa.entries, 0).hospital_name == "Appolo Hospital"
+
+    # Test search
+    res_search = Policies.list_cashless_hospitals_by_tpa_paginated(tpa.id, search: "Appolo")
+    assert res_search.total_entries == 1
+
+    res_no_match =
+      Policies.list_cashless_hospitals_by_tpa_paginated(tpa.id, search: "NonExistent")
+
+    assert res_no_match.total_entries == 0
+
+    # Test CSV Export
+    csv_data = Policies.export_cashless_hospitals_csv(tpa.id)
+    assert String.contains?(csv_data, "HOSPITAL NAME")
+    assert String.contains?(csv_data, "Appolo Hospital")
+
     File.rm!(tmp_path)
   end
 end

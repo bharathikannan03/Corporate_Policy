@@ -3303,9 +3303,6 @@
   .max-h-36 {
     max-height: calc(var(--spacing) * 36);
   }
-  .max-h-60 {
-    max-height: calc(var(--spacing) * 60);
-  }
   .max-h-\[70vh\] {
     max-height: 70vh;
   }
@@ -3425,6 +3422,9 @@
   }
   .max-w-\[90\%\] {
     max-width: 90%;
+  }
+  .max-w-\[200px\] {
+    max-width: 200px;
   }
   .max-w-md {
     max-width: var(--container-md);
@@ -3552,6 +3552,9 @@
   }
   .items-start {
     align-items: flex-start;
+  }
+  .items-stretch {
+    align-items: stretch;
   }
   .justify-between {
     justify-content: space-between;

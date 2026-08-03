@@ -234,6 +234,7 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   Insurer Name <span class="text-red-500">*</span>
                 </label>
+
                 <div class="relative">
                   <input
                     type="text"
@@ -279,12 +280,12 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                   </div>
                 <% end %>
               </div>
-
               <!-- TPA input -->
               <div class="relative w-full" phx-click-stop>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   TPA Name
                 </label>
+
                 <div class="relative">
                   <input
                     type="text"
@@ -331,12 +332,12 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                 <% end %>
               </div>
             </div>
-
             <!-- Upload Area -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Cashless Hospital Data Upload <span class="text-red-500">*</span>
               </label>
+
               <div
                 class="border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors rounded-lg p-8 text-center cursor-pointer relative"
                 phx-drop-target={@uploads.ch_file.ref}
@@ -348,11 +349,11 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                     <p class="text-sm font-semibold text-gray-700">
                       Drag and drop a file here or click
                     </p>
+
                     <p class="text-xs text-gray-500 mt-1">Only CSV files are supported</p>
                   </div>
                 </label>
               </div>
-
               <!-- Pending upload list -->
               <%= for entry <- @uploads.ch_file.entries do %>
                 <div class="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-200 mt-4">
@@ -360,6 +361,7 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                     <.icon name="hero-document-text" class="w-5 h-5 text-gray-400" />
                     <span class="text-sm text-gray-700 font-medium">{entry.client_name}</span>
                   </div>
+
                   <div class="flex items-center gap-4">
                     <span class="text-xs font-semibold text-green-600">{entry.progress}%</span>
                     <button
@@ -374,7 +376,6 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                 </div>
               <% end %>
             </div>
-
             <!-- Action buttons block -->
             <div class="col-span-full border-t border-gray-100 pt-4 flex flex-wrap gap-4 items-center justify-start">
               <!-- Upload Data is the submit button for form (green color scheme as per Rule 6) -->
@@ -393,19 +394,18 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
               >
                 Download sample
               </a>
-
               <!-- <a href="#" class="text-blue-600 hover:underline text-sm font-medium ml-2">
                 Track API Activity
               </a> -->
             </div>
           </.form>
         </div>
-
         <!-- History Listing Card -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-800">Upload History</h3>
+
               <p class="text-sm text-gray-500">
                 Track and download previous cashless hospital data imports
               </p>
@@ -433,15 +433,23 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                 <thead>
                   <tr>
                     <th class="corp-th">#</th>
+
                     <th class="corp-th">INSURER NAME</th>
+
                     <th class="corp-th">TPA NAME</th>
+
                     <th class="corp-th">FILE NAME</th>
+
                     <th class="corp-th">PROGRESS</th>
+
                     <th class="corp-th">STATUS</th>
+
                     <th class="corp-th">EVENT TYPE</th>
+
                     <th class="corp-th">CREATED AT</th>
                   </tr>
                 </thead>
+
                 <tbody id="imports-table-body">
                   <%= if Enum.empty?(@uploads_list) do %>
                     <tr class="corp-tr">
@@ -456,18 +464,21 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                     <%= for ch <- @uploads_list do %>
                       <tr class="corp-tr border-b border-gray-100 hover:bg-gray-50">
                         <td class="corp-td font-medium text-gray-700">{ch.row_num}</td>
+
                         <td class="corp-td font-semibold text-gray-900">{ch.insurer_name}</td>
+
                         <td class="corp-td text-gray-600">{ch.tpa_name || "Internal TPA"}</td>
+
                         <td class="corp-td">
                           <a
                             href={"/uploads/#{Path.basename(ch.ch_upload_data)}"}
                             download={ch.original_file_name}
                             class="text-blue-600 hover:underline flex items-center font-medium"
                           >
-                            <.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-1 shrink-0" />
-                            {ch.original_file_name}
+                            <.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-1 shrink-0" /> {ch.original_file_name}
                           </a>
                         </td>
+
                         <td class="corp-td">
                           <!-- progress bar -->
                           <div class="flex items-center space-x-2 w-28">
@@ -475,12 +486,15 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                             <span class="text-xs text-gray-500 font-semibold">100%</span>
                           </div>
                         </td>
+
                         <td class="corp-td">
                           <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 border border-green-200">
                             Import Success
                           </span>
                         </td>
+
                         <td class="corp-td text-gray-500 font-medium">Import</td>
+
                         <td class="corp-td text-gray-600 whitespace-nowrap">
                           {format_datetime(ch.inserted_at)}
                         </td>
@@ -490,7 +504,6 @@ defmodule CorporatePolicyWeb.Admin.CashlessHospitalsLive do
                 </tbody>
               </table>
             </div>
-
             <!-- Pagination component -->
             <%= if @total_pages > 1 do %>
               <.pagination

@@ -842,7 +842,7 @@ defmodule CorporatePolicy.Corporates do
           role_id: role_id,
           role: role_name,
           status: 1,
-          is_visible: 1
+          is_visible: 2
         })
 
       # Available modules and options

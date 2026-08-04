@@ -233,7 +233,6 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
               />
             </div>
           </div>
-
           <!-- Right side: PDF attach/drop area -->
           <div class="flex flex-col h-full justify-between">
             <div class="flex-1 flex flex-col">
@@ -256,7 +255,6 @@ defmodule CorporatePolicyWeb.Admin.Step6DocumentsComponent do
                 <span class="text-gray-500"> or drag and drop your PDF here</span>
               </div>
             </div>
-
             <!-- Preview pending uploads -->
             <%= for entry <- @uploads.policy_doc.entries do %>
               <div class="flex justify-between items-center bg-white p-3 rounded border mt-4">

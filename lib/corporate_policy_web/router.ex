@@ -73,7 +73,11 @@ defmodule CorporatePolicyWeb.Router do
       live "/cd-statements/cd-accounts", CdAccountsLive, :index
       get "/policy-details/:policy_id/cd-statements/export", CdStatementExportController, :export
       live "/cd-statements", CdStatementsLive
-      live "/roles-configuration", RolesConfigurationLive
+      get "/roles-configuration/export", RolesExportController, :export
+      live "/roles-configuration", RolesListLive, :index
+      live "/roles-configuration/list", RolesListLive, :index
+      live "/roles-configuration/add", RolesAddLive, :new
+      live "/roles-configuration/:id/edit", RolesAddLive, :edit
       live "/users", UsersLive
       live "/corporate-employees", CorporateEmployeesLive
       live "/cashless-hospitals", CashlessHospitalsLive

@@ -8,6 +8,9 @@ defmodule CorporatePolicy.Corporates do
   alias CorporatePolicy.Corporates.Corporate
   alias CorporatePolicy.Corporates.Logo
   alias CorporatePolicy.Corporates.MdVisibilityRoleFeature
+  alias CorporatePolicy.Corporates.MdRoleAccessdetailModule
+  alias CorporatePolicy.Corporates.MdRoleAccessdetailModuleOption
+  alias CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail
   alias CorporatePolicy.Corporates.ContactEmailLog
 
   # ─── Logos ────────────────────────────────────────────────────────────────────
@@ -742,6 +745,232 @@ defmodule CorporatePolicy.Corporates do
 
   @doc "Returns all visibility roles."
   def list_visibility_roles do
-    Repo.all(from v in MdVisibilityRoleFeature, select: %{role_id: v.role_id, role: v.role})
+    Repo.all(
+      from v in MdVisibilityRoleFeature,
+        where: is_nil(v.deleted_at),
+        select: %{role_id: v.role_id, role: v.role}
+    )
+  end
+
+  def role_exists?(role_name) do
+    query =
+      from r in MdVisibilityRoleFeature,
+        where: r.role == ^role_name and is_nil(r.deleted_at),
+        select: count(r.id)
+
+    Repo.one(query) > 0
+  end
+
+  def get_next_role_id do
+    query =
+      from r in MdVisibilityRoleFeature,
+        order_by: [desc: r.role_id],
+        limit: 1
+
+    case Repo.one(query) do
+      nil -> 1
+      role -> role.role_id + 1
+    end
+  end
+
+  def get_role_access_summary(role_id) do
+    query =
+      from m in TrnMappingRoleidRoleaccessdetail,
+        join: mod in MdRoleAccessdetailModule,
+        on: m.module_id == mod.module_id,
+        join: opt in MdRoleAccessdetailModuleOption,
+        on: m.module_option_id == opt.module_option_id,
+        where:
+          m.role_id == ^role_id and m.selection_status == true and is_nil(m.deleted_at) and
+            is_nil(mod.deleted_at) and is_nil(opt.deleted_at),
+        order_by: [asc: m.module_id, asc: m.module_option_id],
+        select: {mod.module_name, opt.module_option_name}
+
+    results = Repo.all(query)
+
+    results
+    |> Enum.group_by(fn {mod_name, _opt_name} -> mod_name end, fn {_mod_name, opt_name} ->
+      opt_name
+    end)
+    |> Enum.map(fn {mod_name, opt_names} ->
+      "#{mod_name}: #{Enum.join(opt_names, ", ")}"
+    end)
+  end
+
+  def get_mapped_corporates_for_role(role_id) do
+    query =
+      from c in Corporate,
+        join: u in CorporatePolicy.Accounts.User,
+        on: u.ref_corporate_id == c.corporate_id,
+        where: u.department_id == ^role_id and is_nil(u.deleted_at) and is_nil(c.deleted_at),
+        distinct: true,
+        select: c.corporate_name
+
+    Repo.all(query)
+  end
+
+  def list_roles_configurations do
+    roles =
+      Repo.all(
+        from r in MdVisibilityRoleFeature,
+          where: is_nil(r.deleted_at) and r.role_id not in [1, 2, 4, 9],
+          order_by: [asc: r.role_id]
+      )
+
+    Enum.map(roles, fn role ->
+      access_lines = get_role_access_summary(role.role_id)
+      mapped_corporates = get_mapped_corporates_for_role(role.role_id)
+      mapped_to_text = Enum.join(mapped_corporates, ", ")
+
+      %{
+        id: role.id,
+        role_id: role.role_id,
+        role: role.role,
+        status: role.status,
+        access_lines: access_lines,
+        mapped_to_text: mapped_to_text
+      }
+    end)
+  end
+
+  def create_role_with_access(role_name, permissions) do
+    Repo.transaction(fn ->
+      role_id = get_next_role_id()
+
+      role =
+        Repo.insert!(%MdVisibilityRoleFeature{
+          role_id: role_id,
+          role: role_name,
+          status: 1,
+          is_visible: 1
+        })
+
+      # Available modules and options
+      modules_with_options = [
+        # Dashboard: View
+        {1, [1]},
+        # Enrollment: View, Upload Enrollment
+        {2, [1, 2]},
+        # Claims: View, Intimate Claim, View Corporate Buffer List
+        {3, [1, 3, 4]},
+        # Cashless Hospitals: View
+        {4, [1]},
+        # Escalation Matrix: View
+        {5, [1]},
+        # Policy Features: View
+        {6, [1]},
+        # Policy Documents: View
+        {7, [1]},
+        # CD Statements: View, Upload CD Statements
+        {8, [1, 5]},
+        # Endorsements: View
+        {9, [1]},
+        # Employee: View Activity Logs
+        {10, [6]},
+        # Reports: View Claims, Demography, Top Ten, Endorsement
+        {11, [7, 8, 9, 10]},
+        # Summary: View
+        {12, [1]},
+        # Endorsement Calc: Upload Rackrates, View Rackrates, Upload Calc, View Endorsement
+        {13, [11, 12, 13, 14]}
+      ]
+
+      for {module_id, option_ids} <- modules_with_options, option_id <- option_ids do
+        selected_opts =
+          Map.get(permissions, to_string(module_id)) || Map.get(permissions, module_id) || []
+
+        selection_status =
+          Enum.any?(selected_opts, fn val ->
+            to_string(val) == to_string(option_id)
+          end)
+
+        Repo.insert!(%TrnMappingRoleidRoleaccessdetail{
+          role_id: role_id,
+          module_id: module_id,
+          module_option_id: option_id,
+          selection_status: selection_status,
+          status: 1
+        })
+      end
+
+      role
+    end)
+  end
+
+  def update_role_with_access(role_id, role_name, permissions) do
+    Repo.transaction(fn ->
+      role =
+        Repo.one!(
+          from r in MdVisibilityRoleFeature, where: r.role_id == ^role_id and is_nil(r.deleted_at)
+        )
+
+      role = Repo.update!(Ecto.Changeset.change(role, role: role_name))
+
+      Repo.delete_all(from m in TrnMappingRoleidRoleaccessdetail, where: m.role_id == ^role_id)
+
+      modules_with_options = [
+        # Dashboard: View
+        {1, [1]},
+        # Enrollment: View, Upload Enrollment
+        {2, [1, 2]},
+        # Claims: View, Intimate Claim, View Corporate Buffer List
+        {3, [1, 3, 4]},
+        # Cashless Hospitals: View
+        {4, [1]},
+        # Escalation Matrix: View
+        {5, [1]},
+        # Policy Features: View
+        {6, [1]},
+        # Policy Documents: View
+        {7, [1]},
+        # CD Statements: View, Upload CD Statements
+        {8, [1, 5]},
+        # Endorsements: View
+        {9, [1]},
+        # Employee: View Activity Logs
+        {10, [6]},
+        # Reports: View Claims, Demography, Top Ten, Endorsement
+        {11, [7, 8, 9, 10]},
+        # Summary: View
+        {12, [1]},
+        # Endorsement Calc: Upload Rackrates, View Rackrates, Upload Calc, View Endorsement
+        {13, [11, 12, 13, 14]}
+      ]
+
+      for {module_id, option_ids} <- modules_with_options, option_id <- option_ids do
+        selected_opts =
+          Map.get(permissions, to_string(module_id)) || Map.get(permissions, module_id) || []
+
+        selection_status =
+          Enum.any?(selected_opts, fn val ->
+            to_string(val) == to_string(option_id)
+          end)
+
+        Repo.insert!(%TrnMappingRoleidRoleaccessdetail{
+          role_id: role_id,
+          module_id: module_id,
+          module_option_id: option_id,
+          selection_status: selection_status,
+          status: 1
+        })
+      end
+
+      role
+    end)
+  end
+
+  def get_role_permissions_map(role_id) do
+    query =
+      from m in TrnMappingRoleidRoleaccessdetail,
+        where: m.role_id == ^role_id and m.selection_status == true and is_nil(m.deleted_at),
+        select: {m.module_id, m.module_option_id}
+
+    mappings = Repo.all(query)
+
+    Enum.reduce(mappings, %{}, fn {mod_id, opt_id}, acc ->
+      Map.update(acc, to_string(mod_id), [to_string(opt_id)], fn existing ->
+        [to_string(opt_id) | existing]
+      end)
+    end)
   end
 end

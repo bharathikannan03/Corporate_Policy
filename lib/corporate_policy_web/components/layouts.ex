@@ -353,10 +353,21 @@ defmodule CorporatePolicyWeb.Layouts do
   attr :active_policy_number, :string, default: nil
   attr :active_path, :string, default: "/corporate/dashboard"
   attr :show_policy_numbers, :boolean, default: true
+  attr :allowed_modules, :any, default: nil
 
   slot :inner_block
 
   def corporate(assigns) do
+    allowed_modules =
+      assigns[:allowed_modules] ||
+        if user = assigns[:current_user] do
+          CorporatePolicy.Corporates.get_allowed_modules(user.department_id)
+        else
+          :all
+        end
+
+    assigns = assign(assigns, :allowed_modules, allowed_modules)
+
     ~H"""
     <div class="corp-portal-wrapper">
       <%!-- Left Sidebar --%>
@@ -403,72 +414,84 @@ defmodule CorporatePolicyWeb.Layouts do
         <%!-- Sidebar Menu --%>
         <nav class="corp-sidebar-nav">
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 1)}
             icon="hero-squares-2x2"
             label="Dashboard"
             href={~p"/corporate/dashboard"}
             active={@active_path == "/corporate/dashboard"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 2)}
             icon="hero-calendar"
             label="Enrollment"
             href={~p"/corporate/enrollment-details"}
             active={String.starts_with?(@active_path, "/corporate/enrollment")}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 3)}
             icon="hero-clipboard-document-list"
             label="Claims"
             href={~p"/corporate/claims"}
             active={String.starts_with?(@active_path, "/corporate/claims")}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 4)}
             icon="hero-building-office"
             label="Cashless Hospitals"
             href={~p"/corporate/cashless-hospitals"}
             active={@active_path == "/corporate/cashless-hospitals"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 5)}
             icon="hero-chart-bar"
             label="Escalation Matrix"
             href={~p"/corporate/escalation-matrix"}
             active={@active_path == "/corporate/escalation-matrix"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 6)}
             icon="hero-document-text"
             label="Policy Features"
             href={~p"/corporate/policy-features"}
             active={@active_path == "/corporate/policy-features"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 7)}
             icon="hero-document-duplicate"
             label="Documents"
             href={~p"/corporate/documents"}
             active={@active_path == "/corporate/documents"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 8) or show_module?(@allowed_modules, 9)}
             icon="hero-document-check"
             label="CD & Endorsement"
             href="#"
             active={@active_path == "/corporate/cd-endorsement"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 10)}
             icon="hero-user-group"
             label="Employee"
             href={~p"/corporate/employee"}
             active={@active_path == "/corporate/employee"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 13)}
             icon="hero-calculator"
             label="Endorsement Calculation"
             href="#"
             active={@active_path == "/corporate/endorsement-calc"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 11)}
             icon="hero-chart-pie"
             label="Reports"
             href="#"
             active={@active_path == "/corporate/reports"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 12)}
             icon="hero-document"
             label="Summary"
             href="#"
@@ -757,5 +780,13 @@ defmodule CorporatePolicyWeb.Layouts do
       </button>
     </div>
     """
+  end
+
+  defp show_module?(allowed_modules, module_id) do
+    case allowed_modules do
+      :all -> true
+      list when is_list(list) -> Enum.member?(list, module_id)
+      _ -> true
+    end
   end
 end

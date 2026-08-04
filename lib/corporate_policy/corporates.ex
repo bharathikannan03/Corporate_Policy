@@ -973,4 +973,27 @@ defmodule CorporatePolicy.Corporates do
       end)
     end)
   end
+
+  def get_allowed_modules(role_id) do
+    if is_nil(role_id) do
+      :all
+    else
+      has_mappings? =
+        Repo.exists?(
+          from m in TrnMappingRoleidRoleaccessdetail,
+            where: m.role_id == ^role_id and is_nil(m.deleted_at)
+        )
+
+      if has_mappings? do
+        Repo.all(
+          from m in TrnMappingRoleidRoleaccessdetail,
+            where: m.role_id == ^role_id and m.selection_status == true and is_nil(m.deleted_at),
+            select: m.module_id,
+            distinct: true
+        )
+      else
+        :all
+      end
+    end
+  end
 end

@@ -183,7 +183,8 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
       Enum.map(mapped_values, fn mv ->
         %{
           name: mv.ref_policy_feature_template_field_name,
-          value: mv.policy_feature_template_field_value
+          value: mv.policy_feature_template_field_value,
+          description: mv.field_description
         }
       end)
 
@@ -231,6 +232,51 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
       active_policy_number={@active_policy_number}
       active_path={@active_path}
     >
+      <style>
+        .has-tooltip {
+          position: relative;
+          display: inline-block;
+        }
+
+        .tooltip-box {
+          visibility: hidden;
+          width: 260px;
+          background-color: #1e1e1e;
+          color: #fff;
+          text-align: left;
+          padding: 8px 12px;
+          border-radius: 6px;
+          position: absolute;
+          z-index: 100;
+          bottom: 130%;
+          left: 50%;
+          transform: translateX(-50%);
+          opacity: 0;
+          transition: opacity 0.15s ease-in-out;
+          font-weight: 500;
+          font-size: 0.75rem;
+          line-height: 1.4;
+          white-space: normal;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+          pointer-events: none;
+        }
+
+        .tooltip-box::after {
+          content: "";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 6px;
+          border-style: solid;
+          border-color: #1e1e1e transparent transparent transparent;
+        }
+
+        .has-tooltip:hover .tooltip-box {
+          visibility: visible;
+          opacity: 1;
+        }
+      </style>
       <div class="space-y-4 my-4">
         <%!-- Title Bar --%>
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
@@ -334,12 +380,27 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                   <p class="text-base font-semibold">No feature available for this policy</p>
                 </div>
               <% else %>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 pt-6">
                   <%= for feature <- @modal_features do %>
-                    <div class="border border-blue-500 rounded-lg overflow-hidden flex flex-col shadow-xs hover:shadow-md transition-shadow">
-                      <div class="bg-blue-600 text-white font-semibold px-4 py-2 flex justify-between items-center text-xs">
+                    <div class="border border-blue-500 rounded-lg flex flex-col shadow-xs hover:shadow-md transition-shadow">
+                      <div class="bg-blue-600 text-white font-semibold px-4 py-2 flex justify-between items-center text-xs rounded-t-[7px]">
                         <span class="truncate pr-2">{feature.name}</span>
-                        <.icon name="hero-information-circle" class="w-4 h-4 text-white/90 shrink-0" />
+
+                        <div
+                          :if={feature[:description] && feature[:description] != ""}
+                          class="has-tooltip shrink-0 cursor-pointer"
+                        >
+                          <.icon name="hero-information-circle" class="w-4 h-4 text-white/90" />
+                          <span class="tooltip-box">
+                            {feature.description}
+                          </span>
+                        </div>
+
+                        <.icon
+                          :if={!feature[:description] || feature[:description] == ""}
+                          name="hero-information-circle"
+                          class="w-4 h-4 text-white/90 shrink-0"
+                        />
                       </div>
 
                       <div class="bg-white text-slate-700 px-4 py-3 flex-1 text-xs leading-relaxed flex items-center min-h-[60px]">

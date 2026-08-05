@@ -1047,12 +1047,15 @@ defmodule CorporatePolicy.Policies do
   def list_features_by_identifier(policy_id, feature_identifier_id) do
     Repo.all(
       from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
+        join: f in CorporatePolicy.Policies.MasterPolicyFeatureTemplateField,
+        on: m.ref_policy_feature_template_field_id == f.template_field_id,
         where:
           m.ref_policy_id == ^policy_id and
             (m.ref_policyidentifier_id == ^feature_identifier_id or
                m.policy_feature_template_field_value_id == ^feature_identifier_id) and
             is_nil(m.deleted_at) and m.status >= 0,
-        order_by: [asc: m.ref_policy_feature_template_field_id]
+        order_by: [asc: m.ref_policy_feature_template_field_id],
+        select: %{m | field_description: f.field_description}
     )
   end
 

@@ -3761,6 +3761,10 @@
   .rounded-xs {
     border-radius: var(--radius-xs);
   }
+  .rounded-t-\[7px\] {
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+  }
   .rounded-t-xl {
     border-top-left-radius: var(--radius-xl);
     border-top-right-radius: var(--radius-xl);

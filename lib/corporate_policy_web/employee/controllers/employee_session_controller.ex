@@ -81,6 +81,8 @@ defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
          employee_id when not is_nil(employee_id) <-
            get_session(conn, :employee_login_employee_id),
          {:ok, employee} <- EmployeePortal.get_authenticated_employee_session(employee_id) do
+      _ = EmployeePortal.log_employee_login(employee.id, conn)
+
       conn
       |> configure_session(renew: true)
       |> clear_employee_login_session()

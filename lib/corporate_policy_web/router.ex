@@ -114,7 +114,7 @@ defmodule CorporatePolicyWeb.Router do
       layout: {CorporatePolicyWeb.Layouts, :app} do
       live "/dashboard", DashboardLive
       live "/enrollment-details", EnrollmentDetailsLive
-      live "/employee", EnrollmentDetailsLive
+      live "/employee", EmployeeActivityLive
       live "/claims", ClaimsLive
       live "/escalation-matrix", EscalationMatrixLive
       live "/documents", DocumentsLive
@@ -130,6 +130,7 @@ defmodule CorporatePolicyWeb.Router do
     get "/claims/export", TotalClaimReportExportController, :export
     get "/claims-submission/export", ClaimSubmissionExportController, :export
     get "/cashless-hospitals/export", CashlessHospitalExportController, :export
+    get "/employee-activity/export", EmployeeActivityExportController, :export
   end
 
   scope "/employee", CorporatePolicyWeb.Employee, as: :employee do

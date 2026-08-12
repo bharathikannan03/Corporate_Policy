@@ -1,19 +1,14 @@
 defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   use CorporatePolicyWeb, :live_component
-  import Ecto.Query
-
   alias CorporatePolicy.StringUtils
+  alias CorporatePolicy.Policies
   alias CorporatePolicyWeb.Pagination
 
   @impl true
   def update(assigns, socket) do
     uploads_list =
       if assigns[:policy] do
-        CorporatePolicy.Repo.all(
-          from u in CorporatePolicy.Policies.MasterPolicyDataUpload,
-            where: u.policy_id == ^assigns.policy.id,
-            order_by: [desc: u.inserted_at]
-        )
+        Policies.list_data_uploads_for_policy(assigns.policy.id)
       else
         []
       end
@@ -65,12 +60,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               file_info.original_file_name
             )
 
-            uploads_list =
-              CorporatePolicy.Repo.all(
-                from u in CorporatePolicy.Policies.MasterPolicyDataUpload,
-                  where: u.policy_id == ^policy_id,
-                  order_by: [desc: u.inserted_at]
-              )
+            uploads_list = Policies.list_data_uploads_for_policy(policy_id)
 
             send(self(), {:put_flash, :info, "Data uploaded successfully."})
 

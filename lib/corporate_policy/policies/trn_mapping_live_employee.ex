@@ -28,7 +28,7 @@ defmodule CorporatePolicy.Policies.TrnMappingLiveEmployee do
 
     belongs_to :policy, CorporatePolicy.Policies.Policy, foreign_key: :ref_policy_id
 
-    belongs_to :corporate, CorporatePolicy.Policies.Corporate,
+    belongs_to :corporate, CorporatePolicy.Corporates.Corporate,
       foreign_key: :ref_corporate_id,
       references: :corporate_id
 

@@ -13,19 +13,20 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.PolicyType
   alias CorporatePolicy.Policies.FamilyDefinition
   alias CorporatePolicy.Policies.Tpa
-  alias CorporatePolicy.Policies.Corporate
+  alias CorporatePolicy.Corporates.Corporate
   alias CorporatePolicy.Policies.ClaimVisibility
   alias CorporatePolicy.Policies.Insurer
-  alias CorporatePolicy.Policies.MasterPolicyFeatureTemplateField
-  alias CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
   alias CorporatePolicy.Policies.MasterInceptionDataUpload
   alias CorporatePolicy.Policies.MasterEndorsementDataUpload
   alias CorporatePolicy.Policies.MasterTotalClaimReport
-  alias CorporatePolicy.Policies.MasterPolicyEscalationMatrix
-  alias CorporatePolicy.Policies.MasterPolicyDocument
-  alias CorporatePolicy.EscalationMatrices.EscalationMatrix, as: MasterEscalationMatrix
-  alias CorporatePolicy.Policies.MasterSumInsured
+
+  # Submodules
+  alias CorporatePolicy.Policies.PolicyFeatures
+  alias CorporatePolicy.Policies.PolicySumInsured
+  alias CorporatePolicy.Policies.PolicyEscalation
+  alias CorporatePolicy.Policies.PolicyDocuments
+  alias CorporatePolicy.Policies.PolicyDataUploads
   alias CorporatePolicy.Claims.MasterClaimSubmission
   alias CorporatePolicy.Policies.CashlessHospital
   alias CorporatePolicy.Policies.CashlessHospitalUpload
@@ -405,6 +406,24 @@ defmodule CorporatePolicy.Policies do
       :creator,
       :updater
     ])
+  end
+
+  def get_policy_with_wizard_preloads!(id) do
+    get_policy!(id)
+    |> Repo.preload([:escalation_matrices, :documents, :sum_insureds])
+  end
+
+  def get_policy_with_cd_preloads!(id) do
+    get_policy!(id)
+    |> Repo.preload([:corporate, :insurer_ref])
+  end
+
+  def get_total_claim_report!(id) do
+    Repo.get!(MasterTotalClaimReport, id)
+  end
+
+  def get_live_employee(id) do
+    Repo.get(TrnMappingLiveEmployee, id)
   end
 
   def create_policy(attrs, user_id \\ nil) do
@@ -819,299 +838,28 @@ defmodule CorporatePolicy.Policies do
     )
   end
 
-  # === Policy Features (Step 2) ===
+  # === Policy Features (Step 2 & 4) ===
 
-  @doc "Fetches all fields for a given template_id, ordered by template_field_id."
-  def list_policy_feature_template_fields(template_id) do
-    Repo.all(
-      from f in MasterPolicyFeatureTemplateField,
-        where: f.ref_template_id == ^template_id and f.status >= 0,
-        order_by: [asc: f.template_field_id]
-    )
-  end
+  defdelegate list_policy_feature_template_fields(template_id), to: PolicyFeatures
+  defdelegate list_policy_identifiers_for_policy(policy), to: PolicyFeatures
+  defdelegate get_template_id_for_policy(policy), to: PolicyFeatures
+  defdelegate list_mapped_features_by_policy(policy_id), to: PolicyFeatures
+  defdelegate get_mapped_feature_details(policy_id, feature_id), to: PolicyFeatures
+  defdelegate create_mapped_feature(attrs), to: PolicyFeatures
+  defdelegate update_mapped_feature(mapping, attrs), to: PolicyFeatures
+  defdelegate delete_mapped_feature(policy_id, feature_id), to: PolicyFeatures
+  defdelegate list_features_by_identifier(policy_id, feature_identifier_id), to: PolicyFeatures
 
-  @doc """
-  Returns distinct policy_identifier values from mapping_policy_feature_templates_corporates_policies
-  or master_policy_feature_templates for the Sum Insured step dropdown.
-  """
-  def list_policy_identifiers_for_policy(nil), do: [%{template_id: 1, policy_identifier: "GMC"}]
+  # === Policy Sum Insured (Step 3) ===
 
-  def list_policy_identifiers_for_policy(policy) do
-    policy_id = policy && policy.id
+  defdelegate list_sum_insureds_for_policy(policy_id), to: PolicySumInsured
+  defdelegate save_policy_sum_insureds(policy_id, sum_insured_list, user_id \\ nil), to: PolicySumInsured
+  defdelegate create_sum_insured(policy_id, attrs, user_id \\ nil), to: PolicySumInsured
+  defdelegate delete_sum_insured(id, user_id \\ nil), to: PolicySumInsured
 
-    mapped =
-      if policy_id do
-        list_mapped_features_by_policy(policy_id)
-      else
-        []
-      end
+  # === Policy Data Uploads (Step 4) ===
 
-    if mapped != [] do
-      Enum.map(mapped, fn m ->
-        %{
-          template_id: get_template_id_for_policy(policy),
-          policy_identifier: m.feature_identifier
-        }
-      end)
-    else
-      template_id = get_template_id_for_policy(policy)
-
-      Repo.all(
-        from t in "master_policy_feature_templates",
-          where: t.template_id == ^template_id and t.status == 1,
-          select: %{template_id: t.template_id, policy_identifier: t.policy_identifier},
-          order_by: [asc: t.template_id]
-      )
-    end
-  end
-
-  @doc """
-  Returns the feature template_id for the given policy.
-  Looks up the policy type name and maps to template_id:
-  GMC/Parent Policy/Top up Policy -> template_id 1
-  GPA -> template_id 2
-  GTL -> template_id 3
-  etc.
-  Falls back to template_id 1 if no specific mapping found.
-  """
-  def get_template_id_for_policy(%{ref_md_policy_types_id: nil}), do: 1
-
-  def get_template_id_for_policy(%{ref_md_policy_types_id: policy_type_id}) do
-    policy_type = Repo.get(PolicyType, policy_type_id)
-    template_id_from_policy_type(policy_type)
-  end
-
-  def get_template_id_for_policy(_), do: 1
-
-  defp template_id_from_policy_type(nil), do: 1
-  defp template_id_from_policy_type(%{policy_type_value: "GMC"}), do: 1
-  defp template_id_from_policy_type(%{policy_type_value: "GPA"}), do: 2
-  defp template_id_from_policy_type(%{policy_type_value: "Parent Policy"}), do: 3
-  defp template_id_from_policy_type(%{policy_type_value: "Top up Policy"}), do: 4
-  defp template_id_from_policy_type(%{policy_type_value: "GTL"}), do: 5
-  defp template_id_from_policy_type(%{policy_type_value: "Marine"}), do: 6
-  defp template_id_from_policy_type(%{policy_type_value: "Fire"}), do: 7
-  defp template_id_from_policy_type(%{policy_type_value: "Office Package"}), do: 8
-  defp template_id_from_policy_type(%{policy_type_value: "Motor Insurance"}), do: 9
-  defp template_id_from_policy_type(%{policy_type_value: "Travel Insurance"}), do: 10
-  defp template_id_from_policy_type(%{policy_type_value: "Property Insurance"}), do: 11
-  defp template_id_from_policy_type(%{policy_type_value: "Commercial Insurance"}), do: 12
-  defp template_id_from_policy_type(%{policy_type_value: "Asset Insurance"}), do: 13
-  defp template_id_from_policy_type(%{policy_type_value: "Pet Insurance"}), do: 14
-  defp template_id_from_policy_type(%{policy_type_value: "Bite-Sized Insurance"}), do: 15
-  defp template_id_from_policy_type(%{policy_type_value: "Workmen Compensation"}), do: 16
-  defp template_id_from_policy_type(_), do: 1
-
-  @doc "Fetches mapped features for a policy, extracting the distinct Feature Identifiers."
-  def list_mapped_features_by_policy(policy_id) do
-    Repo.all(
-      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
-        where:
-          m.ref_policy_id == ^policy_id and
-            (m.ref_policy_feature_template_field_name in [
-               "Feature Identifier",
-               "Policy Identifier"
-             ] or
-               m.ref_policy_feature_template_field_id == 1) and
-            (is_nil(m.status) or m.status >= 0),
-        select: %{
-          id: m.policy_feature_template_field_value_id,
-          feature_identifier: m.policy_feature_template_field_value
-        },
-        distinct: true
-    )
-  end
-
-  @doc "Fetches all mapped feature rows for a specific feature entry."
-  def get_mapped_feature_details(policy_id, feature_id) do
-    Repo.all(
-      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
-        where:
-          m.ref_policy_id == ^policy_id and
-            (m.ref_policyidentifier_id == ^feature_id or
-               m.policy_feature_template_field_value_id == ^feature_id) and
-            (is_nil(m.status) or m.status >= 0)
-    )
-  end
-
-  @doc "Creates a new mapping row for a policy feature."
-  def create_mapped_feature(attrs) do
-    %MappingPolicyFeatureTemplatesCorporatesPolicy{}
-    |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc "Updates an existing mapped feature row."
-  def update_mapped_feature(%MappingPolicyFeatureTemplatesCorporatesPolicy{} = mapping, attrs) do
-    mapping
-    |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc "Deletes all mapped feature rows for a given feature ID."
-  def delete_mapped_feature(policy_id, feature_id) do
-    from(m in MappingPolicyFeatureTemplatesCorporatesPolicy,
-      where:
-        m.ref_policy_id == ^policy_id and
-          (m.ref_policyidentifier_id == ^feature_id or
-             m.policy_feature_template_field_value_id == ^feature_id)
-    )
-    |> Repo.delete_all()
-  end
-
-  @doc "Lists all active sum insured values for a policy."
-  def list_sum_insureds_for_policy(policy_id) when policy_id in [nil, "", "nil"], do: []
-
-  def list_sum_insureds_for_policy(policy_id) do
-    Repo.all(
-      from s in MasterSumInsured,
-        where: s.policy_id == ^policy_id and s.status == 1 and is_nil(s.deleted_at),
-        order_by: [asc: s.sum_insured]
-    )
-  end
-
-  @doc """
-  Saves the list of sum insured values for a policy by soft-deleting existing ones
-  and inserting new ones.
-  """
-  def save_policy_sum_insureds(policy_id, sum_insured_list, user_id \\ nil) do
-    Repo.transaction(fn ->
-      # Soft-delete all existing non-deleted sum insureds for this policy
-      from(s in MasterSumInsured,
-        where: s.policy_id == ^policy_id and is_nil(s.deleted_at)
-      )
-      |> Repo.update_all(set: [deleted_at: NaiveDateTime.utc_now(), updated_by: user_id])
-
-      policy = Repo.get(Policy, policy_id)
-      template_id = get_template_id_for_policy(policy)
-      mapped_features = list_mapped_features_by_policy(policy_id)
-
-      Enum.each(sum_insured_list, fn si ->
-        selected_ident =
-          Map.get(si, :policy_feature_identifier) || Map.get(si, "policy_feature_identifier")
-
-        feature_identifier_id =
-          case Enum.find(mapped_features, &(&1.feature_identifier == selected_ident)) do
-            nil -> 1
-            mf -> mf.id
-          end
-
-        si_amount_str = to_string(Map.get(si, :sum_insured) || Map.get(si, "sum_insured"))
-        si_amount = parse_sum_insured_amount(si_amount_str)
-
-        params = %{
-          policy_id: policy_id,
-          sum_insured: si_amount,
-          policy_feature_identifier: selected_ident,
-          template_id: template_id,
-          feature_identifier_id: feature_identifier_id,
-          # Active
-          status: 1,
-          created_by: user_id,
-          updated_by: user_id
-        }
-
-        %MasterSumInsured{}
-        |> MasterSumInsured.changeset(params)
-        |> Repo.insert!()
-      end)
-    end)
-  end
-
-  @doc """
-  Creates a single sum insured row for a policy immediately.
-  Used by the wizard Step 3 "Add" button so data is persisted right away.
-  """
-  def create_sum_insured(policy_id, attrs, user_id \\ nil) do
-    policy = Repo.get(Policy, policy_id)
-    template_id = get_template_id_for_policy(policy)
-    mapped_features = list_mapped_features_by_policy(policy_id)
-
-    selected_ident =
-      Map.get(attrs, :policy_feature_identifier) ||
-        Map.get(attrs, "policy_feature_identifier")
-
-    feature_identifier_id =
-      case Enum.find(mapped_features, &(&1.feature_identifier == selected_ident)) do
-        nil -> 1
-        mf -> mf.id
-      end
-
-    si_amount_str = to_string(Map.get(attrs, :sum_insured) || Map.get(attrs, "sum_insured"))
-    si_amount = parse_sum_insured_amount(si_amount_str)
-
-    params = %{
-      policy_id: policy_id,
-      sum_insured: si_amount,
-      policy_feature_identifier: selected_ident,
-      template_id: template_id,
-      feature_identifier_id: feature_identifier_id,
-      status: 1,
-      created_by: user_id,
-      updated_by: user_id
-    }
-
-    %MasterSumInsured{}
-    |> MasterSumInsured.changeset(params)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Soft-deletes a single sum insured row by its DB id.
-  Used by the wizard Step 3 "Remove" button.
-  """
-  def delete_sum_insured(id, user_id \\ nil) do
-    case Repo.get(MasterSumInsured, id) do
-      nil ->
-        {:error, :not_found}
-
-      record ->
-        record
-        |> MasterSumInsured.changeset(%{
-          deleted_at: NaiveDateTime.utc_now(),
-          updated_by: user_id
-        })
-        |> Repo.update()
-    end
-  end
-
-  defp parse_sum_insured_amount(str) do
-    str = str |> to_string() |> String.replace(~r/[\s,]/, "") |> String.downcase()
-
-    cond do
-      str =~ ~r/^(\d+)l$/ ->
-        [_, num_str] = Regex.run(~r/^(\d+)l$/, str)
-        String.to_integer(num_str) * 100_000
-
-      str =~ ~r/^(\d+)lakh$/ ->
-        [_, num_str] = Regex.run(~r/^(\d+)lakh$/, str)
-        String.to_integer(num_str) * 100_000
-
-      true ->
-        case Integer.parse(str) do
-          {val, _} -> val
-          _ -> 0
-        end
-    end
-  end
-
-  @doc "Lists features associated with a specific feature identifier ID."
-  def list_features_by_identifier(policy_id, _feature_identifier_id)
-      when policy_id in [nil, "", "nil"], do: []
-
-  def list_features_by_identifier(_policy_id, nil), do: []
-
-  def list_features_by_identifier(policy_id, feature_identifier_id) do
-    Repo.all(
-      from m in MappingPolicyFeatureTemplatesCorporatesPolicy,
-        where:
-          m.ref_policy_id == ^policy_id and
-            (m.ref_policyidentifier_id == ^feature_identifier_id or
-               m.policy_feature_template_field_value_id == ^feature_identifier_id) and
-            is_nil(m.deleted_at) and m.status >= 0,
-        order_by: [asc: m.ref_policy_feature_template_field_id]
-    )
-  end
+  defdelegate list_data_uploads_for_policy(policy_id), to: PolicyDataUploads
 
   defp normalize_page(value) when is_integer(value) and value > 0, do: value
 
@@ -2142,182 +1890,19 @@ defmodule CorporatePolicy.Policies do
 
   defp positive_int(_val, default), do: default
 
-  # === Escalation Matrices for Policy ===
+  # === Escalation Matrices for Policy (Step 5) ===
 
-  @doc """
-  Returns all active escalation matrix records for a policy, joined with master_escalation_matrices details.
-  Returns [] if policy_id is nil or if no records exist for the policy.
-  """
-  def list_escalation_matrices_for_policy(nil), do: []
+  defdelegate list_escalation_matrices_for_policy(policy_id), to: PolicyEscalation
+  defdelegate save_policy_escalation_matrices(policy_id, matrices_list, user_id \\ nil), to: PolicyEscalation
+  defdelegate create_policy_escalation_matrix(policy_id, attrs, user_id \\ nil), to: PolicyEscalation
+  defdelegate delete_policy_escalation_matrix(id, user_id \\ nil), to: PolicyEscalation
 
-  def list_escalation_matrices_for_policy(policy_id) do
-    from(p in MasterPolicyEscalationMatrix,
-      left_join: m in MasterEscalationMatrix,
-      on: p.user_id == m.id,
-      where: p.policy_id == ^policy_id and is_nil(p.deleted_at),
-      order_by: [asc: p.escalation_level_id, asc: p.id],
-      select: %{
-        id: p.id,
-        policy_id: p.policy_id,
-        escalation_level_id: p.escalation_level_id,
-        level: p.level,
-        user_id: p.user_id,
-        fullname: coalesce(m.fullname, p.user_fullname),
-        user_fullname: coalesce(m.fullname, p.user_fullname),
-        phone_number: m.phone_number,
-        mobile_number: m.mobile_number,
-        email_id: m.email_id,
-        alt_email_id: m.alt_email_id,
-        company_fulladdress: m.company_fulladdress,
-        type: m.type,
-        user_type: m.type,
-        status: p.status
-      }
-    )
-    |> Repo.all()
-  end
+  # === Master Policy Documents (Step 6) ===
 
-  @doc """
-  Saves the list of escalation matrices for a policy by soft-deleting existing ones
-  and inserting new ones.
-  """
-  def save_policy_escalation_matrices(policy_id, matrices_list, user_id \\ nil) do
-    Repo.transaction(fn ->
-      # Soft-delete all existing non-deleted escalation matrices for this policy
-      from(p in MasterPolicyEscalationMatrix,
-        where: p.policy_id == ^policy_id and is_nil(p.deleted_at)
-      )
-      |> Repo.update_all(set: [deleted_at: NaiveDateTime.utc_now(), updated_by: user_id])
-
-      # Insert new entries
-      Enum.each(matrices_list, fn matrix ->
-        params = %{
-          policy_id: policy_id,
-          escalation_level_id:
-            Map.get(matrix, :escalation_level_id) || Map.get(matrix, "escalation_level_id"),
-          level: Map.get(matrix, :level) || Map.get(matrix, "level"),
-          user_id: Map.get(matrix, :user_id) || Map.get(matrix, "user_id"),
-          user_fullname:
-            Map.get(matrix, :user_fullname) || Map.get(matrix, "user_fullname") ||
-              Map.get(matrix, :fullname) || Map.get(matrix, "fullname"),
-          status: Map.get(matrix, :status) || Map.get(matrix, "status") || 1,
-          created_by: user_id,
-          updated_by: user_id
-        }
-
-        %MasterPolicyEscalationMatrix{}
-        |> MasterPolicyEscalationMatrix.changeset(params)
-        |> Repo.insert!()
-      end)
-    end)
-  end
-
-  @doc """
-  Creates a single escalation matrix row for a policy immediately.
-  Used by the wizard Step 5 "Assign" button so data is persisted right away.
-  """
-  def create_policy_escalation_matrix(policy_id, attrs, user_id \\ nil) do
-    params = %{
-      policy_id: policy_id,
-      escalation_level_id:
-        Map.get(attrs, :escalation_level_id) || Map.get(attrs, "escalation_level_id"),
-      level: Map.get(attrs, :level) || Map.get(attrs, "level"),
-      user_id: Map.get(attrs, :user_id) || Map.get(attrs, "user_id"),
-      user_fullname: Map.get(attrs, :user_fullname) || Map.get(attrs, "user_fullname"),
-      status: 1,
-      created_by: user_id,
-      updated_by: user_id
-    }
-
-    %MasterPolicyEscalationMatrix{}
-    |> MasterPolicyEscalationMatrix.changeset(params)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Soft-deletes a single escalation matrix row by its DB id.
-  Used by the wizard Step 5 "Remove" button.
-  """
-  def delete_policy_escalation_matrix(id, user_id \\ nil) do
-    case Repo.get(MasterPolicyEscalationMatrix, id) do
-      nil ->
-        {:error, :not_found}
-
-      record ->
-        record
-        |> MasterPolicyEscalationMatrix.changeset(%{
-          deleted_at: NaiveDateTime.utc_now(),
-          updated_by: user_id
-        })
-        |> Repo.update()
-    end
-  end
-
-  # === Master Policy Documents ===
-
-  @doc """
-  Lists documents for a policy, optionally filtered by doc_type ("policy" or "service").
-  """
-  def list_documents_for_policy(nil, _doc_type), do: []
-
-  def list_documents_for_policy(policy_id, doc_type) do
-    base_query =
-      from d in MasterPolicyDocument,
-        where: d.policy_id == ^policy_id and is_nil(d.deleted_at),
-        order_by: [asc: d.document_name_id, asc: d.id]
-
-    query =
-      case doc_type do
-        "policy" ->
-          from d in base_query,
-            where: d.document_type_id == 1 or d.document_type == "Policy Document"
-
-        "service" ->
-          from d in base_query,
-            where: d.document_type_id == 2 or d.document_type == "Service Document"
-
-        _ ->
-          base_query
-      end
-
-    Repo.all(query)
-  end
-
-  @doc """
-  Gets a single master policy document by ID.
-  """
-  def get_master_policy_document(id), do: Repo.get(MasterPolicyDocument, id)
-
-  @doc """
-  Creates a new policy document.
-  """
-  def create_policy_document(attrs, user_id \\ nil) do
-    %MasterPolicyDocument{}
-    |> MasterPolicyDocument.changeset(
-      attrs
-      |> Map.put("created_by", user_id)
-      |> Map.put("updated_by", user_id)
-    )
-    |> Repo.insert()
-  end
-
-  @doc """
-  Soft-deletes a policy document by ID.
-  """
-  def delete_policy_document(id, user_id \\ nil) do
-    case Repo.get(MasterPolicyDocument, id) do
-      nil ->
-        {:error, :not_found}
-
-      doc ->
-        doc
-        |> MasterPolicyDocument.changeset(%{
-          deleted_at: NaiveDateTime.utc_now(),
-          updated_by: user_id
-        })
-        |> Repo.update()
-    end
-  end
+  defdelegate list_documents_for_policy(policy_id, doc_type), to: PolicyDocuments
+  defdelegate get_master_policy_document(id), to: PolicyDocuments
+  defdelegate create_policy_document(attrs, user_id \\ nil), to: PolicyDocuments
+  defdelegate delete_policy_document(id, user_id \\ nil), to: PolicyDocuments
 
   @doc """
   Returns line chart data showing count of policies expiring per calendar month.

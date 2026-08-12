@@ -23,7 +23,7 @@ defmodule CorporatePolicy.Policies.Policy do
     field :sum_insured_type, :string
     field :status, :integer, default: 0
 
-    belongs_to :corporate, CorporatePolicy.Policies.Corporate,
+    belongs_to :corporate, CorporatePolicy.Corporates.Corporate,
       foreign_key: :ref_corporate_id,
       references: :corporate_id
 

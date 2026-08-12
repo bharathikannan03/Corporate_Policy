@@ -18,9 +18,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
           nil
 
         policy_id ->
-          policy_id
-          |> Policies.get_policy!()
-          |> CorporatePolicy.Repo.preload([:corporate, :insurer_ref])
+          Policies.get_policy_with_cd_preloads!(policy_id)
       end
 
     standalone? = is_nil(policy)

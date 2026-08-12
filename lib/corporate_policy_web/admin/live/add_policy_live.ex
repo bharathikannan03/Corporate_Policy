@@ -21,9 +21,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
         :edit ->
           id = params["id"]
 
-          policy =
-            Policies.get_policy!(id)
-            |> CorporatePolicy.Repo.preload([:escalation_matrices, :documents, :sum_insureds])
+          policy = Policies.get_policy_with_wizard_preloads!(id)
 
           step = params["step"] |> then(&if &1, do: String.to_existing_atom(&1), else: :step1)
           {policy, true, step}

@@ -4,7 +4,6 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
   alias CorporatePolicy.Accounts
   alias CorporatePolicy.Corporates
   alias CorporatePolicy.Policies
-  alias CorporatePolicy.Policies.MasterTotalClaimReport
   alias CorporatePolicyWeb.Corporate.PolicyDetailsComponent
   alias CorporatePolicyWeb.Layouts
 
@@ -229,7 +228,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
 
     selected_claim =
       Enum.find(socket.assigns.claims_page.entries, &(&1.id == claim_id)) ||
-        CorporatePolicy.Repo.get!(MasterTotalClaimReport, claim_id)
+        Policies.get_total_claim_report!(claim_id)
 
     {:noreply,
      socket

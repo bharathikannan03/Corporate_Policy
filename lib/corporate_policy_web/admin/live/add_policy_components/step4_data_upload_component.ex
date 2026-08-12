@@ -207,7 +207,6 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
               />
             </div>
           </div>
-
           <!-- Right side: Attach Documents/Files -->
           <div class="flex flex-col h-full justify-between">
             <div class="flex-1 flex flex-col">
@@ -226,7 +225,6 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
                 <span class="text-gray-500"> or drag and drop here</span>
               </div>
             </div>
-
             <!-- Preview pending uploads -->
             <%= for entry <- @uploads.data_file.entries do %>
               <div class="flex justify-between items-center bg-white p-3 rounded border mt-4">

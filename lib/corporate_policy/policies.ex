@@ -1018,6 +1018,63 @@ defmodule CorporatePolicy.Policies do
     end)
   end
 
+  @doc """
+  Creates a single sum insured row for a policy immediately.
+  Used by the wizard Step 3 "Add" button so data is persisted right away.
+  """
+  def create_sum_insured(policy_id, attrs, user_id \\ nil) do
+    policy = Repo.get(Policy, policy_id)
+    template_id = get_template_id_for_policy(policy)
+    mapped_features = list_mapped_features_by_policy(policy_id)
+
+    selected_ident =
+      Map.get(attrs, :policy_feature_identifier) ||
+        Map.get(attrs, "policy_feature_identifier")
+
+    feature_identifier_id =
+      case Enum.find(mapped_features, &(&1.feature_identifier == selected_ident)) do
+        nil -> 1
+        mf -> mf.id
+      end
+
+    si_amount_str = to_string(Map.get(attrs, :sum_insured) || Map.get(attrs, "sum_insured"))
+    si_amount = parse_sum_insured_amount(si_amount_str)
+
+    params = %{
+      policy_id: policy_id,
+      sum_insured: si_amount,
+      policy_feature_identifier: selected_ident,
+      template_id: template_id,
+      feature_identifier_id: feature_identifier_id,
+      status: 1,
+      created_by: user_id,
+      updated_by: user_id
+    }
+
+    %MasterSumInsured{}
+    |> MasterSumInsured.changeset(params)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Soft-deletes a single sum insured row by its DB id.
+  Used by the wizard Step 3 "Remove" button.
+  """
+  def delete_sum_insured(id, user_id \\ nil) do
+    case Repo.get(MasterSumInsured, id) do
+      nil ->
+        {:error, :not_found}
+
+      record ->
+        record
+        |> MasterSumInsured.changeset(%{
+          deleted_at: NaiveDateTime.utc_now(),
+          updated_by: user_id
+        })
+        |> Repo.update()
+    end
+  end
+
   defp parse_sum_insured_amount(str) do
     str = str |> to_string() |> String.replace(~r/[\s,]/, "") |> String.downcase()
 
@@ -2153,6 +2210,47 @@ defmodule CorporatePolicy.Policies do
         |> Repo.insert!()
       end)
     end)
+  end
+
+  @doc """
+  Creates a single escalation matrix row for a policy immediately.
+  Used by the wizard Step 5 "Assign" button so data is persisted right away.
+  """
+  def create_policy_escalation_matrix(policy_id, attrs, user_id \\ nil) do
+    params = %{
+      policy_id: policy_id,
+      escalation_level_id:
+        Map.get(attrs, :escalation_level_id) || Map.get(attrs, "escalation_level_id"),
+      level: Map.get(attrs, :level) || Map.get(attrs, "level"),
+      user_id: Map.get(attrs, :user_id) || Map.get(attrs, "user_id"),
+      user_fullname: Map.get(attrs, :user_fullname) || Map.get(attrs, "user_fullname"),
+      status: 1,
+      created_by: user_id,
+      updated_by: user_id
+    }
+
+    %MasterPolicyEscalationMatrix{}
+    |> MasterPolicyEscalationMatrix.changeset(params)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Soft-deletes a single escalation matrix row by its DB id.
+  Used by the wizard Step 5 "Remove" button.
+  """
+  def delete_policy_escalation_matrix(id, user_id \\ nil) do
+    case Repo.get(MasterPolicyEscalationMatrix, id) do
+      nil ->
+        {:error, :not_found}
+
+      record ->
+        record
+        |> MasterPolicyEscalationMatrix.changeset(%{
+          deleted_at: NaiveDateTime.utc_now(),
+          updated_by: user_id
+        })
+        |> Repo.update()
+    end
   end
 
   # === Master Policy Documents ===

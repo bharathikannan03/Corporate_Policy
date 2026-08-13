@@ -853,7 +853,10 @@ defmodule CorporatePolicy.Policies do
   # === Policy Sum Insured (Step 3) ===
 
   defdelegate list_sum_insureds_for_policy(policy_id), to: PolicySumInsured
-  defdelegate save_policy_sum_insureds(policy_id, sum_insured_list, user_id \\ nil), to: PolicySumInsured
+
+  defdelegate save_policy_sum_insureds(policy_id, sum_insured_list, user_id \\ nil),
+    to: PolicySumInsured
+
   defdelegate create_sum_insured(policy_id, attrs, user_id \\ nil), to: PolicySumInsured
   defdelegate delete_sum_insured(id, user_id \\ nil), to: PolicySumInsured
 
@@ -1893,8 +1896,13 @@ defmodule CorporatePolicy.Policies do
   # === Escalation Matrices for Policy (Step 5) ===
 
   defdelegate list_escalation_matrices_for_policy(policy_id), to: PolicyEscalation
-  defdelegate save_policy_escalation_matrices(policy_id, matrices_list, user_id \\ nil), to: PolicyEscalation
-  defdelegate create_policy_escalation_matrix(policy_id, attrs, user_id \\ nil), to: PolicyEscalation
+
+  defdelegate save_policy_escalation_matrices(policy_id, matrices_list, user_id \\ nil),
+    to: PolicyEscalation
+
+  defdelegate create_policy_escalation_matrix(policy_id, attrs, user_id \\ nil),
+    to: PolicyEscalation
+
   defdelegate delete_policy_escalation_matrix(id, user_id \\ nil), to: PolicyEscalation
 
   # === Master Policy Documents (Step 6) ===

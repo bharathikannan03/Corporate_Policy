@@ -23,7 +23,10 @@ defmodule CorporatePolicy.Corporates.Corporate do
     field :helpline_no, :string
     field :pan_number, :string
     field :branch_name, :string
+    field :status, :integer, default: 0
     field :deleted_at, :utc_datetime_usec
+
+    has_many :policies, CorporatePolicy.Policies.Policy, foreign_key: :ref_corporate_id
 
     belongs_to :logo, Logo,
       foreign_key: :ref_master_corporate_logos_id,
@@ -35,7 +38,7 @@ defmodule CorporatePolicy.Corporates.Corporate do
   @required_fields ~w(corporate_name corporate_address pincode city state pan_number)a
   @optional_fields ~w(
     coporate_contact_email corporate_landline corporate_group_code
-    industry_type corporate_buffer_visibility corporate_status
+    industry_type corporate_buffer_visibility corporate_status status
     helpline_no branch_name
     ref_master_corporate_logos_id
     ref_master_pincode_pincode_id ref_master_city_city_id ref_master_state_state_id

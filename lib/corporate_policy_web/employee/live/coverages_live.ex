@@ -2,11 +2,8 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
   use CorporatePolicyWeb, :live_view
 
   import CorporatePolicyWeb.Employee.PortalComponents
-  import Ecto.Query
-
   alias CorporatePolicy.EmployeePortal
   alias CorporatePolicy.Policies
-  alias CorporatePolicy.Repo
 
   @impl true
   def mount(params, _session, socket) do
@@ -49,10 +46,7 @@ defmodule CorporatePolicyWeb.Employee.CoveragesLive do
 
     db_employee =
       if policy do
-        Repo.one(
-          from e in Policies.TrnMappingLiveEmployee,
-            where: e.id == ^current_user.id
-        )
+        Policies.get_live_employee(current_user.id)
       end
 
     selected_feature_id =

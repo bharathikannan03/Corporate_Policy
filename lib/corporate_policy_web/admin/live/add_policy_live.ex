@@ -21,9 +21,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
         :edit ->
           id = params["id"]
 
-          policy =
-            Policies.get_policy!(id)
-            |> CorporatePolicy.Repo.preload([:escalation_matrices, :documents, :sum_insureds])
+          policy = Policies.get_policy_with_wizard_preloads!(id)
 
           step = params["step"] |> then(&if &1, do: String.to_existing_atom(&1), else: :step1)
           {policy, true, step}
@@ -149,7 +147,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                 <span class={["text-sm", text_color]}>{step_name}</span>
+                <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
@@ -213,7 +211,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-                  
+
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

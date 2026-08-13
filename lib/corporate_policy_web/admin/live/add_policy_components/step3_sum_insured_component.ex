@@ -8,12 +8,11 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
   def update(assigns, socket) do
     policy = assigns[:policy]
 
+    # Always reload from DB — no in-memory accumulation
     sum_insureds =
-      cond do
-        assigns[:sum_insureds] -> assigns[:sum_insureds]
-        policy && policy.id -> Policies.list_sum_insureds_for_policy(policy.id)
-        true -> []
-      end
+      if policy && policy.id,
+        do: Policies.list_sum_insureds_for_policy(policy.id),
+        else: []
 
     policy_identifiers = Policies.list_policy_identifiers_for_policy(policy)
 
@@ -42,31 +41,60 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         {:noreply, socket |> put_flash(:error, "Please select a Policy Feature Identifier.")}
 
       true ->
-        new_entry = %{
-          id: System.unique_integer([:positive]),
-          sum_insured: String.trim(si_amount),
-          policy_feature_identifier: feature_id
+        policy = socket.assigns.policy
+        current_user = socket.assigns[:current_user]
+        user_id = current_user && current_user.id
+
+        attrs = %{
+          "sum_insured" => String.trim(si_amount),
+          "policy_feature_identifier" => feature_id
         }
 
-        updated_list = [new_entry | socket.assigns.sum_insureds]
+        case Policies.create_sum_insured(policy.id, attrs, user_id) do
+          {:ok, _record} ->
+            # Reload from DB so IDs are real DB ids (survives refresh)
+            updated_list = Policies.list_sum_insureds_for_policy(policy.id)
 
-        {:noreply,
-         socket
-         |> assign(:sum_insureds, updated_list)
-         |> assign_sum_insureds_page(updated_list)
-         |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))}
+            {:noreply,
+             socket
+             |> assign(:sum_insureds, updated_list)
+             |> assign_sum_insureds_page(updated_list)
+             |> assign(:form, to_form(%{"sum_insured" => "", "policy_feature_identifier" => ""}))
+             |> put_flash(:info, "Sum Insured added successfully.")}
+
+          {:error, changeset} ->
+            errors =
+              Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+              |> Enum.map(fn {k, v} -> "#{k}: #{Enum.join(v, ", ")}" end)
+              |> Enum.join("; ")
+
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to add Sum Insured. #{errors}")}
+        end
     end
   end
 
   @impl true
   def handle_event("remove_sum_insured", %{"id" => id_str}, socket) do
     id = String.to_integer(id_str)
-    updated_list = Enum.reject(socket.assigns.sum_insureds, &(&1.id == id))
+    current_user = socket.assigns[:current_user]
+    user_id = current_user && current_user.id
 
-    {:noreply,
-     socket
-     |> assign(:sum_insureds, updated_list)
-     |> assign_sum_insureds_page(updated_list)}
+    case Policies.delete_sum_insured(id, user_id) do
+      {:ok, _} ->
+        policy = socket.assigns.policy
+        updated_list = Policies.list_sum_insureds_for_policy(policy.id)
+
+        {:noreply,
+         socket
+         |> assign(:sum_insureds, updated_list)
+         |> assign_sum_insureds_page(updated_list)
+         |> put_flash(:info, "Sum Insured removed.")}
+
+      {:error, _} ->
+        {:noreply, socket |> put_flash(:error, "Failed to remove Sum Insured.")}
+    end
   end
 
   @impl true
@@ -76,21 +104,19 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
 
   @impl true
   def handle_event("save_step3", _params, socket) do
+    # All entries are already in DB — just validate at least one exists then navigate
     if Enum.empty?(socket.assigns.sum_insureds) do
-      {:noreply, socket |> put_flash(:error, "Please add at least one Sum Insured entry.")}
+      # Send to parent LiveView so the flash appears in the layout
+      send(
+        self(),
+        {:put_flash, :error, "Please add at least one Sum Insured entry before proceeding."}
+      )
+
+      {:noreply, socket}
     else
       policy = socket.assigns.policy
-      current_user = socket.assigns[:current_user]
-      user_id = current_user && current_user.id
-
-      case Policies.save_policy_sum_insureds(policy.id, socket.assigns.sum_insureds, user_id) do
-        {:ok, _} ->
-          send(self(), {:step_completed, :step3, policy})
-          {:noreply, socket |> put_flash(:info, "Sum Insured saved successfully.")}
-
-        {:error, _reason} ->
-          {:noreply, socket |> put_flash(:error, "Failed to save sum insured.")}
-      end
+      send(self(), {:step_completed, :step3, policy})
+      {:noreply, socket |> put_flash(:info, "Sum Insured saved. Proceeding to next step.")}
     end
   end
 
@@ -111,12 +137,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           <label class="corp-label">
             Policy Feature Identifier <span class="corp-required">*</span>
           </label>
-          
+
           <select name="policy_feature_identifier" class="corp-input" required>
             <option value="" disabled selected={@form[:policy_feature_identifier].value == ""}>
               Select Feature
             </option>
-            
+
             <%= for pi <- @policy_identifiers do %>
               <option
                 value={pi.policy_identifier}
@@ -127,12 +153,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             <% end %>
           </select>
         </div>
-         <%!-- Field 2: Sum Insured Text Box --%>
+        <%!-- Field 2: Sum Insured Text Box --%>
         <div class="flex-1">
           <label class="corp-label">
             Sum Insured <span class="corp-required">*</span>
           </label>
-          
+
           <input
             type="text"
             name="sum_insured"
@@ -142,26 +168,33 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             required
           />
         </div>
-        
+
         <div>
           <button type="submit" class="btn btn-outline btn-success">
-            <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add
+            <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add & Save
           </button>
         </div>
       </.form>
-       <%!-- List of Added Sum Insureds --%>
+
+      <%!-- Info banner: entries are saved immediately --%>
+      <div class="mb-4 flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        <.icon name="hero-check-circle" class="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+        <span>Each entry is saved to the database immediately when you click <strong>Add & Save</strong>. You can safely refresh the page without losing data.</span>
+      </div>
+
+      <%!-- List of Added Sum Insureds --%>
       <div class="overflow-x-auto corp-table-card mb-8">
         <table class="corp-table">
           <thead>
             <tr>
               <th class="corp-th p-4 border-b text-left">POLICY FEATURE IDENTIFIER</th>
-              
+
               <th class="corp-th p-4 border-b text-left">SUM INSURED AMOUNT</th>
-              
+
               <th class="corp-th p-4 border-b text-right w-24">ACTION</th>
             </tr>
           </thead>
-          
+
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
@@ -175,11 +208,11 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
                   <td class="corp-td p-4 border-b font-medium">
                     {si.policy_feature_identifier}
                   </td>
-                  
+
                   <td class="corp-td p-4 border-b">
                     {si.sum_insured}
                   </td>
-                  
+
                   <td class="corp-td p-4 border-b text-right">
                     <button
                       type="button"
@@ -198,7 +231,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           </tbody>
         </table>
       </div>
-      
+
       <.pagination
         page={@sum_insureds_page.page}
         page_size={@sum_insureds_page.page_size}
@@ -211,9 +244,10 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-        
+
         <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
+          <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />
         </button>
       </div>
     </div>

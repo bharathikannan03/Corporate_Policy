@@ -4,8 +4,9 @@ defmodule CorporatePolicy.StringHandlingTest do
   alias CorporatePolicy.Claims
   alias CorporatePolicy.Claims.MasterClaimSubmission
 
+  alias CorporatePolicy.Corporates.Corporate
+
   alias CorporatePolicy.Policies.{
-    Corporate,
     FinancialYear,
     Insurer,
     LineOfBusiness,

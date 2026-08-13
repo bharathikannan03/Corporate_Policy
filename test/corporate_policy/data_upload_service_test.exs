@@ -23,11 +23,14 @@ defmodule CorporatePolicy.DataUploadServiceTest do
       })
 
     corporate =
-      Repo.insert!(%CorporatePolicy.Policies.Corporate{
+      Repo.insert!(%CorporatePolicy.Corporates.Corporate{
         corporate_name: "Test Corp",
         corporate_address: "123 Test Street",
         status: 1,
-        corporate_status: 1
+        corporate_status: 1,
+        pincode: "123456",
+        city: "Test City",
+        state: "Test State"
       })
 
     lob =

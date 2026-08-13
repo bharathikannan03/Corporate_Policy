@@ -100,7 +100,7 @@ defmodule CorporatePolicyWeb.Layouts do
         }
         .admin-main { color: #1e293b !important; }
       </style>
-       <%!-- Sidebar --%>
+      <%!-- Sidebar --%> <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
@@ -137,7 +137,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-         <%!-- Navigation --%>
+        <%!-- Navigation --%> <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -295,7 +295,7 @@ defmodule CorporatePolicyWeb.Layouts do
           </.sidebar_group>
         </nav>
       </aside>
-       <%!-- Main content area --%>
+      <%!-- Main content area --%> <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
@@ -323,7 +323,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-         <%!-- Page content --%>
+        <%!-- Page content --%> <%!-- Page content --%>
         <main class="admin-content">
           <%= if assigns[:inner_content] do %>
             {@inner_content}
@@ -383,7 +383,7 @@ defmodule CorporatePolicyWeb.Layouts do
             An Initiative By Intermedia
           </div>
         </div>
-         <%!-- Corporate Profile Card --%>
+        <%!-- Corporate Profile Card --%> <%!-- Corporate Profile Card --%>
         <div class="corp-sidebar-user">
           <div class="corp-user-avatar">
             <.icon name="hero-user" class="w-10 h-10" />
@@ -392,7 +392,8 @@ defmodule CorporatePolicyWeb.Layouts do
           <h2 class="corp-user-name">
             {@corporate_name}
           </h2>
-           <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
+          <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
+          <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
           <div class="corp-user-actions">
             <button type="button" class="corp-action-circle">
               <.icon name="hero-user" class="w-3.5 h-3.5" />
@@ -411,7 +412,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </button>
           </div>
         </div>
-         <%!-- Sidebar Menu --%>
+        <%!-- Sidebar Menu --%> <%!-- Sidebar Menu --%>
         <nav class="corp-sidebar-nav">
           <.corp_nav_item
             :if={show_module?(@allowed_modules, 1)}
@@ -499,7 +500,7 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-       <%!-- Main Content Area --%>
+      <%!-- Main Content Area --%> <%!-- Main Content Area --%>
       <div class="flex-1 flex flex-col min-w-0">
         <%!-- Top Header Bar --%>
         <header class="corp-top-bar">
@@ -538,20 +539,22 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: String.upcase("#{@current_user.first_name} #{@current_user.last_name}"),
                   else: "RICHIE JOSEPH"}
               </span>
-               <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
+              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
+              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
             </div>
           </div>
         </header>
-         <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
+        <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
+        <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
         <div class="corp-welcome-banner">
           <h1 class="corp-welcome-title">Hi, Welcome back!</h1>
-           <%!-- Corporate Name & Policy Types Card --%>
+          <%!-- Corporate Name & Policy Types Card --%> <%!-- Corporate Name & Policy Types Card --%>
           <div class="corp-header-card">
             <div class="corp-title-text">
               {@corporate_name}
               <span class="corp-title-fy">(Financial Year: {@current_fy_name})</span>
             </div>
-             <%!-- Policy Type Tabs --%>
+            <%!-- Policy Type Tabs --%> <%!-- Policy Type Tabs --%>
             <div class="corp-policy-types-row">
               <%= for pt <- @policy_types do %>
                 <button
@@ -569,7 +572,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </div>
-         <%!-- Policy Number Pills Row --%>
+        <%!-- Policy Number Pills Row --%> <%!-- Policy Number Pills Row --%>
         <div :if={@show_policy_numbers and @policy_numbers != []} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
             <%= for pn <- @policy_numbers do %>
@@ -589,7 +592,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <% end %>
           </div>
         </div>
-         <%!-- Page Specific Body --%>
+        <%!-- Page Specific Body --%> <%!-- Page Specific Body --%>
         <main class="flex-1 p-6 overflow-y-auto">
           <%= if assigns[:inner_content] do %>
             {@inner_content}

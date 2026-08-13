@@ -672,7 +672,6 @@ defmodule CorporatePolicyWeb.Layouts do
           <span class="sidebar-nav-label">{@label}</span>
         </span>
         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
-        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
 
       <div

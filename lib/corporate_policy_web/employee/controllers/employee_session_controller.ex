@@ -84,9 +84,8 @@ defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
       _ = EmployeePortal.log_employee_login(employee.id, conn)
 
       conn
+      |> clear_session()
       |> configure_session(renew: true)
-      |> clear_employee_login_session()
-      |> delete_session(:current_user_id)
       |> put_session(:current_employee_id, employee.employee_id)
       |> put_flash(:info, "Welcome back!")
       |> redirect(to: ~p"/employee/dashboard")
@@ -109,13 +108,5 @@ defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
           _ -> false
         end
     end
-  end
-
-  defp clear_employee_login_session(conn) do
-    conn
-    |> delete_session(:employee_login_otp)
-    |> delete_session(:employee_login_mobile)
-    |> delete_session(:employee_login_employee_id)
-    |> delete_session(:employee_login_otp_expires_at)
   end
 end

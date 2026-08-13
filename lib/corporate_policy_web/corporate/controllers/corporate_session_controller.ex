@@ -15,8 +15,9 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
 
     case Accounts.authenticate_user(email, password) do
       {:ok, user} ->
-        if corporate_user?(user) do
+        if Accounts.corporate_user?(user) do
           conn
+          |> clear_session()
           |> configure_session(renew: true)
           |> put_session(:current_user_id, user.id)
           |> put_flash(:info, "Welcome back!")
@@ -39,9 +40,5 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionController do
     |> clear_session()
     |> put_flash(:info, "Signed out")
     |> redirect(to: ~p"/corporate/login")
-  end
-
-  defp corporate_user?(user) do
-    not is_nil(user.ref_corporate_id) and user.department_id not in [1, 3, 9]
   end
 end

@@ -6,7 +6,7 @@ defmodule CorporatePolicyWeb.Router do
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {CorporatePolicyWeb.Layouts, :root}
-    plug :protect_from_forgery
+    plug :protect_from_forgery_except_logout
     plug :put_secure_browser_headers
   end
 
@@ -194,6 +194,27 @@ defmodule CorporatePolicyWeb.Router do
       conn
       |> Phoenix.Controller.redirect(to: "/")
       |> Plug.Conn.halt()
+    end
+  end
+
+  defp protect_from_forgery_except_logout(conn, opts) do
+    cond do
+      conn.path_info in [
+        ["admin", "logout"],
+        ["corporate", "logout"],
+        ["employee", "logout"]
+      ] ->
+        conn
+
+      conn.path_info in [
+        ["admin", "login"],
+        ["corporate", "login"],
+        ["employee", "login"]
+      ] ->
+        protect_from_forgery(conn, Keyword.put(opts, :with, :clear_session))
+
+      true ->
+        protect_from_forgery(conn, opts)
     end
   end
 end

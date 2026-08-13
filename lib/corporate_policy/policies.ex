@@ -2567,7 +2567,12 @@ defmodule CorporatePolicy.Policies do
     Repo.all(
       from l in MasterEmployeeLog,
         join: e in TrnMappingLiveEmployee,
-        on: fragment("CASE WHEN ? ~ '^[0-9]+$' THEN ?::integer ELSE NULL END", l.employee_id, l.employee_id) == e.id,
+        on:
+          fragment(
+            "CASE WHEN ? ~ '^[0-9]+$' THEN ?::integer ELSE NULL END",
+            l.employee_id,
+            l.employee_id
+          ) == e.id,
         join: p in Policy,
         on: e.ref_policy_id == p.id,
         where: e.ref_corporate_id == ^corporate_id,

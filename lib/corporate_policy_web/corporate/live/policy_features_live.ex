@@ -277,27 +277,28 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
           opacity: 1;
         }
       </style>
+      
       <div class="space-y-4 my-4">
         <%!-- Title Bar --%>
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Policy Features</h2>
         </div>
-        <%!-- Table Display Card --%>
+         <%!-- Table Display Card --%>
         <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-6">
           <div class="overflow-x-auto corp-table-card mb-4">
             <table class="corp-table">
               <thead>
                 <tr>
                   <th class="corp-th p-4 border-b text-left">SI NO</th>
-
+                  
                   <th class="corp-th p-4 border-b text-left">POLICY NUMBER</th>
-
+                  
                   <th class="corp-th p-4 border-b text-left">SUM INSURED</th>
-
+                  
                   <th class="corp-th p-4 border-b text-left">QUICK VIEW</th>
                 </tr>
               </thead>
-
+              
               <tbody>
                 <%= if Enum.empty?(@paginated_entries.entries) do %>
                   <tr>
@@ -311,15 +312,15 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                       <td class="corp-td p-4 border-b font-medium text-slate-800">
                         {entry.si_no}
                       </td>
-
+                      
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.policy_number}
                       </td>
-
+                      
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.sum_insured || "-"}
                       </td>
-
+                      
                       <td class="corp-td p-4 border-b text-left">
                         <button
                           type="button"
@@ -339,7 +340,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
               </tbody>
             </table>
           </div>
-
+          
           <.pagination
             page={@paginated_entries.page}
             page_size={@paginated_entries.page_size}
@@ -349,7 +350,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
           />
         </div>
       </div>
-      <%!-- Policy Benefits Details Modal Popup --%>
+       <%!-- Policy Benefits Details Modal Popup --%>
       <%= if @show_modal do %>
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
           <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-5 border border-slate-200">
@@ -363,7 +364,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                   <% end %>
                 </h3>
               </div>
-
+              
               <button
                 type="button"
                 phx-click="close_modal"
@@ -372,7 +373,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                 <.icon name="hero-x-mark" class="w-6 h-6" />
               </button>
             </div>
-            <%!-- Modal Body --%>
+             <%!-- Modal Body --%>
             <div class="py-2">
               <%= if Enum.empty?(@modal_features) do %>
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center text-slate-500">
@@ -385,7 +386,6 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                     <div class="border border-blue-500 rounded-lg flex flex-col shadow-xs hover:shadow-md transition-shadow">
                       <div class="bg-blue-600 text-white font-semibold px-4 py-2 flex justify-between items-center text-xs rounded-t-[7px]">
                         <span class="truncate pr-2">{feature.name}</span>
-
                         <div
                           :if={feature[:description] && feature[:description] != ""}
                           class="has-tooltip shrink-0 cursor-pointer"
@@ -395,14 +395,14 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                             {feature.description}
                           </span>
                         </div>
-
+                        
                         <.icon
                           :if={!feature[:description] || feature[:description] == ""}
                           name="hero-information-circle"
                           class="w-4 h-4 text-white/90 shrink-0"
                         />
                       </div>
-
+                      
                       <div class="bg-white text-slate-700 px-4 py-3 flex-1 text-xs leading-relaxed flex items-center min-h-[60px]">
                         {feature.value}
                       </div>
@@ -411,7 +411,7 @@ defmodule CorporatePolicyWeb.Corporate.PolicyFeaturesLive do
                 </div>
               <% end %>
             </div>
-            <%!-- Modal Footer --%>
+             <%!-- Modal Footer --%>
             <div class="flex justify-end pt-3 border-t border-gray-100">
               <button
                 type="button"

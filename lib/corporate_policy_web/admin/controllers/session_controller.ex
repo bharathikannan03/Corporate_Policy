@@ -15,11 +15,18 @@ defmodule CorporatePolicyWeb.Admin.SessionController do
 
     case Accounts.authenticate_user(email, password) do
       {:ok, user} ->
-        conn
-        |> configure_session(renew: true)
-        |> put_session(:current_user_id, user.id)
-        |> put_flash(:info, "Welcome back!")
-        |> redirect(to: ~p"/admin/dashboard")
+        if Accounts.admin_user?(user) do
+          conn
+          |> clear_session()
+          |> configure_session(renew: true)
+          |> put_session(:current_user_id, user.id)
+          |> put_flash(:info, "Welcome back!")
+          |> redirect(to: ~p"/admin/dashboard")
+        else
+          conn
+          |> put_flash(:error, "Credentials are invalid for admin")
+          |> render(:new, page_title: "Admin Login", form: form)
+        end
 
       {:error, :invalid_credentials} ->
         conn

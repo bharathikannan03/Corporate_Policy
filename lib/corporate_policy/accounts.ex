@@ -63,4 +63,16 @@ defmodule CorporatePolicy.Accounts do
   def change_user(user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  def corporate_user?(%User{} = user) do
+    not is_nil(user.ref_corporate_id) and user.department_id not in [1, 3, 9]
+  end
+
+  def corporate_user?(_), do: false
+
+  def admin_user?(%User{} = user) do
+    is_nil(user.ref_corporate_id) or user.department_id in [1, 3, 9]
+  end
+
+  def admin_user?(_), do: false
 end

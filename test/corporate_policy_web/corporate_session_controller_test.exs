@@ -142,4 +142,56 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionControllerTest do
     assert redirected_to(conn) == "/corporate/login"
     assert get_session(conn, :current_user_id) == nil
   end
+
+  test "denies login if user is admin user", %{conn: conn} do
+    {:ok, user} =
+      Accounts.create_user(%{
+        first_name: "Admin",
+        last_name: "User",
+        email_address: "admin@example.com",
+        password: "secret123",
+        ref_corporate_id: nil,
+        department_id: 3
+      })
+
+    conn =
+      post(conn, ~p"/corporate/login", %{
+        "user" => %{"email_address" => user.email_address, "password" => "secret123"}
+      })
+
+    assert html_response(conn, 200) =~ "credentials are invalid for corporate"
+    assert get_session(conn, :current_user_id) == nil
+  end
+
+  test "clears admin session and redirects to corporate login if accessing corporate dashboard",
+       %{conn: conn} do
+    {:ok, user} =
+      Accounts.create_user(%{
+        first_name: "Admin",
+        last_name: "User",
+        email_address: "admin@example.com",
+        password: "secret123",
+        ref_corporate_id: nil,
+        department_id: 3
+      })
+
+    conn =
+      conn
+      |> init_test_session(current_user_id: user.id)
+      |> get(~p"/corporate/dashboard")
+
+    assert redirected_to(conn) == "/corporate/login"
+    assert get_session(conn, :current_user_id) == nil
+  end
+
+  test "clears employee session and redirects to corporate login if accessing corporate dashboard",
+       %{conn: conn} do
+    conn =
+      conn
+      |> init_test_session(current_employee_id: "EMP123")
+      |> get(~p"/corporate/dashboard")
+
+    assert redirected_to(conn) == "/corporate/login"
+    assert get_session(conn, :current_employee_id) == nil
+  end
 end

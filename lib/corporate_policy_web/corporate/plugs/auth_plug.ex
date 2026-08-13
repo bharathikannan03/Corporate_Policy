@@ -8,8 +8,16 @@ defmodule CorporatePolicyWeb.Corporate.Plugs.AuthPlug do
 
   def call(conn, _opts) do
     user_id = get_session(conn, :current_user_id)
+    employee_id = get_session(conn, :current_employee_id)
 
     cond do
+      not is_nil(employee_id) ->
+        conn
+        |> clear_session()
+        |> put_flash(:error, "You must be logged in to access the corporate portal.")
+        |> redirect(to: "/corporate/login")
+        |> halt()
+
       is_nil(user_id) ->
         conn
         |> put_flash(:error, "You must be logged in to access the corporate portal.")
@@ -17,7 +25,15 @@ defmodule CorporatePolicyWeb.Corporate.Plugs.AuthPlug do
         |> halt()
 
       user = Accounts.get_user(user_id) ->
-        assign(conn, :current_user, user)
+        if Accounts.corporate_user?(user) do
+          assign(conn, :current_user, user)
+        else
+          conn
+          |> clear_session()
+          |> put_flash(:error, "Unauthorized access. You must be logged in as a corporate user.")
+          |> redirect(to: "/corporate/login")
+          |> halt()
+        end
 
       true ->
         conn

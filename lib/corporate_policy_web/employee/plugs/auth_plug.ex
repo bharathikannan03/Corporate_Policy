@@ -8,26 +8,36 @@ defmodule CorporatePolicyWeb.Employee.Plugs.AuthPlug do
 
   def call(conn, _opts) do
     employee_id = get_session(conn, :current_employee_id)
+    user_id = get_session(conn, :current_user_id)
 
-    if is_nil(employee_id) do
-      conn
-      |> put_flash(:error, "You must be logged in to access this page.")
-      |> redirect(to: "/employee/login")
-      |> halt()
-    else
-      case EmployeePortal.get_authenticated_employee_session(employee_id) do
-        {:ok, employee} ->
-          conn
-          |> assign(:current_employee, employee)
-          |> assign(:current_user, employee)
+    cond do
+      not is_nil(user_id) ->
+        conn
+        |> clear_session()
+        |> put_flash(:error, "You must be logged in as an employee to access this page.")
+        |> redirect(to: "/employee/login")
+        |> halt()
 
-        _ ->
-          conn
-          |> clear_session()
-          |> put_flash(:error, "Session expired. Please log in again.")
-          |> redirect(to: "/employee/login")
-          |> halt()
-      end
+      is_nil(employee_id) ->
+        conn
+        |> put_flash(:error, "You must be logged in to access this page.")
+        |> redirect(to: "/employee/login")
+        |> halt()
+
+      true ->
+        case EmployeePortal.get_authenticated_employee_session(employee_id) do
+          {:ok, employee} ->
+            conn
+            |> assign(:current_employee, employee)
+            |> assign(:current_user, employee)
+
+          _ ->
+            conn
+            |> clear_session()
+            |> put_flash(:error, "Session expired. Please log in again.")
+            |> redirect(to: "/employee/login")
+            |> halt()
+        end
     end
   end
 end

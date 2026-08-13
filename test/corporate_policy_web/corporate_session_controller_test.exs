@@ -194,4 +194,77 @@ defmodule CorporatePolicyWeb.Corporate.CorporateSessionControllerTest do
     assert redirected_to(conn) == "/corporate/login"
     assert get_session(conn, :current_employee_id) == nil
   end
+
+  test "denies login if corporate user is inactive", %{conn: conn} do
+    {:ok, user} =
+      Accounts.create_user(%{
+        first_name: "Inactive",
+        last_name: "Corporate",
+        email_address: "inactive.corp@example.com",
+        password: "secret123",
+        status: 0,
+        ref_corporate_id: 123,
+        department_id: 4
+      })
+
+    conn =
+      post(conn, ~p"/corporate/login", %{
+        "user" => %{"email_address" => user.email_address, "password" => "secret123"}
+      })
+
+    assert html_response(conn, 200) =~ "Your account is inactive or disabled."
+    assert get_session(conn, :current_user_id) == nil
+  end
+
+  test "denies login if corporate user is soft-deleted", %{conn: conn} do
+    {:ok, user} =
+      Accounts.create_user(%{
+        first_name: "Deleted",
+        last_name: "Corporate",
+        email_address: "deleted.corp@example.com",
+        password: "secret123",
+        status: 1,
+        ref_corporate_id: 123,
+        department_id: 4
+      })
+
+    {:ok, _} =
+      Ecto.Changeset.change(user, %{deleted_at: DateTime.utc_now()})
+      |> CorporatePolicy.Repo.update()
+
+    conn =
+      post(conn, ~p"/corporate/login", %{
+        "user" => %{"email_address" => user.email_address, "password" => "secret123"}
+      })
+
+    assert html_response(conn, 200) =~ "credentials are invalid for corporate"
+    assert get_session(conn, :current_user_id) == nil
+  end
+
+  test "clears session and redirects to corporate login if active user becomes inactive on accessing corporate dashboard",
+       %{conn: conn} do
+    {:ok, user} =
+      Accounts.create_user(%{
+        first_name: "Deactivating",
+        last_name: "Corporate",
+        email_address: "deactivating.corp@example.com",
+        password: "secret123",
+        status: 1,
+        ref_corporate_id: 123,
+        department_id: 4
+      })
+
+    {:ok, _} = Accounts.change_user(user, %{status: 0}) |> CorporatePolicy.Repo.update()
+
+    conn =
+      conn
+      |> init_test_session(current_user_id: user.id)
+      |> get(~p"/corporate/dashboard")
+
+    assert redirected_to(conn) == "/corporate/login"
+    assert get_session(conn, :current_user_id) == nil
+
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+             "Your account is inactive or disabled."
+  end
 end

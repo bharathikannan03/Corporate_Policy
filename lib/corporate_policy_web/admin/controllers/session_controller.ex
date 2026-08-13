@@ -28,6 +28,11 @@ defmodule CorporatePolicyWeb.Admin.SessionController do
           |> render(:new, page_title: "Admin Login", form: form)
         end
 
+      {:error, :inactive_user} ->
+        conn
+        |> put_flash(:error, "Your account is inactive or disabled.")
+        |> render(:new, page_title: "Admin Login", form: form)
+
       {:error, :invalid_credentials} ->
         conn
         |> put_flash(:error, "Invalid email or password")

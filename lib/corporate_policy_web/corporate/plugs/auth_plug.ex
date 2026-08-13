@@ -25,12 +25,17 @@ defmodule CorporatePolicyWeb.Corporate.Plugs.AuthPlug do
         |> halt()
 
       user = Accounts.get_user(user_id) ->
-        if Accounts.corporate_user?(user) do
+        if Accounts.corporate_user?(user) and user.status == 1 do
           assign(conn, :current_user, user)
         else
+          flash_msg =
+            if user.status != 1,
+              do: "Your account is inactive or disabled.",
+              else: "Unauthorized access. You must be logged in as a corporate user."
+
           conn
           |> clear_session()
-          |> put_flash(:error, "Unauthorized access. You must be logged in as a corporate user.")
+          |> put_flash(:error, flash_msg)
           |> redirect(to: "/corporate/login")
           |> halt()
         end

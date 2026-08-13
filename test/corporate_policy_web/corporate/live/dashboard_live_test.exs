@@ -2,6 +2,7 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
   use CorporatePolicyWeb.ConnCase, async: false
 
   import Phoenix.LiveViewTest
+  import Ecto.Query
 
   alias CorporatePolicy.Repo
   alias CorporatePolicy.Accounts
@@ -151,5 +152,59 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
 
     html = render_click(view, :select_policy_number, %{"number" => "2-81-25-00003017-000"})
     assert html =~ "2-81-25-00003017-000"
+  end
+
+  test "hides and shows sidebar modules based on role permissions", %{
+    conn: conn,
+    corporate: corporate
+  } do
+    {:ok, restricted_user} =
+      Accounts.create_user(%{
+        first_name: "Restricted",
+        last_name: "User",
+        email_address: "restricted@purpletalk.com",
+        password: "password123",
+        ref_corporate_id: corporate.corporate_id,
+        department_id: 15
+      })
+
+    # Clear prior mappings for test safety
+    Repo.delete_all(
+      from m in CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail,
+        where: m.role_id == 15
+    )
+
+    # Insert mapping configurations for role 15
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 1,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 3,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 4,
+      module_option_id: 1,
+      selection_status: false,
+      status: 1
+    })
+
+    conn = conn |> init_test_session(current_user_id: restricted_user.id)
+
+    {:ok, _view, html} = live(conn, ~p"/corporate/dashboard")
+
+    assert html =~ "Dashboard"
+    assert html =~ "Claims"
+    refute html =~ "Cashless Hospitals"
   end
 end

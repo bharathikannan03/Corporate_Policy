@@ -30,6 +30,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Claims.MasterClaimSubmission
   alias CorporatePolicy.Policies.CashlessHospital
   alias CorporatePolicy.Policies.CashlessHospitalUpload
+  alias CorporatePolicy.Policies.MasterEmployeeLog
 
   @page_size 15
 
@@ -2248,5 +2249,66 @@ defmodule CorporatePolicy.Policies do
       |> NimbleCSV.RFC4180.dump_to_iodata()
       |> IO.iodata_to_binary()
     end
+  end
+
+  def list_employee_logs_by_corporate(corporate_id) do
+    Repo.all(
+      from l in MasterEmployeeLog,
+        join: e in TrnMappingLiveEmployee,
+        on: fragment("CASE WHEN ? ~ '^[0-9]+$' THEN ?::integer ELSE NULL END", l.employee_id, l.employee_id) == e.id,
+        join: p in Policy,
+        on: e.ref_policy_id == p.id,
+        where: e.ref_corporate_id == ^corporate_id,
+        order_by: [desc: l.id],
+        select: %{
+          id: l.id,
+          policy_number: p.policy_number,
+          employee_name: e.employee_name,
+          employee_code: e.employee_code,
+          mobile_number: e.mobile_number,
+          email: e.email,
+          action: l.action,
+          device_type: l.device_type,
+          created_at: l.inserted_at
+        }
+    )
+  end
+
+  def export_employee_activity_csv(corporate_id) do
+    logs = list_employee_logs_by_corporate(corporate_id)
+
+    headers = [
+      "SI NO",
+      "POLICY NUMBER",
+      "EMPLOYEE NAME",
+      "EMPLOYEE CODE",
+      "MOBILE NUMBER",
+      "EMAIL ID",
+      "ACTION",
+      "DEVICE TYPE",
+      "CREATED AT"
+    ]
+
+    rows =
+      logs
+      |> Enum.with_index(1)
+      |> Enum.map(fn {log, idx} ->
+        [
+          idx,
+          log.policy_number || "",
+          log.employee_name || "",
+          log.employee_code || "",
+          log.mobile_number || "",
+          log.email || "",
+          log.action || "",
+          log.device_type || "",
+          NaiveDateTime.to_string(log.created_at) <> "Z"
+        ]
+      end)
+
+    [headers]
+    |> Enum.concat(rows)
+    |> NimbleCSV.RFC4180.dump_to_iodata()
+    |> IO.iodata_to_binary()
   end
 end

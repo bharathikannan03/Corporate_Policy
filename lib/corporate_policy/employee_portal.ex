@@ -9,7 +9,8 @@ defmodule CorporatePolicy.EmployeePortal do
     MappingPolicyFeatureTemplatesCorporatesPolicy,
     MasterPolicyEscalationMatrix,
     Policy,
-    TrnMappingLiveEmployee
+    TrnMappingLiveEmployee,
+    MasterEmployeeLog
   }
 
   alias CorporatePolicy.Repo
@@ -344,5 +345,32 @@ defmodule CorporatePolicy.EmployeePortal do
         limit: 1,
         select: u.id
     )
+  end
+
+  def log_employee_login(employee_id, conn) do
+    ip_address =
+      case conn.remote_ip do
+        nil -> nil
+        ip_tuple -> :inet.ntoa(ip_tuple) |> to_string()
+      end
+
+    user_agent =
+      case Plug.Conn.get_req_header(conn, "user-agent") do
+        [ua | _] -> ua
+        _ -> nil
+      end
+
+    attrs = %{
+      employee_id: to_string(employee_id),
+      action: "login",
+      ip_address: ip_address,
+      user_agent: user_agent,
+      device_type: "1",
+      status: 1
+    }
+
+    %MasterEmployeeLog{}
+    |> MasterEmployeeLog.changeset(attrs)
+    |> Repo.insert()
   end
 end

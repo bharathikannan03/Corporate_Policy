@@ -41,6 +41,7 @@ defmodule CorporatePolicyWeb.Layouts do
       {render_slot(@inner_block)}
     <% end %>
     <.flash_group flash={@flash} />
+    <.flash_group flash={@flash} />
     """
   end
 
@@ -101,12 +102,14 @@ defmodule CorporatePolicyWeb.Layouts do
         .admin-main { color: #1e293b !important; }
       </style>
       <%!-- Sidebar --%>
+      <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
+
 
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
@@ -118,6 +121,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
 
+
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
@@ -125,6 +129,7 @@ defmodule CorporatePolicyWeb.Layouts do
                 else: "Admin"}
             </p>
           </div>
+
 
           <div class="user-actions">
             <.link
@@ -137,6 +142,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
+        <%!-- Navigation --%>
         <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
@@ -164,6 +170,7 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
 
+
           <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
@@ -182,6 +189,7 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-add-policy"
             />
           </.sidebar_group>
+
 
           <.sidebar_group
             icon="hero-banknotes"
@@ -203,11 +211,28 @@ defmodule CorporatePolicyWeb.Layouts do
           </.sidebar_group>
 
           <.sidebar_item
+
+          <.sidebar_group
             icon="hero-cog-6-tooth"
             label="Roles Configuration"
-            href={~p"/admin/roles-configuration"}
-            active={@active_path == "/admin/roles-configuration"}
-          />
+            open={String.starts_with?(@active_path, "/admin/roles-configuration")}
+          >
+            <.sidebar_child_item
+              label="Roles List"
+              href={~p"/admin/roles-configuration/list"}
+              active={
+                @active_path in ["/admin/roles-configuration", "/admin/roles-configuration/list"]
+              }
+              id="sidebar-roles-list"
+            />
+            <.sidebar_child_item
+              label="Add Role"
+              href={~p"/admin/roles-configuration/add"}
+              active={@active_path == "/admin/roles-configuration/add"}
+              id="sidebar-roles-add"
+            />
+          </.sidebar_group>
+
           <.sidebar_item
             icon="hero-users"
             label="Users"
@@ -248,6 +273,7 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
 
+
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -281,12 +307,14 @@ defmodule CorporatePolicyWeb.Layouts do
         </nav>
       </aside>
       <%!-- Main content area --%>
+      <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
+
 
           <div class="topbar-right">
             <div class="topbar-user">
@@ -296,6 +324,7 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
+
 
               <.link
                 href={~p"/admin/logout"}
@@ -308,6 +337,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
+        <%!-- Page content --%>
         <%!-- Page content --%>
         <main class="admin-content">
           <%= if assigns[:inner_content] do %>
@@ -338,10 +368,21 @@ defmodule CorporatePolicyWeb.Layouts do
   attr :active_policy_number, :string, default: nil
   attr :active_path, :string, default: "/corporate/dashboard"
   attr :show_policy_numbers, :boolean, default: true
+  attr :allowed_modules, :any, default: nil
 
   slot :inner_block
 
   def corporate(assigns) do
+    allowed_modules =
+      assigns[:allowed_modules] ||
+        if user = assigns[:current_user] do
+          CorporatePolicy.Corporates.get_allowed_modules(user.department_id)
+        else
+          :all
+        end
+
+    assigns = assign(assigns, :allowed_modules, allowed_modules)
+
     ~H"""
     <div class="corp-portal-wrapper">
       <%!-- Left Sidebar --%>
@@ -353,24 +394,29 @@ defmodule CorporatePolicyWeb.Layouts do
             <span class="vibe-e">E</span>
           </div>
 
+
           <div class="vibe-tagline">
             An Initiative By Intermedia
           </div>
         </div>
+        <%!-- Corporate Profile Card --%>
         <%!-- Corporate Profile Card --%>
         <div class="corp-sidebar-user">
           <div class="corp-user-avatar">
             <.icon name="hero-user" class="w-10 h-10" />
           </div>
 
+
           <h2 class="corp-user-name">
             {@corporate_name}
           </h2>
+          <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
           <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
           <div class="corp-user-actions">
             <button type="button" class="corp-action-circle">
               <.icon name="hero-user" class="w-3.5 h-3.5" />
             </button>
+
 
             <.link
               href={~p"/corporate/logout"}
@@ -380,80 +426,94 @@ defmodule CorporatePolicyWeb.Layouts do
               <.icon name="hero-power" class="w-3.5 h-3.5" />
             </.link>
 
+
             <button type="button" class="corp-action-circle">
               <.icon name="hero-envelope" class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
         <%!-- Sidebar Menu --%>
+        <%!-- Sidebar Menu --%>
         <nav class="corp-sidebar-nav">
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 1)}
             icon="hero-squares-2x2"
             label="Dashboard"
             href={~p"/corporate/dashboard"}
             active={@active_path == "/corporate/dashboard"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 2)}
             icon="hero-calendar"
             label="Enrollment"
             href={~p"/corporate/enrollment-details"}
             active={String.starts_with?(@active_path, "/corporate/enrollment")}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 3)}
             icon="hero-clipboard-document-list"
             label="Claims"
             href={~p"/corporate/claims"}
             active={String.starts_with?(@active_path, "/corporate/claims")}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 4)}
             icon="hero-building-office"
             label="Cashless Hospitals"
             href={~p"/corporate/cashless-hospitals"}
             active={@active_path == "/corporate/cashless-hospitals"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 5)}
             icon="hero-chart-bar"
             label="Escalation Matrix"
             href={~p"/corporate/escalation-matrix"}
             active={@active_path == "/corporate/escalation-matrix"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 6)}
             icon="hero-document-text"
             label="Policy Features"
             href={~p"/corporate/policy-features"}
             active={@active_path == "/corporate/policy-features"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 7)}
             icon="hero-document-duplicate"
             label="Documents"
             href={~p"/corporate/documents"}
             active={@active_path == "/corporate/documents"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 8) or show_module?(@allowed_modules, 9)}
             icon="hero-document-check"
             label="CD & Endorsement"
             href="#"
             active={@active_path == "/corporate/cd-endorsement"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 10)}
             icon="hero-user-group"
             label="Employee"
             href={~p"/corporate/employee"}
             active={@active_path == "/corporate/employee"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 13)}
             icon="hero-calculator"
             label="Endorsement Calculation"
             href="#"
             active={@active_path == "/corporate/endorsement-calc"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 11)}
             icon="hero-chart-pie"
             label="Reports"
             href="#"
             active={@active_path == "/corporate/reports"}
           />
           <.corp_nav_item
+            :if={show_module?(@allowed_modules, 12)}
             icon="hero-document"
             label="Summary"
             href="#"
@@ -461,6 +521,7 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
+      <%!-- Main Content Area --%>
       <%!-- Main Content Area --%>
       <div class="flex-1 flex flex-col min-w-0">
         <%!-- Top Header Bar --%>
@@ -474,26 +535,31 @@ defmodule CorporatePolicyWeb.Layouts do
                   </option>
                 <% end %>
 
+
                 <%= if @financial_years == [] do %>
                   <option value={@current_fy_name} selected>{@current_fy_name}</option>
                 <% end %>
               </select>
             </form>
 
+
             <select name="language" class="corp-select-sm">
               <option value="en">Select Language</option>
             </select>
           </div>
+
 
           <div class="flex items-center space-x-4">
             <button type="button" class="text-white hover:opacity-80">
               <.icon name="hero-bell" class="w-5 h-5" />
             </button>
 
+
             <div class="flex items-center space-x-2 text-xs font-semibold text-white">
               <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                 <.icon name="hero-user" class="w-4 h-4 text-white" />
               </div>
+
 
               <span>
                 {if @current_user,
@@ -501,18 +567,22 @@ defmodule CorporatePolicyWeb.Layouts do
                   else: "RICHIE JOSEPH"}
               </span>
               <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
+              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
             </div>
           </div>
         </header>
         <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
+        <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
         <div class="corp-welcome-banner">
           <h1 class="corp-welcome-title">Hi, Welcome back!</h1>
+          <%!-- Corporate Name & Policy Types Card --%>
           <%!-- Corporate Name & Policy Types Card --%>
           <div class="corp-header-card">
             <div class="corp-title-text">
               {@corporate_name}
               <span class="corp-title-fy">(Financial Year: {@current_fy_name})</span>
             </div>
+            <%!-- Policy Type Tabs --%>
             <%!-- Policy Type Tabs --%>
             <div class="corp-policy-types-row">
               <%= for pt <- @policy_types do %>
@@ -531,6 +601,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </div>
+        <%!-- Policy Number Pills Row --%>
         <%!-- Policy Number Pills Row --%>
         <div :if={@show_policy_numbers and @policy_numbers != []} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
@@ -551,6 +622,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <% end %>
           </div>
         </div>
+        <%!-- Page Specific Body --%>
         <%!-- Page Specific Body --%>
         <main class="flex-1 p-6 overflow-y-auto">
           <%= if assigns[:inner_content] do %>
@@ -631,7 +703,9 @@ defmodule CorporatePolicyWeb.Layouts do
           <span class="sidebar-nav-label">{@label}</span>
         </span>
         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
+        <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
+
 
       <div
         id={"group-children-#{@group_id}"}
@@ -690,6 +764,7 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
 
+
       <.flash
         id="server-error"
         kind={:error}
@@ -725,6 +800,7 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
 
+
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -732,6 +808,7 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
+
 
       <button
         class="flex p-2 cursor-pointer w-1/3"
@@ -742,5 +819,13 @@ defmodule CorporatePolicyWeb.Layouts do
       </button>
     </div>
     """
+  end
+
+  defp show_module?(allowed_modules, module_id) do
+    case allowed_modules do
+      :all -> true
+      list when is_list(list) -> Enum.member?(list, module_id)
+      _ -> true
+    end
   end
 end

@@ -207,4 +207,135 @@ defmodule CorporatePolicyWeb.Corporate.DashboardLiveTest do
     assert html =~ "Claims"
     refute html =~ "Cashless Hospitals"
   end
+
+  test "redirects restricted corporate user when attempting to access restricted LiveView", %{
+    conn: conn,
+    corporate: corporate
+  } do
+    {:ok, restricted_user} =
+      Accounts.create_user(%{
+        first_name: "Restricted2",
+        last_name: "User2",
+        email_address: "restricted2@purpletalk.com",
+        password: "password123",
+        ref_corporate_id: corporate.corporate_id,
+        department_id: 15
+      })
+
+    # Clear prior mappings and insert configurations for role 15
+    Repo.delete_all(
+      from m in CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail,
+        where: m.role_id == 15
+    )
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 1,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 3,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    # restricted_user (role 15) does not have access to Module 4 (Cashless Hospitals)
+    conn = conn |> init_test_session(current_user_id: restricted_user.id)
+
+    # Attempting to mount CashlessHospitalsLive should redirect to Dashboard
+    assert {:error,
+            {:redirect,
+             %{
+               to: "/corporate/dashboard",
+               flash: %{"error" => "You do not have permission to access this page."}
+             }}} =
+             live(conn, ~p"/corporate/cashless-hospitals")
+  end
+
+  test "redirects restricted corporate user when attempting to access restricted export endpoint",
+       %{
+         conn: conn,
+         corporate: corporate
+       } do
+    {:ok, restricted_user} =
+      Accounts.create_user(%{
+        first_name: "Restricted3",
+        last_name: "User3",
+        email_address: "restricted3@purpletalk.com",
+        password: "password123",
+        ref_corporate_id: corporate.corporate_id,
+        department_id: 15
+      })
+
+    # Clear prior mappings and insert configurations for role 15
+    Repo.delete_all(
+      from m in CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail,
+        where: m.role_id == 15
+    )
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 1,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 3,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    conn = conn |> init_test_session(current_user_id: restricted_user.id)
+
+    # Attempting to hit restricted export should redirect to Dashboard
+    conn = get(conn, ~p"/corporate/cashless-hospitals/export?policy_id=1")
+    assert redirected_to(conn) == "/corporate/dashboard"
+
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+             "You do not have permission to perform this action."
+  end
+
+  test "allows restricted corporate user to access claims submission", %{
+    conn: conn,
+    corporate: corporate
+  } do
+    {:ok, restricted_user} =
+      Accounts.create_user(%{
+        first_name: "Restricted4",
+        last_name: "User4",
+        email_address: "restricted4@purpletalk.com",
+        password: "password123",
+        ref_corporate_id: corporate.corporate_id,
+        department_id: 15
+      })
+
+    # Clear prior mappings and insert configurations for role 15
+    Repo.delete_all(
+      from m in CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail,
+        where: m.role_id == 15
+    )
+
+    Repo.insert!(%CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail{
+      role_id: 15,
+      module_id: 1,
+      module_option_id: 1,
+      selection_status: true,
+      status: 1
+    })
+
+    conn = conn |> init_test_session(current_user_id: restricted_user.id)
+
+    # Should mount ClaimsSubmissionIndexLive successfully despite restriction on claims list/reports
+    {:ok, _view, html} = live(conn, ~p"/corporate/claims-submission")
+    assert html =~ "Claim Submission"
+  end
 end

@@ -72,7 +72,8 @@ defmodule CorporatePolicy.EmployeePortal do
     |> Repo.get(employee_id)
     |> case do
       %TrnMappingLiveEmployee{} = employee ->
-        if employee_active?(employee) and eligible_relationship?(employee.relationship) do
+        if employee_active?(employee) and eligible_relationship?(employee.relationship) and
+             is_nil(employee.deleted_at) do
           {:ok, build_session_employee(employee)}
         else
           {:error, :inactive_employee}

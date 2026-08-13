@@ -148,7 +148,6 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
               Select Level
             </option>
 
-
             <%= for {id, name} <- @levels do %>
               <option value={id} selected={@form[:escalation_level_id].value == to_string(id)}>
                 {name}
@@ -157,12 +156,10 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
           </select>
         </div>
 
-
         <div class="flex-1">
           <label class="corp-label">Assign To</label>
           <select name="user_id" class="corp-input" required>
             <option value="" disabled selected={@form[:user_id].value == ""}>Select Contact</option>
-
 
             <%= for user <- @available_users do %>
               <option value={user.id} selected={@form[:user_id].value == to_string(user.id)}>
@@ -172,20 +169,17 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
           </select>
         </div>
 
-
         <div>
           <button type="submit" class="btn btn-outline btn-success">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Assign & Save
           </button>
         </div>
       </.form>
-
       <%!-- Info banner: entries are saved immediately --%>
       <div class="mb-4 flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
         <.icon name="hero-check-circle" class="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
         <span>Each contact is saved to the database immediately when you click <strong>Assign & Save</strong>. You can safely refresh the page without losing data.</span>
       </div>
-
       <%!-- Configured Escalations Table --%>
       <div class="overflow-x-auto corp-table-card mb-8">
         <table class="corp-table">
@@ -193,17 +187,13 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
             <tr>
               <th class="corp-th p-4 border-b text-left">LEVEL</th>
 
-
               <th class="corp-th p-4 border-b text-left">CONTACT PERSON</th>
 
-
               <th class="corp-th p-4 border-b text-left">TYPE</th>
-
 
               <th class="corp-th p-4 border-b text-right w-24">ACTION</th>
             </tr>
           </thead>
-
 
           <tbody>
             <%= if Enum.empty?(@matrices) do %>
@@ -217,12 +207,9 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
                 <tr class="corp-tr hover:bg-slate-50 transition-colors">
                   <td class="corp-td p-4 border-b font-medium">{matrix.level}</td>
 
-
                   <td class="corp-td p-4 border-b">{matrix.user_fullname}</td>
 
-
                   <td class="corp-td p-4 border-b text-slate-500">{matrix[:user_type] || "—"}</td>
-
 
                   <td class="corp-td p-4 border-b text-right">
                     <button
@@ -243,7 +230,6 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         </table>
       </div>
 
-
       <.pagination
         page={@matrices_page.page}
         page_size={@matrices_page.page_size}
@@ -256,7 +242,6 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-
 
         <button type="button" phx-click="save_step5" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}

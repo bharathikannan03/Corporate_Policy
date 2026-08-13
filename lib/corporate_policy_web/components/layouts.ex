@@ -41,7 +41,6 @@ defmodule CorporatePolicyWeb.Layouts do
       {render_slot(@inner_block)}
     <% end %>
     <.flash_group flash={@flash} />
-    <.flash_group flash={@flash} />
     """
   end
 
@@ -101,15 +100,13 @@ defmodule CorporatePolicyWeb.Layouts do
         }
         .admin-main { color: #1e293b !important; }
       </style>
-      <%!-- Sidebar --%>
-      <%!-- Sidebar --%>
+      <%!-- Sidebar --%> <%!-- Sidebar --%>
       <aside class="admin-sidebar" id="admin-sidebar">
         <%!-- Brand --%>
         <div class="sidebar-brand">
           <div class="brand-logo">
             <span class="brand-icon">🛡️</span>
           </div>
-
 
           <div class="brand-text">
             <span class="brand-name">CorpPolicy</span> <span class="brand-tagline">Admin Portal</span>
@@ -121,7 +118,6 @@ defmodule CorporatePolicyWeb.Layouts do
             <.icon name="hero-user-circle" class="w-10 h-10 text-blue-200" />
           </div>
 
-
           <div class="user-info">
             <p class="user-name">
               {if @current_user,
@@ -129,7 +125,6 @@ defmodule CorporatePolicyWeb.Layouts do
                 else: "Admin"}
             </p>
           </div>
-
 
           <div class="user-actions">
             <.link
@@ -142,8 +137,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </.link>
           </div>
         </div>
-        <%!-- Navigation --%>
-        <%!-- Navigation --%>
+        <%!-- Navigation --%> <%!-- Navigation --%>
         <nav class="sidebar-nav" id="sidebar-nav">
           <.sidebar_item
             icon="hero-squares-2x2"
@@ -170,7 +164,6 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
 
-
           <.sidebar_group
             icon="hero-document-text"
             label="Policy Details"
@@ -190,7 +183,6 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
 
-
           <.sidebar_group
             icon="hero-banknotes"
             label="CD Statements"
@@ -209,8 +201,6 @@ defmodule CorporatePolicyWeb.Layouts do
               id="sidebar-cd-accounts"
             />
           </.sidebar_group>
-
-          <.sidebar_item
 
           <.sidebar_group
             icon="hero-cog-6-tooth"
@@ -273,7 +263,6 @@ defmodule CorporatePolicyWeb.Layouts do
             />
           </.sidebar_group>
 
-
           <.sidebar_item
             icon="hero-clipboard-document-list"
             label="Total Claim Reported"
@@ -306,15 +295,13 @@ defmodule CorporatePolicyWeb.Layouts do
           </.sidebar_group>
         </nav>
       </aside>
-      <%!-- Main content area --%>
-      <%!-- Main content area --%>
+      <%!-- Main content area --%> <%!-- Main content area --%>
       <div class="admin-main">
         <%!-- Top header --%>
         <header class="admin-topbar">
           <div class="topbar-left">
             <h2 class="topbar-title">Admin Portal</h2>
           </div>
-
 
           <div class="topbar-right">
             <div class="topbar-user">
@@ -324,7 +311,6 @@ defmodule CorporatePolicyWeb.Layouts do
                   do: "#{@current_user.first_name} #{@current_user.last_name}",
                   else: "Admin"}
               </span>
-
 
               <.link
                 href={~p"/admin/logout"}
@@ -337,8 +323,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </header>
-        <%!-- Page content --%>
-        <%!-- Page content --%>
+        <%!-- Page content --%> <%!-- Page content --%>
         <main class="admin-content">
           <%= if assigns[:inner_content] do %>
             {@inner_content}
@@ -394,18 +379,15 @@ defmodule CorporatePolicyWeb.Layouts do
             <span class="vibe-e">E</span>
           </div>
 
-
           <div class="vibe-tagline">
             An Initiative By Intermedia
           </div>
         </div>
-        <%!-- Corporate Profile Card --%>
-        <%!-- Corporate Profile Card --%>
+        <%!-- Corporate Profile Card --%> <%!-- Corporate Profile Card --%>
         <div class="corp-sidebar-user">
           <div class="corp-user-avatar">
             <.icon name="hero-user" class="w-10 h-10" />
           </div>
-
 
           <h2 class="corp-user-name">
             {@corporate_name}
@@ -417,7 +399,6 @@ defmodule CorporatePolicyWeb.Layouts do
               <.icon name="hero-user" class="w-3.5 h-3.5" />
             </button>
 
-
             <.link
               href={~p"/corporate/logout"}
               method="delete"
@@ -426,14 +407,12 @@ defmodule CorporatePolicyWeb.Layouts do
               <.icon name="hero-power" class="w-3.5 h-3.5" />
             </.link>
 
-
             <button type="button" class="corp-action-circle">
               <.icon name="hero-envelope" class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-        <%!-- Sidebar Menu --%>
-        <%!-- Sidebar Menu --%>
+        <%!-- Sidebar Menu --%> <%!-- Sidebar Menu --%>
         <nav class="corp-sidebar-nav">
           <.corp_nav_item
             :if={show_module?(@allowed_modules, 1)}
@@ -521,8 +500,7 @@ defmodule CorporatePolicyWeb.Layouts do
           />
         </nav>
       </aside>
-      <%!-- Main Content Area --%>
-      <%!-- Main Content Area --%>
+      <%!-- Main Content Area --%> <%!-- Main Content Area --%>
       <div class="flex-1 flex flex-col min-w-0">
         <%!-- Top Header Bar --%>
         <header class="corp-top-bar">
@@ -535,31 +513,26 @@ defmodule CorporatePolicyWeb.Layouts do
                   </option>
                 <% end %>
 
-
                 <%= if @financial_years == [] do %>
                   <option value={@current_fy_name} selected>{@current_fy_name}</option>
                 <% end %>
               </select>
             </form>
 
-
             <select name="language" class="corp-select-sm">
               <option value="en">Select Language</option>
             </select>
           </div>
-
 
           <div class="flex items-center space-x-4">
             <button type="button" class="text-white hover:opacity-80">
               <.icon name="hero-bell" class="w-5 h-5" />
             </button>
 
-
             <div class="flex items-center space-x-2 text-xs font-semibold text-white">
               <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                 <.icon name="hero-user" class="w-4 h-4 text-white" />
               </div>
-
 
               <span>
                 {if @current_user,
@@ -575,15 +548,13 @@ defmodule CorporatePolicyWeb.Layouts do
         <%!-- Header Banner (Welcome + Corporate Name + Policy Types) --%>
         <div class="corp-welcome-banner">
           <h1 class="corp-welcome-title">Hi, Welcome back!</h1>
-          <%!-- Corporate Name & Policy Types Card --%>
-          <%!-- Corporate Name & Policy Types Card --%>
+          <%!-- Corporate Name & Policy Types Card --%> <%!-- Corporate Name & Policy Types Card --%>
           <div class="corp-header-card">
             <div class="corp-title-text">
               {@corporate_name}
               <span class="corp-title-fy">(Financial Year: {@current_fy_name})</span>
             </div>
-            <%!-- Policy Type Tabs --%>
-            <%!-- Policy Type Tabs --%>
+            <%!-- Policy Type Tabs --%> <%!-- Policy Type Tabs --%>
             <div class="corp-policy-types-row">
               <%= for pt <- @policy_types do %>
                 <button
@@ -601,8 +572,7 @@ defmodule CorporatePolicyWeb.Layouts do
             </div>
           </div>
         </div>
-        <%!-- Policy Number Pills Row --%>
-        <%!-- Policy Number Pills Row --%>
+        <%!-- Policy Number Pills Row --%> <%!-- Policy Number Pills Row --%>
         <div :if={@show_policy_numbers and @policy_numbers != []} class="corp-policy-numbers-bar">
           <div class="flex items-center space-x-4 text-xs font-bold">
             <%= for pn <- @policy_numbers do %>
@@ -622,8 +592,7 @@ defmodule CorporatePolicyWeb.Layouts do
             <% end %>
           </div>
         </div>
-        <%!-- Page Specific Body --%>
-        <%!-- Page Specific Body --%>
+        <%!-- Page Specific Body --%> <%!-- Page Specific Body --%>
         <main class="flex-1 p-6 overflow-y-auto">
           <%= if assigns[:inner_content] do %>
             {@inner_content}
@@ -706,7 +675,6 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-chevron-right" class="sidebar-group-chevron" />
       </button>
 
-
       <div
         id={"group-children-#{@group_id}"}
         class="sidebar-group-children"
@@ -764,7 +732,6 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
 
-
       <.flash
         id="server-error"
         kind={:error}
@@ -800,7 +767,6 @@ defmodule CorporatePolicyWeb.Layouts do
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
 
-
       <button
         class="flex p-2 cursor-pointer w-1/3"
         phx-click={JS.dispatch("phx:set-theme")}
@@ -808,7 +774,6 @@ defmodule CorporatePolicyWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

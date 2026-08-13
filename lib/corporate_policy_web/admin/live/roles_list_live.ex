@@ -41,7 +41,7 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
           <div>
             <h1 class="corp-list-title">Roles List</h1>
           </div>
-
+          
           <div class="header-actions">
             <.link
               href={~p"/admin/roles-configuration/export"}
@@ -54,7 +54,6 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
             </.link>
           </div>
         </div>
-
         <!-- Table card -->
         <div class="corp-table-card mt-6" id="roles-table-card">
           <div class="overflow-x-auto">
@@ -62,14 +61,19 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
               <thead>
                 <tr>
                   <th class="corp-th">SI NO</th>
+                  
                   <th class="corp-th text-left">ROLE NAME</th>
+                  
                   <th class="corp-th text-left">ACCESS</th>
+                  
                   <th class="corp-th text-left">MAPPED TO</th>
+                  
                   <th class="corp-th text-center">STATUS</th>
+                  
                   <th class="corp-th text-center">ACTIONS</th>
                 </tr>
               </thead>
-
+              
               <tbody id="roles-tbody" phx-update="stream">
                 <tr class="hidden only:table-row corp-empty-row" id="roles-empty-row">
                   <td colspan="6" class="corp-empty-cell text-center py-12">
@@ -78,6 +82,7 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
                       <p class="corp-empty-text text-gray-500 font-medium">
                         No roles configured yet
                       </p>
+                      
                       <.link
                         navigate={~p"/admin/roles-configuration/add"}
                         class="btn-primary mt-4"
@@ -88,11 +93,13 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
                     </div>
                   </td>
                 </tr>
-
+                
                 <%= for {id, role} <- @streams.roles do %>
                   <tr id={id} class="corp-tr align-top">
                     <td class="corp-td font-medium text-slate-500 text-center">{role.row_num}</td>
+                    
                     <td class="corp-td font-semibold text-slate-900">{role.role}</td>
+                    
                     <td class="corp-td">
                       <div class="flex flex-col gap-1 text-slate-700 text-xs">
                         <%= for line <- role.access_lines do %>
@@ -100,9 +107,11 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
                         <% end %>
                       </div>
                     </td>
+                    
                     <td class="corp-td text-xs text-slate-600 max-w-xs break-words">
                       {role.mapped_to_text}
                     </td>
+                    
                     <td class="corp-td text-center">
                       <%= if role.status == 1 do %>
                         <span class="corp-status corp-status--active">ACTIVE</span>
@@ -110,6 +119,7 @@ defmodule CorporatePolicyWeb.Admin.RolesListLive do
                         <span class="corp-status corp-status--inactive">INACTIVE</span>
                       <% end %>
                     </td>
+                    
                     <td class="corp-td text-center">
                       <.link
                         navigate={~p"/admin/roles-configuration/#{role.role_id}/edit"}

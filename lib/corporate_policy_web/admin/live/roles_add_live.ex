@@ -206,7 +206,7 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
         <div class="corp-form-header">
           <h1 class="corp-form-title">{@page_title}</h1>
         </div>
-
+        
         <div class="corp-form-card mt-6" id="role-add-card">
           <!-- Name Verification Form -->
           <form
@@ -219,6 +219,7 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
               <label class="corp-label" for="role_name">
                 Role Name <span class="corp-required">*</span>
               </label>
+              
               <input
                 type="text"
                 name="role_name"
@@ -230,12 +231,13 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
                 readonly={@verified && @page_title == "Edit Role"}
               />
             </div>
-
+            
             <div class="flex items-center gap-4">
               <%= if @verified do %>
                 <button type="button" class="btn btn-success disabled" disabled>
                   Verified ✓
                 </button>
+                
                 <span class="text-green-600 font-semibold text-sm self-center">Role name is available</span>
               <% else %>
                 <button type="submit" class="btn btn-primary" id="verify-role-btn">
@@ -244,21 +246,20 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
               <% end %>
             </div>
           </form>
-
           <!-- Permissions Form (Revealed when verified) -->
           <%= if @verified do %>
             <div class="mt-8 border-t pt-6" id="permissions-section">
               <h3 class="text-lg font-semibold text-slate-800 mb-6">
                 Permissions Access Configurations
               </h3>
-
+              
               <div class="space-y-4">
                 <%= for module <- @modules_config do %>
                   <div class="flex flex-col md:flex-row md:items-center border-b pb-4 border-slate-100 gap-4 md:gap-8">
                     <div class="w-full md:w-64 font-semibold text-slate-800 text-sm">
                       {module.name}
                     </div>
-
+                    
                     <div class="flex flex-wrap gap-6 items-center">
                       <%= for {opt_id, opt_name} <- module.options do %>
                         <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-700 font-medium">
@@ -269,15 +270,14 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
                             phx-value-module-id={module.module_id}
                             phx-value-option-id={opt_id}
                             class="checkbox checkbox-primary checkbox-sm border-slate-300"
-                          />
-                          {opt_name}
+                          /> {opt_name}
                         </label>
                       <% end %>
                     </div>
                   </div>
                 <% end %>
               </div>
-
+              
               <div class="mt-8 flex gap-4">
                 <button
                   type="button"
@@ -287,7 +287,7 @@ defmodule CorporatePolicyWeb.Admin.RolesAddLive do
                 >
                   Save
                 </button>
-
+                
                 <.link
                   navigate={~p"/admin/roles-configuration/list"}
                   class="btn btn-secondary"

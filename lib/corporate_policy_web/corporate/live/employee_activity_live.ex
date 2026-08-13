@@ -94,13 +94,14 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Employee Activity</h2>
         </div>
-        <%!-- Logs Display Card --%>
+         <%!-- Logs Display Card --%>
         <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-6">
           <%!-- Centered Corporate Name & Export Button Bar --%>
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-100 mb-6 gap-4">
             <div class="flex-1 text-center md:text-left">
               <h3 class="text-base font-bold text-gray-800 uppercase tracking-wide">
-                {@corporate_name} <span class="text-slate-400 font-normal lowercase">(Financial Year: {@current_fy_name})</span>
+                {@corporate_name}
+                <span class="text-slate-400 font-normal lowercase">(Financial Year: {@current_fy_name})</span>
               </h3>
             </div>
             
@@ -109,12 +110,11 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
                 href={~p"/corporate/employee-activity/export"}
                 class="btn bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
               >
-                <.icon name="hero-arrow-down-tray" class="w-4 h-4" />
-                <span>Export</span>
+                <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> <span>Export</span>
               </a>
             </div>
           </div>
-
+          
           <div class="overflow-x-auto corp-table-card mb-4">
             <table class="corp-table">
               <thead>
@@ -192,7 +192,7 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
               </tbody>
             </table>
           </div>
-
+          
           <.pagination
             page={@paginated_entries.page}
             page_size={@paginated_entries.page_size}

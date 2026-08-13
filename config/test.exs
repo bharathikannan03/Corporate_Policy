@@ -16,12 +16,19 @@ config :corporate_policy, CorporatePolicy.Repo,
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :corporate_policy, CorporatePolicyWeb.Endpoint,
-  http: [ip: {127, 0, 0, 1}, port: 4002],
+  http: [
+    ip: {127, 0, 0, 1},
+    port: 4002,
+    thousand_island_options: [
+      silent_terminate_on_error: true
+    ]
+  ],
   secret_key_base: "fV4aMHKhtgXZtplCqk9Ye5XDMEel7sLnP18nGVhaCYojijU6W0TnqeA+eerD7VgI",
   server: false
 
 # In test we don't send emails
 config :corporate_policy, CorporatePolicy.Mailer, adapter: Swoosh.Adapters.Test
+config :corporate_policy, :mail_queue_enabled, false
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

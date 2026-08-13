@@ -1,5 +1,1 @@
-defmodule CorporatePolicyWeb.SessionHTML do
-  use CorporatePolicyWeb, :html
-
-  embed_templates "session_html/*"
-end
+# Moved to lib/corporate_policy_web/admin/controllers/session_html.ex

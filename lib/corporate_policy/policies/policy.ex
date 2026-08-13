@@ -1,6 +1,7 @@
 defmodule CorporatePolicy.Policies.Policy do
   use Ecto.Schema
   import Ecto.Changeset
+  alias CorporatePolicy.StringUtils
 
   @primary_key {:id, :id, autogenerate: true}
   @foreign_key_type :id
@@ -22,7 +23,7 @@ defmodule CorporatePolicy.Policies.Policy do
     field :sum_insured_type, :string
     field :status, :integer, default: 0
 
-    belongs_to :corporate, CorporatePolicy.Policies.Corporate,
+    belongs_to :corporate, CorporatePolicy.Corporates.Corporate,
       foreign_key: :ref_corporate_id,
       references: :corporate_id
 
@@ -49,6 +50,12 @@ defmodule CorporatePolicy.Policies.Policy do
 
     belongs_to :creator, CorporatePolicy.Accounts.User, foreign_key: :created_by
     belongs_to :updater, CorporatePolicy.Accounts.User, foreign_key: :updated_by
+
+    has_many :escalation_matrices, CorporatePolicy.Policies.MasterPolicyEscalationMatrix,
+      foreign_key: :policy_id
+
+    has_many :documents, CorporatePolicy.Policies.MasterPolicyDocument, foreign_key: :policy_id
+    has_many :sum_insureds, CorporatePolicy.Policies.MasterSumInsured, foreign_key: :policy_id
 
     timestamps()
   end
@@ -82,6 +89,7 @@ defmodule CorporatePolicy.Policies.Policy do
       :created_by,
       :updated_by
     ])
+    |> normalize_string_fields()
     |> validate_required([
       :ref_corporate_id,
       :ref_md_line_of_businesses_id,
@@ -122,6 +130,7 @@ defmodule CorporatePolicy.Policies.Policy do
       :ref_fy_year_id,
       :updated_by
     ])
+    |> normalize_string_fields()
     |> validate_required([
       :ref_corporate_id,
       :ref_md_line_of_businesses_id,
@@ -139,10 +148,11 @@ defmodule CorporatePolicy.Policies.Policy do
     pt = get_field(changeset, :policy_type)
 
     cond do
-      lob == "Health" and pt in ["GMC", "Parent Policy", "Top Up Policy"] ->
+      StringUtils.equal?(lob, "Health") and
+          StringUtils.in?(pt, ["GMC", "Parent Policy", "Top Up Policy"]) ->
         validate_required(changeset, [:ref_md_family_definitions_id])
 
-      lob == "Health" and pt == "GPA" ->
+      StringUtils.equal?(lob, "Health") and StringUtils.equal?(pt, "GPA") ->
         validate_required(changeset, [:ref_md_sum_insured_types_id])
 
       true ->
@@ -163,6 +173,31 @@ defmodule CorporatePolicy.Policies.Policy do
       nil -> put_change(changeset, :updated_by, attrs["updated_by"] || attrs[:updated_by])
       _ -> changeset
     end
+  end
+
+  defp normalize_string_fields(changeset) do
+    Enum.reduce(
+      [
+        :corporate_name,
+        :line_of_business,
+        :policy_type,
+        :select_insurer,
+        :select_tpa,
+        :policy_number,
+        :policy_number_identifier,
+        :family_definition,
+        :claim_submission_additional_email,
+        :intimate_claim_visibility,
+        :sum_insured_type
+      ],
+      changeset,
+      fn field, acc ->
+        update_change(acc, field, fn
+          value when is_binary(value) -> StringUtils.normalize(value)
+          value -> value
+        end)
+      end
+    )
   end
 
   @status_draft 0

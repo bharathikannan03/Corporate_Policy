@@ -7,6 +7,10 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
   alias CorporatePolicy.Repo
   alias CorporatePolicy.Corporates.Corporate
 
+  @tiny_png Base.decode64!(
+              "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWfQAAAAASUVORK5CYII="
+            )
+
   setup do
     {:ok, user} =
       Accounts.create_user(%{
@@ -162,7 +166,7 @@ defmodule CorporatePolicyWeb.CorporateNewLiveTest do
       file_input(view, "#corporate-form", :logo, [
         %{
           name: "logo.png",
-          content: "fake png image content",
+          content: @tiny_png,
           type: "image/png"
         }
       ])

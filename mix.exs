@@ -59,7 +59,6 @@ defmodule CorporatePolicy.MixProject do
        compile: false,
        depth: 1},
       {:swoosh, "~> 1.16"},
-      {:gen_smtp, "~> 1.2"},
       {:req, "~> 0.5"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
@@ -80,7 +79,7 @@ defmodule CorporatePolicy.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.drop --quiet", "ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
@@ -90,7 +89,33 @@ defmodule CorporatePolicy.MixProject do
         "esbuild corporate_policy --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
+      "phx.server.admin": [fn _ -> run_portal("admin", "4001") end],
+      "phx.server.corp": [fn _ -> run_portal("corp", "4002") end],
+      "phx.server.emp": [fn _ -> run_portal("emp", "4003") end],
+      "phx.server.all": ["phx.server"],
+      "phx.server.end": [fn _ -> end_servers() end]
     ]
+  end
+
+  defp run_portal(portal, port) do
+    System.put_env("PORTAL", portal)
+    System.put_env("PORT", port)
+    Mix.Task.run("phx.server")
+  end
+
+  defp end_servers do
+    if match?({:win32, _}, :os.type()) do
+      System.cmd(
+        "powershell",
+        [
+          "-Command",
+          "Get-NetTCPConnection -LocalPort 4000,4001,4002,4003 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
+        ],
+        into: IO.stream()
+      )
+    else
+      System.cmd("sh", ["-c", "fuser -k 4000/tcp 4001/tcp 4002/tcp 4003/tcp"], into: IO.stream())
+    end
   end
 end

@@ -16,6 +16,12 @@ if config_env() == :dev do
       end
     end)
   end
+
+  config :corporate_policy, CorporatePolicy.Repo,
+    username: System.get_env("DB_USER"),
+    password: System.get_env("DB_PASSWORD"),
+    hostname: System.get_env("DB_HOST", "localhost"),
+    database: System.get_env("DB_NAME", "corporate_policy")
 end
 
 # config/runtime.exs is executed for all environments, including
@@ -34,12 +40,18 @@ end
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if System.get_env("PHX_SERVER") do
+if System.get_env("PHX_SERVER") || System.get_env("RAILWAY_ENVIRONMENT") ||
+     System.get_env("RAILWAY_SERVICE_ID") do
   config :corporate_policy, CorporatePolicyWeb.Endpoint, server: true
 end
 
-config :corporate_policy, CorporatePolicyWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+# config :corporate_policy, CorporatePolicyWeb.Endpoint,
+#   http: [
+#     port: String.to_integer(System.get_env("PORT", "4000")),
+#     thousand_island_options: [
+#       silent_terminate_on_error: true
+#     ]
+#   ]
 
 if config_env() == :prod do
   database_url =
@@ -71,20 +83,21 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("PHX_HOST") || "vibe-elixir.up.railway.app"
 
   config :corporate_policy, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :corporate_policy, CorporatePolicyWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
+    check_origin: ["https://vibe-elixir.up.railway.app"],
+    secret_key_base: secret_key_base,
     http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://bandit.hexdocs.pm/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
-    ],
-    secret_key_base: secret_key_base
+      ip: {0, 0, 0, 0},
+      port: String.to_integer(System.get_env("PORT") || "4000"),
+      thousand_island_options: [
+        silent_terminate_on_error: true
+      ]
+    ]
 
   # ## SSL Support
   #
@@ -137,22 +150,15 @@ if config_env() == :prod do
   # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
 end
 
-# Configure SMTP Mailer if environment variables are provided
+# Configure Brevo Mailer if environment variables are provided
 if config_env() != :test do
-  smtp_relay = System.get_env("SMTP_RELAY") || System.get_env("SMTP_HOST")
+  brevo_api_key = System.get_env("BREVO_API_KEY")
 
-  if smtp_relay do
-    ssl = System.get_env("SMTP_SSL") == "true"
-    tls = if ssl, do: :never, else: :always
-
+  if brevo_api_key do
     config :corporate_policy, CorporatePolicy.Mailer,
-      adapter: Swoosh.Adapters.SMTP,
-      relay: smtp_relay,
-      username: System.get_env("SMTP_USERNAME") || System.get_env("MAIL_USERNAME"),
-      password: System.get_env("SMTP_PASSWORD") || System.get_env("MAIL_PASSWORD"),
-      port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
-      ssl: ssl,
-      tls: tls,
-      tls_options: [verify: :verify_none]
+      adapter: Swoosh.Adapters.Brevo,
+      api_key: brevo_api_key
+
+    config :swoosh, :api_client, Swoosh.ApiClient.Req
   end
 end

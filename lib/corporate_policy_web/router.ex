@@ -6,7 +6,7 @@ defmodule CorporatePolicyWeb.Router do
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {CorporatePolicyWeb.Layouts, :root}
-    plug :protect_from_forgery
+    plug :protect_from_forgery_except_logout
     plug :put_secure_browser_headers
   end
 
@@ -14,24 +14,51 @@ defmodule CorporatePolicyWeb.Router do
     plug :accepts, ["json"]
   end
 
-  pipeline :require_auth do
-    plug CorporatePolicyWeb.Plugs.AuthPlug
+  pipeline :admin_portal_enabled do
+    plug :ensure_admin_portal_enabled
   end
 
-  # ─── Public routes ──────────────────────────────────────────────────────────
+  pipeline :corporate_portal_enabled do
+    plug :ensure_corporate_portal_enabled
+  end
+
+  pipeline :employee_portal_enabled do
+    plug :ensure_employee_portal_enabled
+  end
+
+  pipeline :admin_require_auth do
+    plug CorporatePolicyWeb.Admin.Plugs.AuthPlug
+  end
+
+  pipeline :corporate_require_auth do
+    plug CorporatePolicyWeb.Corporate.Plugs.AuthPlug
+  end
+
+  pipeline :employee_require_auth do
+    plug CorporatePolicyWeb.Employee.Plugs.AuthPlug
+  end
+
   scope "/", CorporatePolicyWeb do
     pipe_through :browser
 
+    get "/", PageController, :home
+  end
+
+  scope "/admin", CorporatePolicyWeb.Admin, as: :admin do
+    pipe_through [:browser, :admin_portal_enabled]
+
     get "/", SessionController, :new
+    get "/login", SessionController, :new
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
   end
 
-  # ─── Authenticated admin routes ─────────────────────────────────────────────
-  scope "/admin", CorporatePolicyWeb do
-    pipe_through [:browser, :require_auth]
+  scope "/admin", CorporatePolicyWeb.Admin, as: :admin do
+    pipe_through [:browser, :admin_portal_enabled, :admin_require_auth]
 
-    live_session :admin_authenticated, on_mount: [{CorporatePolicyWeb.LiveAuth, :default}] do
+    live_session :admin_authenticated,
+      on_mount: [{CorporatePolicyWeb.Admin.LiveAuth, :default}],
+      layout: {CorporatePolicyWeb.Layouts, :app} do
       live "/dashboard", DashboardLive
       live "/corporate", CorporateLive
       live "/corporate/new", CorporateNewLive
@@ -40,39 +67,110 @@ defmodule CorporatePolicyWeb.Router do
       live "/policy-details", PolicyDetailsLive, :index
       live "/policy-details/add", AddPolicyLive, :new
       live "/policy-details/:id/edit", AddPolicyLive, :edit
+      live "/policy-details/:policy_id/cd-statements/new", CdStatementUploadLive, :new
+      live "/policy-details/:policy_id/cd-accounts/new", CdAccountsLive, :new
+      live "/cd-statements/cd-statement", CdStatementUploadLive, :index
+      live "/cd-statements/cd-accounts", CdAccountsLive, :index
+      get "/policy-details/:policy_id/cd-statements/export", CdStatementExportController, :export
       live "/cd-statements", CdStatementsLive
-      live "/roles-configuration", RolesConfigurationLive
-
+      get "/roles-configuration/export", RolesExportController, :export
+      live "/roles-configuration", RolesListLive, :index
+      live "/roles-configuration/list", RolesListLive, :index
+      live "/roles-configuration/add", RolesAddLive, :new
+      live "/roles-configuration/:id/edit", RolesAddLive, :edit
       live "/users", UsersLive
       live "/corporate-employees", CorporateEmployeesLive
       live "/cashless-hospitals", CashlessHospitalsLive
-
       live "/escalation-matrix", EscalationMatrixAddLive, :new
       live "/escalation-matrix/add-user", EscalationMatrixAddLive, :new
       live "/escalation-matrix/edit-user/:id", EscalationMatrixAddLive, :edit
       live "/escalation-matrix/user-master", EscalationMatrixMasterLive, :index
       get "/escalation-matrix/export", EscalationMatrixExportController, :export
-
       live "/total-claim-reported", TotalClaimReportedLive
       live "/claims-intimation", ClaimsIntimationLive
-      live "/claims-submission", ClaimsSubmissionLive
+      live "/claims-submission", ClaimsSubmissionIndexLive, :index
+      live "/claims-submission/add", ClaimSubmissionFormLive, :new
+      live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
     end
+
+    get "/total-claim-reported/export", TotalClaimReportedExportController, :export
+    get "/claims-submission/export", ClaimSubmissionExportController, :export
   end
 
-  # ─── API routes ─────────────────────────────────────────────────────────────
+  scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
+    pipe_through [:browser, :corporate_portal_enabled]
+
+    get "/", CorporateSessionController, :new
+    get "/login", CorporateSessionController, :new
+    post "/login", CorporateSessionController, :create
+    delete "/logout", CorporateSessionController, :delete
+  end
+
+  scope "/corporate", CorporatePolicyWeb.Corporate, as: :corporate do
+    pipe_through [:browser, :corporate_portal_enabled, :corporate_require_auth]
+
+    live_session :corporate_authenticated,
+      on_mount: [{CorporatePolicyWeb.Corporate.LiveAuth, :default}],
+      layout: {CorporatePolicyWeb.Layouts, :app} do
+      live "/dashboard", DashboardLive
+      live "/enrollment-details", EnrollmentDetailsLive
+      live "/employee", EmployeeActivityLive
+      live "/claims", ClaimsLive
+      live "/escalation-matrix", EscalationMatrixLive
+      live "/documents", DocumentsLive
+      live "/policy-features", PolicyFeaturesLive
+      live "/cashless-hospitals", CashlessHospitalsLive
+
+      live "/claims-submission", ClaimsSubmissionIndexLive, :index
+      live "/claims-submission/add", ClaimSubmissionFormLive, :new
+      live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
+    end
+
+    get "/enrollment-details/export", EmployeeExportController, :export
+    get "/claims/export", TotalClaimReportExportController, :export
+    get "/claims-submission/export", ClaimSubmissionExportController, :export
+    get "/cashless-hospitals/export", CashlessHospitalExportController, :export
+    get "/employee-activity/export", EmployeeActivityExportController, :export
+  end
+
+  scope "/employee", CorporatePolicyWeb.Employee, as: :employee do
+    pipe_through [:browser, :employee_portal_enabled]
+
+    get "/login", EmployeeSessionController, :new
+    post "/login", EmployeeSessionController, :create
+    delete "/logout", EmployeeSessionController, :delete
+  end
+
+  scope "/employee", CorporatePolicyWeb.Employee, as: :employee do
+    pipe_through [:browser, :employee_portal_enabled, :employee_require_auth]
+
+    live_session :employee_authenticated,
+      on_mount: [{CorporatePolicyWeb.Employee.LiveAuth, :default}],
+      layout: {CorporatePolicyWeb.Layouts, :app} do
+      live "/", DashboardLive
+      live "/dashboard", DashboardLive
+      live "/my-coverages", CoveragesLive
+      live "/members-covered", MembersLive
+      live "/contact-matrix", ContactMatrixLive
+      live "/network-hospital", ComingSoonLive, :network_hospital
+      live "/download-forms", ComingSoonLive, :download_forms
+      live "/claim-status", ComingSoonLive, :claim_status
+      live "/intimate-claim", ComingSoonLive, :intimate_claim
+      live "/claims-submission", ClaimsSubmissionIndexLive, :index
+      live "/claims-submission/add", ClaimSubmissionFormLive, :new
+      live "/claims-submission/:id/edit", ClaimSubmissionFormLive, :edit
+    end
+
+    get "/claims-submission/export", ClaimSubmissionExportController, :export
+  end
+
   scope "/api", CorporatePolicyWeb.Api, as: :api do
     pipe_through :api
 
     get "/get_visibility_role_id_tempalte", VisibilityRoleController, :index
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:corporate_policy, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
@@ -80,6 +178,43 @@ defmodule CorporatePolicyWeb.Router do
 
       live_dashboard "/dashboard", metrics: CorporatePolicyWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  defp ensure_admin_portal_enabled(conn, _opts), do: ensure_portal_enabled(conn, "admin")
+  defp ensure_corporate_portal_enabled(conn, _opts), do: ensure_portal_enabled(conn, "corp")
+  defp ensure_employee_portal_enabled(conn, _opts), do: ensure_portal_enabled(conn, "emp")
+
+  defp ensure_portal_enabled(conn, expected_portal) do
+    active_portal = System.get_env("PORTAL", "all")
+
+    if active_portal in [expected_portal, "all"] do
+      conn
+    else
+      conn
+      |> Phoenix.Controller.redirect(to: "/")
+      |> Plug.Conn.halt()
+    end
+  end
+
+  defp protect_from_forgery_except_logout(conn, opts) do
+    cond do
+      conn.path_info in [
+        ["admin", "logout"],
+        ["corporate", "logout"],
+        ["employee", "logout"]
+      ] ->
+        conn
+
+      conn.path_info in [
+        ["admin", "login"],
+        ["corporate", "login"],
+        ["employee", "login"]
+      ] ->
+        protect_from_forgery(conn, Keyword.put(opts, :with, :clear_session))
+
+      true ->
+        protect_from_forgery(conn, opts)
     end
   end
 end

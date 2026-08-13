@@ -1,0 +1,50 @@
+<Layouts.app flash={@flash}>
+  <div class="min-h-screen bg-base-200 flex items-center justify-center px-4 py-8">
+    <div class="w-full max-w-sm bg-base-100 rounded-2xl border border-base-300 shadow-xl p-8">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-widest text-primary">
+          Corporate Portal
+        </p>
+
+        <h1 class="mt-2 text-xl font-bold text-base-content text-primary">Corporate Login</h1>
+
+        <p class="text-xs text-base-content/75 mt-2">
+          Dedicated secure access for corporate policy holders and employees.
+        </p>
+      </div>
+
+      <.form
+        for={@form}
+        id="corporate-login-form"
+        action={~p"/corporate/login"}
+        method="post"
+        class="space-y-4"
+      >
+        <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+        <.input
+          field={@form[:email_address]}
+          type="email"
+          label="Corporate Email Address"
+          placeholder="employee@corporate.com"
+          required
+        />
+        <.input
+          field={@form[:password]}
+          type="password"
+          label="Password"
+          placeholder="••••••••"
+          required
+        />
+        <button type="submit" id="corporate-login-submit" class="btn btn-success w-full mt-2">
+          Sign in to Corporate
+        </button>
+      </.form>
+
+      <div class="mt-6 pt-6 border-t border-base-300 text-center">
+        <p class="text-xs text-base-content/60">
+          Admin, Super Admin, and Broker users are restricted from logging in here.
+        </p>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

@@ -20,7 +20,12 @@ config :corporate_policy, CorporatePolicyWeb.Endpoint,
     layout: false
   ],
   pubsub_server: CorporatePolicy.PubSub,
-  live_view: [signing_salt: "J1wWVQnh"]
+  live_view: [signing_salt: "J1wWVQnh"],
+  http: [
+    thousand_island_options: [
+      silent_terminate_on_error: true
+    ]
+  ]
 
 # Configure LiveView
 config :phoenix_live_view,
@@ -40,6 +45,9 @@ config :phoenix_live_view, :colocated_assets,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :corporate_policy, CorporatePolicy.Mailer, adapter: Swoosh.Adapters.Local
+
+# Configure Swoosh API Client
+config :swoosh, :api_client, Swoosh.ApiClient.Req
 
 # Configure esbuild (the version is required)
 config :esbuild,

@@ -1,60 +1,76 @@
 # ─── Seeder: md_visibility_role_id_feature_tmps ──────────────────────────────
-# Run: mix run priv/repo/seeds/md_visibility_role_id_feature_tmps_seed.exs
-# ─────────────────────────────────────────────────────────────────────────────
 
 import Ecto.Query
+
 alias CorporatePolicy.Repo
 alias CorporatePolicy.Corporates.MdVisibilityRoleFeature
+alias CorporatePolicy.Corporates.MdRoleAccessdetailModule
+alias CorporatePolicy.Corporates.MdRoleAccessdetailModuleOption
+alias CorporatePolicy.Corporates.TrnMappingRoleidRoleaccessdetail
 
-roles = [
-  %{role_id: 1, role: "SuperAdmin", is_visible: 0, status: 0},
-  %{role_id: 2, role: "All",        is_visible: 1, status: 0},
-  %{role_id: 3, role: "Admin",      is_visible: 3, status: 0},
-  %{role_id: 4, role: "HR",         is_visible: 2, status: 0},
-  %{role_id: 5, role: "Finance",    is_visible: 2, status: 0},
-  %{role_id: 6, role: "Employee",   is_visible: 4, status: 0},
-  %{role_id: 7, role: "None",       is_visible: 1, status: 0},
-  %{role_id: 9, role: "Broker",     is_visible: 3, status: 0}
+IO.puts("Cleaning up previous role configuration seeds...")
+Repo.delete_all(TrnMappingRoleidRoleaccessdetail)
+Repo.delete_all(MdRoleAccessdetailModuleOption)
+Repo.delete_all(MdRoleAccessdetailModule)
+Repo.delete_all(MdVisibilityRoleFeature)
+
+# Seed modules
+modules = [
+  %{module_id: 1, module_name: "Dashboard", status: 1},
+  %{module_id: 2, module_name: "Enrollment", status: 1},
+  %{module_id: 3, module_name: "Claims", status: 1},
+  %{module_id: 4, module_name: "Cashless Hospitals", status: 1},
+  %{module_id: 5, module_name: "Escalation Matrix", status: 1},
+  %{module_id: 6, module_name: "Policy Features", status: 1},
+  %{module_id: 7, module_name: "Policy Documents", status: 1},
+  %{module_id: 8, module_name: "CD Statements", status: 1},
+  %{module_id: 9, module_name: "Endorsements", status: 1},
+  %{module_id: 10, module_name: "Employee", status: 1},
+  %{module_id: 11, module_name: "Reports", status: 1},
+  %{module_id: 12, module_name: "Summary", status: 1},
+  %{module_id: 13, module_name: "Endorsement Calculation", status: 1}
 ]
 
-now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+IO.puts("Seeding md_role_accessdetail_modules...")
+for m <- modules do
+  Repo.insert!(struct(MdRoleAccessdetailModule, m))
+end
 
-inserted_count =
-  Enum.reduce(roles, 0, fn attrs, acc ->
-    existing =
-      Repo.one(
-        from r in MdVisibilityRoleFeature,
-          where: r.role_id == ^attrs.role_id,
-          limit: 1
-      )
+# Seed options
+options = [
+  %{module_option_id: 1, module_option_name: "View", status: 1},
+  %{module_option_id: 2, module_option_name: "Upload Enrollment", status: 1},
+  %{module_option_id: 3, module_option_name: "Intimate Claim", status: 1},
+  %{module_option_id: 4, module_option_name: "View Corporate Buffer List", status: 1},
+  %{module_option_id: 5, module_option_name: "Upload CD Statements", status: 1},
+  %{module_option_id: 6, module_option_name: "View Activity Logs", status: 1},
+  %{module_option_id: 7, module_option_name: "View Claims Report", status: 1},
+  %{module_option_id: 8, module_option_name: "View Demography Report", status: 1},
+  %{module_option_id: 9, module_option_name: "View Top Ten Claims", status: 1},
+  %{module_option_id: 10, module_option_name: "View Endorsement Analysis", status: 1},
+  %{module_option_id: 11, module_option_name: "Upload Rackrates", status: 1},
+  %{module_option_id: 12, module_option_name: "View Rackrates list", status: 1},
+  %{module_option_id: 13, module_option_name: "Upload Endorsement Calculation", status: 1},
+  %{module_option_id: 14, module_option_name: "View Endorsement List", status: 1}
+]
 
-    case existing do
-      nil ->
-        Ecto.Adapters.SQL.query!(
-          Repo,
-          """
-          INSERT INTO md_visibility_role_id_feature_tmps
-            (role_id, role, is_visible, status, inserted_at, updated_at)
-          OVERRIDING SYSTEM VALUE
-          VALUES ($1, $2, $3, $4, $5, $6)
-          """,
-          [attrs.role_id, attrs.role, attrs.is_visible, attrs.status, now, now]
-        )
+IO.puts("Seeding md_role_accessdetail_module_options...")
+for o <- options do
+  Repo.insert!(struct(MdRoleAccessdetailModuleOption, o))
+end
 
-        IO.puts("  ✓ Inserted  role_id=#{attrs.role_id}  role=#{attrs.role}  is_visible=#{attrs.is_visible}")
-        acc + 1
+# Seed roles
+roles = [
+  %{role_id: 1, role: "All", is_visible: 1, status: 1},
+  %{role_id: 2, role: "superadmin", is_visible: 1, status: 1},
+  %{role_id: 4, role: "none", is_visible: 1, status: 1},
+  %{role_id: 9, role: "broker", is_visible: 1, status: 1}
+]
 
-      _existing ->
-        IO.puts("  → Skipped   role_id=#{attrs.role_id}  role=#{attrs.role} (already exists)")
-        acc
-    end
-  end)
+IO.puts("Seeding md_visibility_role_id_feature_tmps...")
+for r <- roles do
+  Repo.insert!(struct(MdVisibilityRoleFeature, r))
+end
 
-# Advance the sequence past the highest role_id to avoid future conflicts
-Ecto.Adapters.SQL.query!(
-  Repo,
-  "SELECT setval(pg_get_serial_sequence('md_visibility_role_id_feature_tmps', 'role_id'), (SELECT MAX(role_id) FROM md_visibility_role_id_feature_tmps))",
-  []
-)
+IO.puts("\n✓ Seeder complete!")
 
-IO.puts("\n✓ Seeder complete — Inserted: #{inserted_count} / #{length(roles)}")

@@ -1082,19 +1082,24 @@ Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
 
 ### `md_visibility_role_id_feature_tmps`
 
-Migration sources: `database/migrations/2024_11_26_130400_create_md_visibility_role_id_feature_tmps_table.php`, `database/migrations/2024_12_05_055835_alter_md_visibility_role_idfeature_tmps.php`, `database/migrations/2025_06_10_060739_add_column_is_visible_to_md_visibiltiy_role_id_feature_tmps.php`
+Migration sources: `priv/repo/migrations/20260804133323_create_roles_and_access_tables.exs`
 
-| Column     | Data Type          | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
-| ---------- | ------------------ | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
-| role       | varchar            | 255                | No       |         |     |     |            |                |
-| status     | integer            |                    | No       | 0       |     |     |            |                |
-| created_at | timestamp          |                    | Yes      |         |     |     |            |                |
-| updated_at | timestamp          |                    | Yes      |         |     |     |            |                |
-| deleted_at | timestamp          |                    | Yes      |         |     |     |            |                |
-| role_id    | unsignedBigInteger |                    | No       |         | Yes |     |            | Yes            |
-| is_visible | integer            |                    | No       | 0       |     |     |            |                |
+| Column                        | Data Type          | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
+| ----------------------------- | ------------------ | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
+| id                            | bigint             |                    | No       |         | Yes |     |            | Yes            |
+| role_id                       | integer            |                    | No       |         |     |     |            |                |
+| role                          | varchar            | 50                 | No       |         |     |     |            |                |
+| status                        | integer            |                    | No       | 0       |     |     |            |                |
+| is_visible                    | integer            |                    | No       | 2       |     |     |            |                |
+| ref_feature_template_field_id | bigint             |                    | Yes      |         |     |     |            |                |
+| created_at                    | timestamp          |                    | No       |         |     |     |            |                |
+| updated_at                    | timestamp          |                    | No       |         |     |     |            |                |
+| deleted_at                    | timestamp          |                    | Yes      |         |     |     |            |                |
 
-Primary key: `role_id`
+Primary key: `id`
+Indices:
+- Unique index: `role` (where `deleted_at IS NULL`)
+- Index: `role_id`
 Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
 
 ### `logs`
@@ -1114,43 +1119,70 @@ Primary key: `id`
 Foreign keys: `user_id` -> `users`(id)
 Audit / soft delete columns: `created_at`
 
-### `md_role_accessdetails`
+### `md_role_accessdetail_modules`
 
-Migration sources: `database/migrations/2024_12_04_072204_create_md_role_accessdetails.php`
+Migration sources: `priv/repo/migrations/20260804133323_create_roles_and_access_tables.exs`
 
-| Column             | Data Type          | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
-| ------------------ | ------------------ | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
-| id                 | unsignedBigInteger |                    | No       |         | Yes |     |            | Yes            |
-| module_id          | integer            |                    | Yes      |         |     |     |            |                |
-| module_name        | varchar            | 255                | Yes      |         |     |     |            |                |
-| module_option_id   | integer            |                    | Yes      |         |     |     |            |                |
-| module_option_name | varchar            | 255                | Yes      |         |     |     |            |                |
-| status             | integer            |                    | No       | 0       |     |     |            |                |
-| created_at         | timestamp          |                    | Yes      |         |     |     |            |                |
-| updated_at         | timestamp          |                    | Yes      |         |     |     |            |                |
-| deleted_at         | timestamp          |                    | Yes      |         |     |     |            |                |
+| Column      | Data Type | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
+| ----------- | --------- | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
+| id          | bigint    |                    | No       |         | Yes |     |            | Yes            |
+| module_id   | integer   |                    | No       |         |     |     |            |                |
+| module_name | varchar   | 50                 | No       |         |     |     |            |                |
+| status      | integer   |                    | No       | 0       |     |     |            |                |
+| created_at  | timestamp |                    | No       |         |     |     |            |                |
+| updated_at  | timestamp |                    | No       |         |     |     |            |                |
+| deleted_at  | timestamp |                    | Yes      |         |     |     |            |                |
 
 Primary key: `id`
+Indices:
+- Unique index: `module_name` (where `deleted_at IS NULL`)
+- Index: `module_id`
+Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
+
+### `md_role_accessdetail_module_options`
+
+Migration sources: `priv/repo/migrations/20260804133323_create_roles_and_access_tables.exs`
+
+| Column             | Data Type | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
+| ------------------ | --------- | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
+| id                 | bigint    |                    | No       |         | Yes |     |            | Yes            |
+| module_option_id   | integer   |                    | No       |         |     |     |            |                |
+| module_option_name | varchar   | 50                 | No       |         |     |     |            |                |
+| status             | integer   |                    | No       | 0       |     |     |            |                |
+| created_at         | timestamp |                    | No       |         |     |     |            |                |
+| updated_at         | timestamp |                    | No       |         |     |     |            |                |
+| deleted_at         | timestamp |                    | Yes      |         |     |     |            |                |
+
+Primary key: `id`
+Indices:
+- Unique index: `module_option_name` (where `deleted_at IS NULL`)
+- Index: `module_option_id`
 Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
 
 ### `trn_mapping_roleid_roleaccessdetails`
 
-Migration sources: `database/migrations/2024_12_04_111124_create_trn_mapping_roleid_roleaccessdetails_table.php`
+Migration sources: `priv/repo/migrations/20260804133323_create_roles_and_access_tables.exs`
 
-| Column           | Data Type          | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
-| ---------------- | ------------------ | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
-| id               | unsignedBigInteger |                    | No       |         | Yes |     |            | Yes            |
-| role_id          | integer            |                    | Yes      |         |     |     |            |                |
-| module_id        | integer            |                    | Yes      |         |     |     |            |                |
-| module_option_id | integer            |                    | Yes      |         |     |     |            |                |
-| selection_status | integer            |                    | No       | 0       |     |     |            |                |
-| status           | integer            |                    | No       | 0       |     |     |            |                |
-| created_at       | timestamp          |                    | Yes      |         |     |     |            |                |
-| updated_at       | timestamp          |                    | Yes      |         |     |     |            |                |
-| deleted_at       | timestamp          |                    | Yes      |         |     |     |            |                |
+| Column           | Data Type | Length / Precision | Nullable | Default | PK  | FK  | References | Auto Increment |
+| ---------------- | --------- | ------------------ | -------- | ------- | --- | --- | ---------- | -------------- |
+| id               | bigint    |                    | No       |         | Yes |     |            | Yes            |
+| role_id          | integer   |                    | No       |         |     |     |            |                |
+| module_id        | integer   |                    | No       |         |     |     |            |                |
+| module_option_id | integer   |                    | No       |         |     |     |            |                |
+| selection_status | boolean   |                    | No       | false   |     |     |            |                |
+| status           | integer   |                    | No       | 0       |     |     |            |                |
+| created_at       | timestamp |                    | No       |         |     |     |            |                |
+| updated_at       | timestamp |                    | No       |         |     |     |            |                |
+| deleted_at       | timestamp |                    | Yes      |         |     |     |            |                |
 
 Primary key: `id`
+Indices:
+- Unique index: `role_id, module_id, module_option_id` (named `trn_mapping_role_module_option_idx` where `deleted_at IS NULL`)
+- Index: `role_id`
+- Index: `module_id`
+- Index: `module_option_id`
 Audit / soft delete columns: `created_at`, `updated_at`, `deleted_at`
+
 
 ### `master_cashless_hospitals`
 

@@ -2,10 +2,6 @@ import Config
 
 # Configure your database
 config :corporate_policy, CorporatePolicy.Repo,
-  username: System.get_env("DB_USER", "elixir_vibe"),
-  password: System.get_env("DB_PASSWORD", "Vibe@26"),
-  hostname: System.get_env("DB_HOST", "localhost"),
-  database: System.get_env("DB_NAME", "corporate_policy"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -19,28 +15,24 @@ config :corporate_policy, CorporatePolicy.Repo,
 windows? = match?({:win32, _}, :os.type())
 
 dev_watchers = [
-  esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]}
+  esbuild: {Esbuild, :install_and_run, [:corporate_policy, ~w(--sourcemap=inline --watch)]},
+  tailwind: {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
 ]
-
-dev_watchers =
-  if windows? do
-    dev_watchers
-  else
-    Keyword.put(
-      dev_watchers,
-      :tailwind,
-      {Tailwind, :install_and_run, [:corporate_policy, ~w(--watch)]}
-    )
-  end
 
 config :corporate_policy, CorporatePolicyWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}],
+  http: [
+    ip: {127, 0, 0, 1},
+    port: String.to_integer(System.get_env("PORT") || "4000"),
+    thousand_island_options: [
+      silent_terminate_on_error: true
+    ]
+  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "Hi2pKR9uimLvFV8fUCiq5atc6MFbFak+ErUY7TKBhIyY0by7M+ainoY6o8pPoEmE",
+  secret_key_base: "1wXpJTD2e9Q1HCWSPUX5rGkQxhbcXAq8Bbm3HpV/tIauJYkHZiwGSDn+jrZA54sR",
   watchers: dev_watchers
 
 # ## SSL Support

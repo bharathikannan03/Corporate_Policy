@@ -6,6 +6,7 @@ defmodule CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
   schema "mapping_policy_feature_templates_corporates_policies" do
     field :ref_policy_feature_template_field_name, :string
     field :policy_feature_template_field_value, :string
+    field :field_description, :string, virtual: true
     field :ref_template_id, :integer
     field :ref_coporate_id, :integer
     field :ref_policy_feature_template_field_id, :integer
@@ -47,8 +48,7 @@ defmodule CorporatePolicy.Policies.MappingPolicyFeatureTemplatesCorporatesPolicy
       :ref_coporate_id,
       :ref_policy_id,
       :ref_policy_feature_template_field_id,
-      :ref_policy_feature_template_field_type_id,
-      :policy_feature_template_field_visibility_role_ids
+      :ref_policy_feature_template_field_type_id
     ])
   end
 end

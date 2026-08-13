@@ -7,6 +7,7 @@ defmodule CorporatePolicyWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {CorporatePolicyWeb.Layouts, :root}
     plug :protect_from_forgery_except_logout
+    plug CorporatePolicyWeb.Plugs.RateLimiter
     plug :put_secure_browser_headers
   end
 

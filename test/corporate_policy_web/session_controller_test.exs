@@ -80,4 +80,29 @@ defmodule CorporatePolicyWeb.SessionControllerTest do
     assert redirected_to(conn) == "/admin/login"
     assert get_session(conn, :current_employee_id) == nil
   end
+
+  test "rate limits login attempts after 5 requests from same IP", %{conn: conn} do
+    conn = %{conn | remote_ip: {192, 168, 1, 100}}
+
+    # Perform 5 login attempts
+    conns =
+      Enum.map(1..5, fn _ ->
+        post(conn, ~p"/admin/login", %{
+          "user" => %{"email_address" => "invalid@example.com", "password" => "wrong"}
+        })
+      end)
+
+    for c <- conns do
+      assert html_response(c, 200) =~ "Invalid email or password"
+    end
+
+    # The 6th attempt should be blocked and redirected
+    blocked_conn =
+      post(conn, ~p"/admin/login", %{
+        "user" => %{"email_address" => "invalid@example.com", "password" => "wrong"}
+      })
+
+    assert redirected_to(blocked_conn) == "/admin/login"
+    assert Phoenix.Flash.get(blocked_conn.assigns.flash, :error) =~ "Too many login attempts"
+  end
 end

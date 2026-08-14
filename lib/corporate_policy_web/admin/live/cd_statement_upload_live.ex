@@ -417,7 +417,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                   placeholder="Search CD number or file"
                   phx-keyup="search_uploads"
                   phx-debounce="300"
-                  class="input input-bordered"
+                  class="corp-input w-full md:w-80"
                 />
               </div>
               

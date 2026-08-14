@@ -263,7 +263,7 @@ defmodule CorporatePolicyWeb.Admin.CdAccountsLive do
                   placeholder="Search CD number, policy, insurer"
                   phx-keyup="search_accounts"
                   phx-debounce="300"
-                  class="input input-bordered"
+                  class="corp-input w-full md:w-80"
                 />
               </div>
               

@@ -108,7 +108,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
             {if @edit_mode, do: "Edit Policy", else: "Add Policy"}
           </h1>
           <!-- Custom Styled Wizard Navigation -->
-          <div class="w-full mb-8 border rounded-lg bg-base-100 shadow-sm flex overflow-hidden">
+          <div class="w-full mb-8 border rounded-lg bg-white shadow-sm flex overflow-hidden">
             <%= for {step_id, step_num, step_name} <- [
           {:step1, 1, "Policy Details"},
           {:step2, 2, "Policy Features"},
@@ -147,12 +147,12 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                     {step_num}
                   <% end %>
                 </div>
-                 <span class={["text-sm", text_color]}>{step_name}</span>
+                <span class={["text-sm", text_color]}>{step_name}</span>
               </div>
             <% end %>
           </div>
           <!-- Main Content Area -->
-          <div class="mt-4 bg-base-100 shadow-xl rounded-box p-6">
+          <div class="mt-4 bg-white shadow-xl rounded-box p-6">
             <%= case @current_step do %>
               <% :step1 -> %>
                 <.live_component
@@ -211,7 +211,7 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
               <% _ -> %>
                 <div class="text-center p-10">
                   <h2 class="text-xl font-semibold">{@current_step}</h2>
-                  
+
                   <p class="text-gray-500 mt-2">Implementation pending...</p>
                 </div>
             <% end %>

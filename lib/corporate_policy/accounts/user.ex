@@ -9,7 +9,7 @@ defmodule CorporatePolicy.Accounts.User do
     field :last_name, :string
     field :email_address, :string
     field :password, :string
-    field :status, :integer, default: 0
+    field :status, :integer, default: 1
     field :remember_token, :string
     field :deleted_at, :utc_datetime_usec
     field :full_name, :string

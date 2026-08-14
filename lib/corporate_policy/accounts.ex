@@ -38,10 +38,12 @@ defmodule CorporatePolicy.Accounts do
     ) || 0
   end
 
-  def get_user(id), do: Repo.get(User, id)
+  def get_user(id) do
+    Repo.one(from u in User, where: u.id == ^id and is_nil(u.deleted_at))
+  end
 
   def get_user_by_email(email) do
-    Repo.get_by(User, email_address: email)
+    Repo.one(from u in User, where: u.email_address == ^email and is_nil(u.deleted_at))
   end
 
   def authenticate_user(email, password) do
@@ -49,6 +51,7 @@ defmodule CorporatePolicy.Accounts do
 
     cond do
       is_nil(user) -> {:error, :invalid_credentials}
+      user.status != 1 -> {:error, :inactive_user}
       Password.valid_password?(password, user.password) -> {:ok, user}
       true -> {:error, :invalid_credentials}
     end

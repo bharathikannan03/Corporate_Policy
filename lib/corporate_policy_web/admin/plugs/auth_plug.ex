@@ -29,12 +29,17 @@ defmodule CorporatePolicyWeb.Admin.Plugs.AuthPlug do
         |> halt()
 
       user = Accounts.get_user(user_id) ->
-        if Accounts.admin_user?(user) do
+        if Accounts.admin_user?(user) and user.status == 1 do
           assign(conn, :current_user, user)
         else
+          flash_msg =
+            if user.status != 1,
+              do: "Your account is inactive or disabled.",
+              else: "Unauthorized access. You must be logged in as an admin."
+
           conn
           |> clear_session()
-          |> put_flash(:error, "Unauthorized access. You must be logged in as an admin.")
+          |> put_flash(:error, flash_msg)
           |> redirect(to: "/admin/login")
           |> halt()
         end

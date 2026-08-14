@@ -33,6 +33,11 @@ defmodule CorporatePolicyWeb.ConnCase do
 
   setup tags do
     CorporatePolicy.DataCase.setup_sandbox(tags)
+
+    if GenServer.whereis(CorporatePolicy.RateLimiter) do
+      CorporatePolicy.RateLimiter.clear()
+    end
+
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

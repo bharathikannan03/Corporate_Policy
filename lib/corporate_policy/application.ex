@@ -15,6 +15,7 @@ defmodule CorporatePolicy.Application do
       # Start a worker by calling: CorporatePolicy.Worker.start_link(arg)
       # {CorporatePolicy.Worker, arg},
       CorporatePolicy.Emails.MailQueue,
+      CorporatePolicy.RateLimiter,
       # Start to serve requests, typically the last entry
       CorporatePolicyWeb.Endpoint
     ]

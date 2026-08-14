@@ -15,7 +15,7 @@ defmodule CorporatePolicyWeb.Admin.LiveAuth do
         {:halt, redirect(socket, to: "/admin/login")}
 
       user = Accounts.get_user(user_id) ->
-        if Accounts.admin_user?(user) do
+        if Accounts.admin_user?(user) and user.status == 1 do
           {:cont, assign(socket, :current_user, user)}
         else
           {:halt, redirect(socket, to: "/admin/login")}

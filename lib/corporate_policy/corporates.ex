@@ -56,6 +56,30 @@ defmodule CorporatePolicy.Corporates do
     |> Repo.all()
   end
 
+  @doc "Gets a corporate by id, returns nil if not found."
+  def get_corporate(id), do: Repo.get(Corporate, id)
+
+  @doc "Lists active corporates ordered by corporate_name."
+  def list_active_corporates_ordered_by_name do
+    Corporate
+    |> where([c], c.corporate_status == 1)
+    |> order_by([c], asc: c.corporate_name)
+    |> Repo.all()
+  end
+
+  @doc "Gets corporate names and codes for dropdown lists."
+  def get_corporate_names_for_select do
+    Corporate
+    |> where([c], c.status == 1)
+    |> order_by([c], asc: c.corporate_name)
+    |> select([c], %{
+      corporate_id: c.corporate_id,
+      corporate_name: c.corporate_name,
+      corporate_group_code: c.corporate_group_code
+    })
+    |> Repo.all()
+  end
+
   @doc "Returns count of active corporates (status == 1)"
   def count_active_corporates do
     Corporate

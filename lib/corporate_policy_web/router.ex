@@ -171,6 +171,12 @@ defmodule CorporatePolicyWeb.Router do
     get "/get_visibility_role_id_tempalte", VisibilityRoleController, :index
   end
 
+  scope "/uploads", CorporatePolicyWeb do
+    pipe_through :browser
+
+    get "/*path", UploadController, :show
+  end
+
   if Application.compile_env(:corporate_policy, :dev_routes) do
     import Phoenix.LiveDashboard.Router
 

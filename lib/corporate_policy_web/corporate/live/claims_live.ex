@@ -263,7 +263,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
         <%!-- Title Bar with Action Buttons --%>
         <div class="bg-white rounded-lg p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Claim Details</h2>
-
+          
           <div class="flex items-center space-x-2">
             <button
               type="button"
@@ -271,7 +271,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
             >
               Claim Details
             </button>
-
+            
             <.link
               navigate={~p"/corporate/claims-submission/add"}
               class="px-4 py-1.5 rounded-md text-xs font-semibold bg-white text-[#0070ba] border border-[#0070ba] hover:bg-blue-50 transition-colors"
@@ -280,7 +280,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
             </.link>
           </div>
         </div>
-        <%!-- Collapsible Policy Details Accordion --%>
+         <%!-- Collapsible Policy Details Accordion --%>
         <PolicyDetailsComponent.policy_details
           selected_policy={@selected_policy}
           show_details={@show_details}
@@ -292,79 +292,79 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
             <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
               <.icon name="hero-user" class="w-6 h-6" />
             </div>
-
+            
             <div class="text-xs space-y-1">
               <p class="font-bold text-gray-800 text-sm">Claims paid</p>
-
+              
               <p class="text-gray-600 font-medium">
                 Amount -
                 <span class="font-bold text-gray-900">{format_amount(@claim_summary.paid_amount)}</span>
               </p>
-
+              
               <p class="text-gray-600 font-medium">
                 Count - <span class="font-bold text-gray-900">{@claim_summary.paid_count}</span>
               </p>
             </div>
           </div>
-          <%!-- Claims Under Process --%>
+           <%!-- Claims Under Process --%>
           <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
             <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
               <.icon name="hero-user" class="w-6 h-6" />
             </div>
-
+            
             <div class="text-xs space-y-1">
               <p class="font-bold text-gray-800 text-sm">Claims under process</p>
-
+              
               <p class="text-gray-600 font-medium">
                 Amount -
                 <span class="font-bold text-gray-900">{format_amount(@claim_summary.process_amount)}</span>
               </p>
-
+              
               <p class="text-gray-600 font-medium">
                 Count - <span class="font-bold text-gray-900">{@claim_summary.process_count}</span>
               </p>
             </div>
           </div>
-          <%!-- Claims Closed / Rejected --%>
+           <%!-- Claims Closed / Rejected --%>
           <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
             <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
               <.icon name="hero-user" class="w-6 h-6" />
             </div>
-
+            
             <div class="text-xs space-y-1">
               <p class="font-bold text-gray-800 text-sm">Claims closed / Rejected</p>
-
+              
               <p class="text-gray-600 font-medium">
                 Amount -
                 <span class="font-bold text-gray-900">{format_amount(@claim_summary.rejected_amount)}</span>
               </p>
-
+              
               <p class="text-gray-600 font-medium">
                 Count - <span class="font-bold text-gray-900">{@claim_summary.rejected_count}</span>
               </p>
             </div>
           </div>
-          <%!-- Reported Claims --%>
+           <%!-- Reported Claims --%>
           <div class="bg-white rounded-xl p-4 flex items-center space-x-4 border border-gray-200 shadow-xs">
             <div class="w-12 h-12 bg-[#0070ba] rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs">
               <.icon name="hero-user" class="w-6 h-6" />
             </div>
-
+            
             <div class="text-xs space-y-1">
               <p class="font-bold text-gray-800 text-sm">Reported Claims</p>
-
+              
               <p class="text-gray-600 font-medium">
                 Amount -
                 <span class="font-bold text-gray-900">{format_amount(@claim_summary.reported_amount)}</span>
               </p>
-
+              
               <p class="text-gray-600 font-medium">
                 Count - <span class="font-bold text-gray-900">{@claim_summary.reported_count}</span>
               </p>
             </div>
           </div>
         </div>
-        <%!-- Data Table Section --%>
+         <%!-- Data Table Section --%>
         <div class="corp-table-card">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-b border-gray-200">
             <form phx-change="filter" class="w-full sm:w-72">
@@ -376,7 +376,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                 class="corp-input text-xs"
               />
             </form>
-
+            
             <.link
               href={~p"/corporate/claims/export?policy_id=#{@policy_id || ""}"}
               class="px-4 py-1.5 rounded-md text-xs font-semibold bg-[#0070ba] text-white hover:bg-blue-600 transition-colors flex items-center space-x-1.5 shadow-xs shrink-0"
@@ -384,91 +384,91 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
               <.icon name="hero-arrow-up-on-square" class="w-4 h-4" /> <span>Export</span>
             </.link>
           </div>
-
+          
           <div class="overflow-x-auto">
             <table class="corp-table text-xs whitespace-nowrap" id="total-claims-table">
               <thead>
                 <tr class="bg-gray-50 border-b border-gray-200">
                   <th class="corp-th">SI NO</th>
-
+                  
                   <th class="corp-th">DETAILS</th>
-
+                  
                   <th class="corp-th">EMPLOYEE ID</th>
-
+                  
                   <th class="corp-th">EMPLOYEE NAME</th>
-
+                  
                   <th class="corp-th">BENEFICIARY NAME</th>
-
+                  
                   <th class="corp-th">RELATION</th>
-
+                  
                   <th class="corp-th">CLAIM TYPE</th>
-
+                  
                   <th class="corp-th">CLAIM STATUS</th>
-
+                  
                   <th class="corp-th">CLAIM NO</th>
-
+                  
                   <th class="corp-th">TPA CLAIM NO</th>
-
+                  
                   <th class="corp-th">HOSPITALIZATION DATE</th>
-
+                  
                   <th class="corp-th">HOSPITAL NAME</th>
-
+                  
                   <th class="corp-th">DISCHARGE DATE</th>
-
+                  
                   <th class="corp-th">AMOUNT CLAIMED</th>
-
+                  
                   <th class="corp-th">AMOUNT SANCTIONED</th>
-
+                  
                   <th class="corp-th">CLAIM PAID AMOUNT</th>
-
+                  
                   <th class="corp-th">PATIENT GENDER</th>
-
+                  
                   <th class="corp-th">HOSPITAL STATE</th>
-
+                  
                   <th class="corp-th">NETWORK STATUS</th>
-
+                  
                   <th class="corp-th">TREATMENT TYPE</th>
-
+                  
                   <th class="corp-th">LEVEL OF CARE</th>
-
+                  
                   <th class="corp-th">CAUSE</th>
-
+                  
                   <th class="corp-th">CITY</th>
-
+                  
                   <th class="corp-th">AGE</th>
-
+                  
                   <th class="corp-th">CLAIM FILE SUBMITTED DT</th>
-
+                  
                   <th class="corp-th">CLAIM SETTLED DATE</th>
-
+                  
                   <th class="corp-th">DISEASE CATEGORY</th>
-
+                  
                   <th class="corp-th">CLAIM REGISTERED DATE</th>
-
+                  
                   <th class="corp-th">INTIMATION METHOD</th>
-
+                  
                   <th class="corp-th">SUM INSURED</th>
-
+                  
                   <th class="corp-th">TDS AMOUNT</th>
-
+                  
                   <th class="corp-th">DEDUCTION AMOUNT</th>
-
+                  
                   <th class="corp-th">DEDUCTION REASON</th>
-
+                  
                   <th class="corp-th">DEFICIENCY INTIMATED DATE</th>
-
+                  
                   <th class="corp-th">DEFICIENCY SUBMISSION DATE</th>
-
+                  
                   <th class="corp-th">ICD CODE</th>
-
+                  
                   <th class="corp-th">CLOSE REASONS</th>
-
+                  
                   <th class="corp-th">DEFICIENCY REASON</th>
-
+                  
                   <th class="corp-th">CLAIM SUB STATUS</th>
                 </tr>
               </thead>
-
+              
               <tbody>
                 <%= if @claims_page.entries == [] do %>
                   <tr class="corp-empty-row">
@@ -485,7 +485,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                       <td class="corp-td font-medium">
                         {(@claims_page.page - 1) * @claims_page.page_size + index}
                       </td>
-
+                      
                       <td class="corp-td">
                         <button
                           type="button"
@@ -496,85 +496,85 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                           View
                         </button>
                       </td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.employee_code)}</td>
-
+                      
                       <td class="corp-td font-medium text-gray-900">
                         {blank_dash(claim.employee_name)}
                       </td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.patient_name)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.relationship)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.claim_type)}</td>
-
+                      
                       <td class="corp-td">
                         <span class={status_badge_class(claim.claim_status)}>
                           {blank_dash(claim.claim_status)}
                         </span>
                       </td>
-
+                      
                       <td class="corp-td font-mono">{blank_dash(claim.insurance_claim_no)}</td>
-
+                      
                       <td class="corp-td font-mono">{blank_dash(claim.tpa_claim_no)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.date_of_hospitalization)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.hospital_name)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.date_of_discharge)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.amount_claimed)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.amount_sanctioned)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.claim_paid_amount)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.patient_gender)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.hospital_state)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.network_status)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.treatment_type)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.level_of_care)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.cause)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.city)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.age)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.claim_file_submitted_dt)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.claim_settled_date)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.disease_category)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.claim_registered_date)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.intimation_method)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.sum_insured)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.tds_amount)}</td>
-
+                      
                       <td class="corp-td">{format_amount(claim.deduction_amount)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.deduction_reason)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.deficiency_intimated_date)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.deficiency_submission_date)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.icd_code)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.close_reasons)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.deficiency_reason)}</td>
-
+                      
                       <td class="corp-td">{blank_dash(claim.claim_sub_status)}</td>
                     </tr>
                   <% end %>
@@ -582,7 +582,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
               </tbody>
             </table>
           </div>
-          <%!-- Table Footer / Pagination --%>
+           <%!-- Table Footer / Pagination --%>
           <div class="flex items-center justify-between p-4 border-t border-gray-200 text-xs">
             <div class="text-gray-500">
               Showing {if @claims_page.total_entries == 0,
@@ -592,7 +592,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                 @claims_page.total_entries
               )} of {@claims_page.total_entries} entries
             </div>
-
+            
             <div class="flex items-center space-x-2">
               <button
                 type="button"
@@ -603,11 +603,11 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
               >
                 Previous
               </button>
-
+              
               <span class="font-medium text-gray-700 px-2">
                 {@claims_page.page} / {@claims_page.total_pages}
               </span>
-
+              
               <button
                 type="button"
                 phx-click="paginate"
@@ -621,19 +621,19 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
           </div>
         </div>
       </div>
-      <%!-- View Details Modal --%>
+       <%!-- View Details Modal --%>
       <%= if @show_details_modal and @selected_claim_row do %>
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
           <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl space-y-4">
             <div class="flex items-start justify-between border-b border-gray-200 pb-3">
               <div>
                 <h3 class="text-lg font-bold text-gray-900">Total Claim Details</h3>
-
+                
                 <p class="text-xs text-gray-500">
                   Employee: {@selected_claim_row.employee_name} ({@selected_claim_row.employee_code})
                 </p>
               </div>
-
+              
               <button
                 type="button"
                 phx-click="close_modal"
@@ -642,7 +642,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                 <.icon name="hero-x-mark" class="w-6 h-6" />
               </button>
             </div>
-
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div class="space-y-2 border p-3 rounded-lg bg-gray-50">
                 <p>
@@ -650,137 +650,137 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                     @selected_claim_row.employee_code
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Employee Name:</span> {blank_dash(
                     @selected_claim_row.employee_name
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Beneficiary Name:</span> {blank_dash(
                     @selected_claim_row.patient_name
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Relation:</span> {blank_dash(
                     @selected_claim_row.relationship
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Age / Gender:</span> {blank_dash(
                     @selected_claim_row.age
                   )} / {blank_dash(@selected_claim_row.patient_gender)}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Claim Type:</span> {blank_dash(
                     @selected_claim_row.claim_type
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Claim Status:</span> {blank_dash(
                     @selected_claim_row.claim_status
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Claim Sub Status:</span> {blank_dash(
                     @selected_claim_row.claim_sub_status
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Insurance Claim No:</span> {blank_dash(
                     @selected_claim_row.insurance_claim_no
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">TPA Claim No:</span> {blank_dash(
                     @selected_claim_row.tpa_claim_no
                   )}
                 </p>
               </div>
-
+              
               <div class="space-y-2 border p-3 rounded-lg bg-gray-50">
                 <p>
                   <span class="font-bold text-gray-700">Hospital Name:</span> {blank_dash(
                     @selected_claim_row.hospital_name
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Hospital State / City:</span> {blank_dash(
                     @selected_claim_row.hospital_state
                   )} / {blank_dash(@selected_claim_row.city)}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Hospitalization Date:</span> {blank_dash(
                     @selected_claim_row.date_of_hospitalization
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Discharge Date:</span> {blank_dash(
                     @selected_claim_row.date_of_discharge
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Amount Claimed:</span> {format_amount(
                     @selected_claim_row.amount_claimed
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Amount Sanctioned:</span> {format_amount(
                     @selected_claim_row.amount_sanctioned
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Claim Paid Amount:</span> {format_amount(
                     @selected_claim_row.claim_paid_amount
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Treatment Type:</span> {blank_dash(
                     @selected_claim_row.treatment_type
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Network Status:</span> {blank_dash(
                     @selected_claim_row.network_status
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Sum Insured:</span> {format_amount(
                     @selected_claim_row.sum_insured
                   )}
                 </p>
               </div>
-
+              
               <div class="md:col-span-2 border p-3 rounded-lg bg-white space-y-2">
                 <p>
                   <span class="font-bold text-gray-700">Disease Category / Cause:</span> {blank_dash(
                     @selected_claim_row.disease_category
                   )} / {blank_dash(@selected_claim_row.cause)}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">ICD Code:</span> {blank_dash(
                     @selected_claim_row.icd_code
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">TDS Amount:</span> {format_amount(
                     @selected_claim_row.tds_amount
@@ -789,25 +789,25 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                     @selected_claim_row.deduction_amount
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Deduction Reason:</span> {blank_dash(
                     @selected_claim_row.deduction_reason
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Close Reasons:</span> {blank_dash(
                     @selected_claim_row.close_reasons
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Deficiency Reason:</span> {blank_dash(
                     @selected_claim_row.deficiency_reason
                   )}
                 </p>
-
+                
                 <p>
                   <span class="font-bold text-gray-700">Deficiency Dates:</span>
                   Intimated: {blank_dash(@selected_claim_row.deficiency_intimated_date)} | Submitted: {blank_dash(
@@ -816,7 +816,7 @@ defmodule CorporatePolicyWeb.Corporate.ClaimsLive do
                 </p>
               </div>
             </div>
-
+            
             <div class="flex justify-end pt-2">
               <button
                 type="button"

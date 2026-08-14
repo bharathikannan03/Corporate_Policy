@@ -173,6 +173,48 @@ defmodule CorporatePolicyWeb.AddPolicyLiveTest do
       policies_after = Policies.list_policies()
       assert length(policies_after) == length(policies_before) + 1
     end
+
+    test "editing step 1 updates the policy in the database", %{
+      conn: conn,
+      user: user,
+      corporate: corporate,
+      lob: lob,
+      gmc_pt: gmc_pt,
+      insurer: insurer,
+      today: today
+    } do
+      policy = create_test_policy(corporate, lob, gmc_pt, insurer, today)
+
+      conn = conn |> init_test_session(current_user_id: user.id)
+      {:ok, view, html} = live(conn, ~p"/admin/policy-details/#{policy.id}/edit")
+
+      assert html =~ "Edit Policy"
+      assert html =~ policy.policy_number
+
+      new_policy_number = "EDITED-POL-#{System.unique_integer([:positive])}"
+
+      element(view, "#add-policy-form")
+      |> render_submit(%{
+        "ref_corporate_id" => corporate.corporate_id,
+        "corporate_name" => corporate.corporate_name,
+        "ref_md_line_of_businesses_id" => to_string((lob && lob.id) || 1),
+        "line_of_business" => (lob && lob.line_of_business_value) || "Health",
+        "ref_md_policy_types_id" => to_string(gmc_pt.id),
+        "policy_type" => gmc_pt.policy_type_value,
+        "ref_select_insurer_id" => to_string((insurer && insurer.id) || 1),
+        "select_insurer" => (insurer && insurer.name) || "Test Insurer",
+        "policy_number" => new_policy_number,
+        "policy_start_date" => Date.to_iso8601(today),
+        "policy_end_date" => Date.to_iso8601(Date.add(today, 364)),
+        "have_policy_number" => "1",
+        "claim_submission_visibility" => "0",
+        "ref_intimate_claim_visibilities_id" => "1"
+      })
+
+      # Assert that the policy's policy number is updated in the database
+      updated_policy = Policies.get_policy!(policy.id)
+      assert updated_policy.policy_number == new_policy_number
+    end
   end
 
   # ---------------------------------------------------------------------------

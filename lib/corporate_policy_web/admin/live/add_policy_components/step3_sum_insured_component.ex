@@ -137,12 +137,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           <label class="corp-label">
             Policy Feature Identifier <span class="corp-required">*</span>
           </label>
-
+          
           <select name="policy_feature_identifier" class="corp-input" required>
             <option value="" disabled selected={@form[:policy_feature_identifier].value == ""}>
               Select Feature
             </option>
-
+            
             <%= for pi <- @policy_identifiers do %>
               <option
                 value={pi.policy_identifier}
@@ -153,12 +153,12 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             <% end %>
           </select>
         </div>
-        <%!-- Field 2: Sum Insured Text Box --%>
+         <%!-- Field 2: Sum Insured Text Box --%>
         <div class="flex-1">
           <label class="corp-label">
             Sum Insured <span class="corp-required">*</span>
           </label>
-
+          
           <input
             type="text"
             name="sum_insured"
@@ -168,33 +168,31 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
             required
           />
         </div>
-
+        
         <div>
           <button type="submit" class="btn btn-outline btn-success">
             <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add & Save
           </button>
         </div>
       </.form>
-
-      <%!-- Info banner: entries are saved immediately --%>
+       <%!-- Info banner: entries are saved immediately --%>
       <div class="mb-4 flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
         <.icon name="hero-check-circle" class="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
         <span>Each entry is saved to the database immediately when you click <strong>Add & Save</strong>. You can safely refresh the page without losing data.</span>
       </div>
-
-      <%!-- List of Added Sum Insureds --%>
+       <%!-- List of Added Sum Insureds --%>
       <div class="overflow-x-auto corp-table-card mb-8">
         <table class="corp-table">
           <thead>
             <tr>
               <th class="corp-th p-4 border-b text-left">POLICY FEATURE IDENTIFIER</th>
-
+              
               <th class="corp-th p-4 border-b text-left">SUM INSURED AMOUNT</th>
-
+              
               <th class="corp-th p-4 border-b text-right w-24">ACTION</th>
             </tr>
           </thead>
-
+          
           <tbody>
             <%= if Enum.empty?(@sum_insureds) do %>
               <tr>
@@ -208,11 +206,11 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
                   <td class="corp-td p-4 border-b font-medium">
                     {si.policy_feature_identifier}
                   </td>
-
+                  
                   <td class="corp-td p-4 border-b">
                     {si.sum_insured}
                   </td>
-
+                  
                   <td class="corp-td p-4 border-b text-right">
                     <button
                       type="button"
@@ -231,7 +229,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
           </tbody>
         </table>
       </div>
-
+      
       <.pagination
         page={@sum_insureds_page.page}
         page_size={@sum_insureds_page.page_size}
@@ -244,7 +242,7 @@ defmodule CorporatePolicyWeb.Admin.Step3SumInsuredComponent do
         <button type="button" phx-click="cancel" class="btn btn-secondary">
           Cancel
         </button>
-
+        
         <button type="button" phx-click="save_step3" phx-target={@myself} class="btn btn-success">
           {if @edit_mode, do: "Save Changes", else: "Save & Next"}
           <.icon name="hero-arrow-right" class="w-4 h-4 ml-1" />

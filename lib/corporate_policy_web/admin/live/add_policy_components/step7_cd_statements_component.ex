@@ -172,7 +172,7 @@ defmodule CorporatePolicyWeb.Admin.Step7CDStatementsComponent do
             phx-keyup="search_rows"
             phx-debounce="300"
             phx-target={@myself}
-            class="input input-bordered"
+            class="corp-input w-full md:w-80"
           />
         </div>
 

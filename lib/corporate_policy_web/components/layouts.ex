@@ -393,7 +393,6 @@ defmodule CorporatePolicyWeb.Layouts do
             {@corporate_name}
           </h2>
            <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
-          <span class="corp-user-role">Corporate</span> <%!-- Action Icons --%>
           <div class="corp-user-actions">
             <button type="button" class="corp-action-circle">
               <.icon name="hero-user" class="w-3.5 h-3.5" />
@@ -540,7 +539,6 @@ defmodule CorporatePolicyWeb.Layouts do
                   else: "RICHIE JOSEPH"}
               </span>
                <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
-              <.icon name="hero-chevron-down" class="w-3 h-3 text-white" />
             </div>
           </div>
         </header>

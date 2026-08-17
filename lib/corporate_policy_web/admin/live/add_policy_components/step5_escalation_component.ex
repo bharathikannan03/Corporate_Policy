@@ -180,7 +180,7 @@ defmodule CorporatePolicyWeb.Admin.Step5EscalationComponent do
         <.icon name="hero-check-circle" class="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
         <span>Each contact is saved to the database immediately when you click <strong>Assign & Save</strong>. You can safely refresh the page without losing data.</span>
       </div>
-       <%!-- Configured Escalations Table --%> <%!-- Configured Escalations Table --%>
+       <%!-- Configured Escalations Table --%>
       <div class="overflow-x-auto corp-table-card mb-8">
         <table class="corp-table">
           <thead>

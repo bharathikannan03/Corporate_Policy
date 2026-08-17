@@ -13,7 +13,7 @@ defmodule CorporatePolicy.Policies do
   alias CorporatePolicy.Policies.PolicyType
   alias CorporatePolicy.Policies.FamilyDefinition
   alias CorporatePolicy.Policies.Tpa
-  alias CorporatePolicy.Corporates.Corporate
+  alias CorporatePolicy.Corporates
   alias CorporatePolicy.Policies.ClaimVisibility
   alias CorporatePolicy.Policies.Insurer
   alias CorporatePolicy.Policies.TrnMappingLiveEmployee
@@ -307,7 +307,7 @@ defmodule CorporatePolicy.Policies do
   end
 
   def list_active_policies_by_corporate(corporate_id, fy_id \\ nil) do
-    corporate = Repo.get(Corporate, corporate_id)
+    corporate = Corporates.get_corporate(corporate_id)
     corporate_name = corporate && corporate.corporate_name
     normalized_corporate_name = StringUtils.downcase(corporate_name)
 
@@ -463,7 +463,7 @@ defmodule CorporatePolicy.Policies do
   defp populate_reference_names(attrs) do
     attrs =
       if attrs["ref_corporate_id"] && attrs["ref_corporate_id"] != "" do
-        corporate = Repo.get(Corporate, attrs["ref_corporate_id"])
+        corporate = Corporates.get_corporate(attrs["ref_corporate_id"])
         if corporate, do: Map.put(attrs, "corporate_name", corporate.corporate_name), else: attrs
       else
         attrs
@@ -689,11 +689,7 @@ defmodule CorporatePolicy.Policies do
   end
 
   def list_corporates do
-    Repo.all(
-      from c in Corporate,
-        where: c.corporate_status == 1,
-        order_by: [asc: c.corporate_name]
-    )
+    Corporates.list_active_corporates_ordered_by_name()
   end
 
   def list_family_definitions do
@@ -827,16 +823,7 @@ defmodule CorporatePolicy.Policies do
   def get_insurer_lists(_lob_id), do: []
 
   def get_corporate_name do
-    Repo.all(
-      from c in Corporate,
-        where: c.status == 1,
-        order_by: [asc: c.corporate_name],
-        select: %{
-          corporate_id: c.corporate_id,
-          corporate_name: c.corporate_name,
-          corporate_group_code: c.corporate_group_code
-        }
-    )
+    Corporates.get_corporate_names_for_select()
   end
 
   # === Policy Features (Step 2 & 4) ===

@@ -168,7 +168,7 @@ defmodule CorporatePolicyWeb.Router do
   scope "/api", CorporatePolicyWeb.Api, as: :api do
     pipe_through :api
 
-    get "/get_visibility_role_id_tempalte", VisibilityRoleController, :index
+    get "/get_visibility_role_id_template", VisibilityRoleController, :index
   end
 
   scope "/uploads", CorporatePolicyWeb do

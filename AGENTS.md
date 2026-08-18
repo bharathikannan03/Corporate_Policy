@@ -160,3 +160,14 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 - Access form fields in HEEx using `@form[:field]`.
 - Always assign a unique DOM ID to forms (`id="my-form"`).
 - Never access changeset directly in HEEx templates.
+
+---
+
+## 10. File Uploads & Private File Downloads
+
+- **Private Upload Storage**: User-uploaded files (like CSV templates, cashless hospital listings, claims, or policies) MUST be stored in private subdirectories under `priv/static/uploads/`.
+- **Authorized Serving**: To prevent unauthorized access to uploaded files, do NOT include the `uploads/` directory in the `static_paths/0` list in `lib/corporate_policy_web.ex`. Instead:
+  - Route all file download requests through a scope (e.g. `/uploads`) matching `UploadController.show/2` inside `router.ex`.
+  - Use `UploadController` to verify authentication (checking active admin/corporate `current_user_id` sessions or `current_employee_id` sessions) before sending the file.
+  - Public templates/samples (e.g., under `/uploads/samples/`) are allowed to bypass authentication using helper functions (like `excluded_path?/1`).
+

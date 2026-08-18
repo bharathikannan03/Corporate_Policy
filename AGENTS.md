@@ -125,6 +125,7 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 ## 7. Database Migrations & Seeder Conventions
 
 - **Migrations**: Always generate migrations with `mix ecto.gen.migration migration_name_in_snake_case`.
+- **Database Indexes & Constraints**: For upcoming table creation, always add database indexes for the respective foreign key columns (e.g., `*_id`, `ref_*`, `created_by`, `updated_by`) and fields that will be frequently queried or joined on. Also define appropriate unique constraints (indexes) on join tables (like `trn_mapping_*`) to prevent duplicate mapping rows.
 - **Seeders**: Always create separate seeder files inside `priv/repo/seeds/` (e.g., `priv/repo/seeds/01_users.exs`).
 - **Pagination**: Always implement pagination with a limit of 15 records per page when creating workflows that fetch all data from a table.
 - **Preloading**: Always preload Ecto associations in queries when they will be accessed in templates.

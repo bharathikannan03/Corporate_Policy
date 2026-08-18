@@ -33,6 +33,26 @@ defmodule CorporatePolicyWeb.ConnCase do
 
   setup tags do
     CorporatePolicy.DataCase.setup_sandbox(tags)
+    CorporatePolicy.DataCase.seed_roles_and_sequence()
+
+    # Exclude modules that manage their own lookups
+    excluded_modules = [
+      CorporatePolicyWeb.Admin.ClaimSubmissionLiveTest,
+      CorporatePolicyWeb.Admin.CdStatementUploadLiveTest,
+      CorporatePolicyWeb.Admin.CdAccountsLiveTest,
+      CorporatePolicyWeb.Corporate.CashlessHospitalsLiveTest,
+      CorporatePolicyWeb.UploadControllerTest,
+      CorporatePolicy.StringHandlingTest,
+      CorporatePolicy.PoliciesTest,
+      CorporatePolicy.DataUploadServiceTest,
+      CorporatePolicy.ClaimsTest,
+      CorporatePolicy.CdStatementsTest,
+      CorporatePolicy.CashlessHospitalsTest
+    ]
+
+    unless tags.module in excluded_modules do
+      CorporatePolicy.DataCase.seed_lookups()
+    end
 
     if GenServer.whereis(CorporatePolicy.RateLimiter) do
       CorporatePolicy.RateLimiter.clear()

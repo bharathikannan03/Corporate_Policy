@@ -24,6 +24,10 @@ if config_env() == :dev do
     database: System.get_env("DB_NAME", "corporate_policy")
 end
 
+config :corporate_policy, :two_factor,
+  api_key: System.get_env("TWO_FACTOR_API_KEY"),
+  template_name: System.get_env("TWO_FACTOR_TEMPLATE_NAME")
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

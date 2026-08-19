@@ -5,7 +5,7 @@ alias CorporatePolicy.Policies.Insurer
 alias CorporatePolicy.Policies.Tpa
 alias CorporatePolicy.Policies.FamilyDefinition
 alias CorporatePolicy.Policies.IntimateClaimVisibility
-alias CorporatePolicy.Policies.Corporate
+alias CorporatePolicy.Corporates.Corporate
 alias CorporatePolicy.Policies.FinancialYear
 alias CorporatePolicy.Policies.SumInsuredType
 

@@ -24,20 +24,20 @@ else
 
   # Helper to create feature mapping entry
   create_feature = fn field_name, value, parent_id, template_id, policy ->
-    field = Repo.get_by(MasterPolicyFeatureTemplateField, name: field_name, template_id: template_id)
+    field = Repo.get_by(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: field_name, ref_template_id: template_id)
     if is_nil(field) do
       IO.puts("  ⚠ Field '#{field_name}' not found for template #{template_id}")
       nil
     else
       mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
       |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-        ref_policy_feature_template_field_name: field.name,
+        ref_policy_feature_template_field_name: field.policy_feature_template_field_name,
         policy_feature_template_field_value: value,
         ref_template_id: template_id,
         ref_coporate_id: policy.ref_corporate_id,
         ref_policy_id: policy.id,
-        ref_policy_feature_template_field_id: field.id,
-        ref_policy_feature_template_field_type_id: field.field_type_id,
+        ref_policy_feature_template_field_id: field.template_field_id,
+        ref_policy_feature_template_field_type_id: field.ref_master_temp_field_Type,
         policy_feature_template_field_visibility_role_ids: "1,2,3",
         ref_policyidentifier_id: parent_id,
         status: 1
@@ -146,17 +146,17 @@ else
 
   for {si_amount, features} <- gmc_groups do
     # Create GMC Feature Identifier parent
-    parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, name: "Feature Identifier", template_id: 1)
+    parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: "Feature Identifier", ref_template_id: 1)
     
     parent_mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
     |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-      ref_policy_feature_template_field_name: parent_field.name,
+      ref_policy_feature_template_field_name: parent_field.policy_feature_template_field_name,
       policy_feature_template_field_value: "GMC",
       ref_template_id: 1,
       ref_coporate_id: gmc_policy.ref_corporate_id,
       ref_policy_id: gmc_policy.id,
-      ref_policy_feature_template_field_id: parent_field.id,
-      ref_policy_feature_template_field_type_id: parent_field.field_type_id,
+      ref_policy_feature_template_field_id: parent_field.template_field_id,
+      ref_policy_feature_template_field_type_id: parent_field.ref_master_temp_field_Type,
       policy_feature_template_field_visibility_role_ids: "1,2,3",
       status: 1
     })
@@ -194,17 +194,17 @@ else
   IO.puts("Found GPA Policy: #{gpa_policy.policy_number} for #{gpa_policy.corporate_name}")
 
   # Create GPA Feature Identifier parent
-  parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, name: "Feature Identifier", template_id: 2)
+  parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: "Feature Identifier", ref_template_id: 2)
   
   parent_mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
   |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-    ref_policy_feature_template_field_name: parent_field.name,
+    ref_policy_feature_template_field_name: parent_field.policy_feature_template_field_name,
     policy_feature_template_field_value: "GPA",
     ref_template_id: 2,
     ref_coporate_id: gpa_policy.ref_corporate_id,
     ref_policy_id: gpa_policy.id,
-    ref_policy_feature_template_field_id: parent_field.id,
-    ref_policy_feature_template_field_type_id: parent_field.field_type_id,
+    ref_policy_feature_template_field_id: parent_field.template_field_id,
+    ref_policy_feature_template_field_type_id: parent_field.ref_master_temp_field_Type,
     policy_feature_template_field_visibility_role_ids: "1,2,3",
     status: 1
   })
@@ -216,20 +216,20 @@ else
 
   # Helper to create feature mapping entry for GPA
   create_feature = fn field_name, value, parent_id, template_id, policy ->
-    field = Repo.get_by(MasterPolicyFeatureTemplateField, name: field_name, template_id: template_id)
+    field = Repo.get_by(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: field_name, ref_template_id: template_id)
     if is_nil(field) do
       IO.puts("  ⚠ Field '#{field_name}' not found for template #{template_id}")
       nil
     else
       mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
       |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
-        ref_policy_feature_template_field_name: field.name,
+        ref_policy_feature_template_field_name: field.policy_feature_template_field_name,
         policy_feature_template_field_value: value,
         ref_template_id: template_id,
         ref_coporate_id: policy.ref_corporate_id,
         ref_policy_id: policy.id,
-        ref_policy_feature_template_field_id: field.id,
-        ref_policy_feature_template_field_type_id: field.field_type_id,
+        ref_policy_feature_template_field_id: field.template_field_id,
+        ref_policy_feature_template_field_type_id: field.ref_master_temp_field_Type,
         policy_feature_template_field_visibility_role_ids: "1,2,3",
         ref_policyidentifier_id: parent_id,
         status: 1

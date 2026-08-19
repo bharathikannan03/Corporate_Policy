@@ -51,4 +51,51 @@ defmodule CorporatePolicy.Emails do
       CorpPolicy Team
     """)
   end
+
+  @doc """
+  Builds the OTP verification email for employee portal login.
+  """
+  def login_otp(employee, otp) do
+    from_email = System.get_env("SENDER_EMAIL") || "no-reply@corppolicy.com"
+
+    new()
+    |> to({employee.employee_name, employee.email})
+    |> from({"CorpPolicy Portal", from_email})
+    |> subject("Your Employee Portal Login OTP")
+    |> html_body("""
+      <div style="font-family: 'Inter', sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #2563eb;">Employee Portal Verification</h2>
+        <p>Dear #{employee.employee_name},</p>
+        <p>You requested a one-time password (OTP) to log into the Employee Portal.</p>
+        
+        <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #64748b;">Your One-Time Password is:</p>
+          <h1 style="margin: 0; font-size: 36px; letter-spacing: 4px; color: #1e293b; font-weight: 800;">#{otp}</h1>
+          <p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">This OTP is valid for 5 minutes.</p>
+        </div>
+        
+        <p style="font-size: 13px; color: #64748b;">If you did not request this code, please ignore this email or contact support.</p>
+        <p style="margin-top: 24px; border-t: 1px solid #f1f5f9; padding-top: 16px;">
+          Best regards,<br/>
+          <strong>CorpPolicy Team</strong>
+        </p>
+      </div>
+    """)
+    |> text_body("""
+      Employee Portal Verification
+
+      Dear #{employee.employee_name},
+
+      You requested a one-time password (OTP) to log into the Employee Portal.
+
+      Your One-Time Password is: #{otp}
+
+      This OTP is valid for 5 minutes.
+
+      If you did not request this code, please ignore this email or contact support.
+
+      Best regards,
+      CorpPolicy Team
+    """)
+  end
 end

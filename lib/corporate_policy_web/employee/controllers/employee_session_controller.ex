@@ -1,5 +1,6 @@
 defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
   use CorporatePolicyWeb, :controller
+  require Logger
 
   import Phoenix.Component, only: [to_form: 2]
 
@@ -45,23 +46,46 @@ defmodule CorporatePolicyWeb.Employee.EmployeeSessionController do
         |> render(:new, page_title: "Employee Login", form: form, otp_sent: false)
 
       employee = EmployeePortal.eligible_employee_by_mobile(mobile_number) ->
-        otp = EmployeePortal.generate_otp()
-
         expires_at =
           DateTime.utc_now() |> DateTime.add(EmployeePortal.otp_expiry_minutes() * 60, :second)
 
-        :ok = EmployeePortal.send_otp(mobile_number, otp)
+        if employee.is_testuser == 1 do
+          # Test User Flow: use default/test OTP, bypass SMS
+          otp = EmployeePortal.default_otp()
 
-        conn
-        |> put_session(:employee_login_otp, otp)
-        |> put_session(:employee_login_mobile, mobile_number)
-        |> put_session(:employee_login_employee_id, employee.id)
-        |> put_session(:employee_login_otp_expires_at, DateTime.to_iso8601(expires_at))
-        |> put_flash(
-          :info,
-          "OTP sent successfully. Use default OTP #{EmployeePortal.default_otp()}."
-        )
-        |> render(:new, page_title: "Employee Login", form: form, otp_sent: true)
+          conn
+          |> put_session(:employee_login_otp, otp)
+          |> put_session(:employee_login_mobile, mobile_number)
+          |> put_session(:employee_login_employee_id, employee.id)
+          |> put_session(:employee_login_otp_expires_at, DateTime.to_iso8601(expires_at))
+          |> put_flash(
+            :info,
+            "OTP sent successfully. Use default OTP #{EmployeePortal.default_otp()}."
+          )
+          |> render(:new, page_title: "Employee Login", form: form, otp_sent: true)
+        else
+          # Production Employee Flow: generate secure OTP, send via SMTP email
+          otp = EmployeePortal.generate_secure_otp()
+          email = CorporatePolicy.Emails.login_otp(employee, otp)
+
+          case CorporatePolicy.Mailer.deliver(email) do
+            {:ok, _metadata} ->
+              conn
+              |> put_session(:employee_login_otp, otp)
+              |> put_session(:employee_login_mobile, mobile_number)
+              |> put_session(:employee_login_employee_id, employee.id)
+              |> put_session(:employee_login_otp_expires_at, DateTime.to_iso8601(expires_at))
+              |> put_flash(:info, "OTP has been sent to your registered email address.")
+              |> render(:new, page_title: "Employee Login", form: form, otp_sent: true)
+
+            {:error, reason} ->
+              Logger.error("Failed to send OTP email to #{employee.email}: #{inspect(reason)}")
+
+              conn
+              |> put_flash(:error, "Failed to send OTP email. Please try again later.")
+              |> render(:new, page_title: "Employee Login", form: form, otp_sent: false)
+          end
+        end
 
       true ->
         conn

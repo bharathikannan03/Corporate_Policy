@@ -21,6 +21,7 @@ defmodule CorporatePolicy.Policies.TrnMappingLiveEmployee do
     field :designation, :string
     field :status, :string, default: "active"
     field :source_type, :string
+    field :is_testuser, :integer, default: 0
 
     field :created_by, :integer
     field :updated_by, :integer
@@ -61,7 +62,8 @@ defmodule CorporatePolicy.Policies.TrnMappingLiveEmployee do
       :updated_by,
       :deleted_at,
       :ref_policy_id,
-      :ref_corporate_id
+      :ref_corporate_id,
+      :is_testuser
     ])
     |> validate_required([
       :ref_policy_id,

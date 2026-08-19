@@ -132,3 +132,27 @@ cd hello_phoenix
 mix deps.get
 mix ecto.create
 mix phx.server
+
+## 14. 2Factor SMS OTP Configuration & Employee Test Users
+
+To enable SMS sending for production employees on the Employee Portal, you must define the following environment variables:
+
+```bash
+# Required: Your 2Factor API Key
+TWO_FACTOR_API_KEY=your_api_key_here
+
+# Optional: Custom DLT template name configured in 2Factor portal
+TWO_FACTOR_TEMPLATE_NAME=your_dlt_template_name
+```
+
+These variables can be defined in a `.env` file in the project root. In development, the application loads `.env` variables automatically during boot.
+
+### Test User OTP Bypass
+Employees configured with `is_testuser = 1` in `trn_mapping_live_employees` will bypass 2Factor API calls and can authenticate using the default OTP `"123456"`. This value is shown on-screen/in the flash during local testing.
+
+### Running Tests
+To run the OTP client and authentication tests:
+```bash
+mix test test/corporate_policy/two_factor_client_test.exs
+mix test test/corporate_policy_web/employee_session_controller_test.exs
+```

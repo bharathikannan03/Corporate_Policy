@@ -38,6 +38,7 @@ else
         ref_policy_id: policy.id,
         ref_policy_feature_template_field_id: field.template_field_id,
         ref_policy_feature_template_field_type_id: field.ref_master_temp_field_Type,
+        
         policy_feature_template_field_visibility_role_ids: "1,2,3",
         ref_policyidentifier_id: parent_id,
         status: 1
@@ -147,7 +148,7 @@ else
   for {si_amount, features} <- gmc_groups do
     # Create GMC Feature Identifier parent
     parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: "Feature Identifier", ref_template_id: 1)
-    
+
     parent_mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
     |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
       ref_policy_feature_template_field_name: parent_field.policy_feature_template_field_name,
@@ -195,7 +196,7 @@ else
 
   # Create GPA Feature Identifier parent
   parent_field = Repo.get_by!(MasterPolicyFeatureTemplateField, policy_feature_template_field_name: "Feature Identifier", ref_template_id: 2)
-  
+
   parent_mapping = %MappingPolicyFeatureTemplatesCorporatesPolicy{}
   |> MappingPolicyFeatureTemplatesCorporatesPolicy.changeset(%{
     ref_policy_feature_template_field_name: parent_field.policy_feature_template_field_name,

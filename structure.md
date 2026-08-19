@@ -45,12 +45,17 @@ lib/
   corporate_policy_web/
     controllers/
       session_controller.ex
-  corporate_policy/
-    accounts.ex
+    employee/                   # Isolated Employee Portal Web files
+      controllers/
+        employee_session_controller.ex
+  corporate_policy/             # Shared Domain Contexts & APIs
     accounts/
       user.ex
+    two_factor_client.ex        # 2Factor SMS Client Integration
+    employee_portal.ex          # Employee Auth & Portal Queries
 priv/
   repo/
     migrations/
       20260709010101_create_users.exs
+      20260819074720_add_is_testuser_to_trn_mapping_live_employees.exs
 ```

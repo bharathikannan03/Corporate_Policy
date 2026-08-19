@@ -171,3 +171,14 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
   - Use `UploadController` to verify authentication (checking active admin/corporate `current_user_id` sessions or `current_employee_id` sessions) before sending the file.
   - Public templates/samples (e.g., under `/uploads/samples/`) are allowed to bypass authentication using helper functions (like `excluded_path?/1`).
 
+---
+
+## 11. Employee Portal OTP Authentication & Test Users
+
+- **Test User Flag**: The `is_testuser` column (integer, `0` or `1`, defaulting to `0`) is supported on `trn_mapping_live_employees`, `master_inception_data_uploads`, and `master_endorsement_data_uploads`.
+- **Synchronization**: Syncing `is_testuser = 1` to the live employee table (`trn_mapping_live_employees`) happens automatically during the upload process (handled in `save_trn_mapping_live_employees`). The sync resolves the value from the master upload tables and preserves it for existing live records.
+- **Branching Login Flow**:
+  - **Test Users (`is_testuser == 1`)**: Bypasses the SMS API and uses the default OTP `"123456"`. The OTP is displayed on-screen/in the flash.
+  - **Production Employees (`is_testuser == 0`)**: Generates a secure random 6-digit OTP code and dispatches it via the 2Factor SMS API. The OTP is not exposed in the flash/UI.
+- **SMS API Integration**: Handled by `CorporatePolicy.TwoFactorClient` powered by the `Req` library. Requires `TWO_FACTOR_API_KEY` and optional `TWO_FACTOR_TEMPLATE_NAME` configured in the system environment.
+

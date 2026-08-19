@@ -272,7 +272,11 @@ sample_corporate_attrs = %{
   coporate_contact_email: "info@samplecorp.com",
   corporate_landline: "022-12345678",
   status: 1,
-  corporate_status: 1
+  corporate_status: 1,
+  pincode: "400001",
+  city: "Mumbai",
+  state: "Maharashtra",
+  pan_number: "ABCDE1234F"
 }
 
 case Repo.get_by(Corporate, corporate_name: sample_corporate_attrs.corporate_name) do

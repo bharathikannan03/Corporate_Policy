@@ -292,4 +292,133 @@ defmodule CorporatePolicy.DataUploadServiceTest do
       )
     end
   end
+
+  test "process_upload raises error when email is blank or missing in Inception Data", %{
+    policy: policy
+  } do
+    csv_content = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
+    EMP003,Bob White,Male,Employee,1988-12-10,35,9123456789,,400000,2019-06-01
+    """
+
+    tmp_path = Path.join(System.tmp_dir!(), "missing_email_#{policy.id}.csv")
+    File.write!(tmp_path, csv_content)
+
+    assert_raise RuntimeError, ~r/Invalid data: Email Address is missing for record/, fn ->
+      DataUploadService.process_upload(
+        policy.id,
+        "Inception Data",
+        "Missing Email",
+        tmp_path,
+        "missing_email.csv"
+      )
+    end
+  end
+
+  test "process_upload raises error when email is blank or missing in Endorsement Data", %{
+    policy: policy
+  } do
+    csv_content = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,End endorsement_number,Endorsement Date,Endorsement Type,dol,card_no,designation
+    EMP003,Bob White,Male,Employee,1988-12-10,35,9123456789,,400000,2019-06-01,END01,2026-08-19,employee_addition,,,
+    """
+
+    tmp_path = Path.join(System.tmp_dir!(), "missing_email_end_#{policy.id}.csv")
+    File.write!(tmp_path, csv_content)
+
+    assert_raise RuntimeError, ~r/Invalid data: Email Address is missing for record/, fn ->
+      DataUploadService.process_upload(
+        policy.id,
+        "Endorsement Data",
+        "Missing Email",
+        tmp_path,
+        "missing_email_end.csv"
+      )
+    end
+  end
+
+  test "is_testuser syncs from MasterInceptionDataUpload to TrnMappingLiveEmployee on upload", %{
+    policy: policy
+  } do
+    csv_content = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ
+    EMP888,Test Inception,Male,Employee,1990-01-01,34,9876543210,test@example.com,500000,2020-01-01
+    """
+
+    tmp_path = Path.join(System.tmp_dir!(), "inception_sync_#{policy.id}.csv")
+    File.write!(tmp_path, csv_content)
+
+    # First upload (creates records with is_testuser = 0)
+    {:ok, _} =
+      DataUploadService.process_upload(
+        policy.id,
+        "Inception Data",
+        "First",
+        tmp_path,
+        "inception.csv"
+      )
+
+    # Assert initial is_testuser is 0
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP888")
+    assert emp.is_testuser == 0
+
+    # Simulate manual setting of is_testuser in master table
+    Repo.update_all(MasterInceptionDataUpload, set: [is_testuser: 1])
+
+    # Re-upload (updates trn_mapping_live_employees and triggers sync)
+    {:ok, _} =
+      DataUploadService.process_upload(
+        policy.id,
+        "Inception Data",
+        "Second",
+        tmp_path,
+        "inception.csv"
+      )
+
+    # Assert synced is_testuser is now 1
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP888")
+    assert emp.is_testuser == 1
+  end
+
+  test "is_testuser syncs from MasterEndorsementDataUpload to TrnMappingLiveEmployee on upload",
+       %{policy: policy} do
+    csv_content = """
+    Employee Code,Employee Name,Gender,Relationship,DOB,Age,Mobile,Email,Sum Insured,DOJ,Endorsement No,Endorsement Date,Endorsement Type,Date of Leaving,Card No,Designation
+    EMP999,Test Endorsement,Male,Employee,1990-01-01,34,9876543210,test@example.com,500000,2020-01-01,END01,2026-08-19,employee_addition,,,
+    """
+
+    tmp_path = Path.join(System.tmp_dir!(), "endorsement_sync_#{policy.id}.csv")
+    File.write!(tmp_path, csv_content)
+
+    # First upload (creates records with is_testuser = 0)
+    {:ok, _} =
+      DataUploadService.process_upload(
+        policy.id,
+        "Endorsement Data",
+        "First",
+        tmp_path,
+        "endorsement.csv"
+      )
+
+    # Assert initial is_testuser is 0
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP999")
+    assert emp.is_testuser == 0
+
+    # Simulate manual setting of is_testuser in master table
+    Repo.update_all(MasterEndorsementDataUpload, set: [is_testuser: 1])
+
+    # Re-upload (updates trn_mapping_live_employees and triggers sync)
+    {:ok, _} =
+      DataUploadService.process_upload(
+        policy.id,
+        "Endorsement Data",
+        "Second",
+        tmp_path,
+        "endorsement.csv"
+      )
+
+    # Assert synced is_testuser is now 1
+    emp = Repo.get_by!(TrnMappingLiveEmployee, employee_code: "EMP999")
+    assert emp.is_testuser == 1
+  end
 end

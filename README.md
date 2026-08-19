@@ -133,26 +133,29 @@ mix deps.get
 mix ecto.create
 mix phx.server
 
-## 14. 2Factor SMS OTP Configuration & Employee Test Users
+## 14. Brevo SMTP Mailer OTP Configuration, Upload Validation & Test Users
 
-To enable SMS sending for production employees on the Employee Portal, you must define the following environment variables:
+To enable transactional email sending (including OTP emails for production employees on the Employee Portal), you must define the following environment variables:
 
 ```bash
-# Required: Your 2Factor API Key
-TWO_FACTOR_API_KEY=your_api_key_here
+# Required: Your Brevo API Key
+BREVO_API_KEY=xkeysib-...
 
-# Optional: Custom DLT template name configured in 2Factor portal
-TWO_FACTOR_TEMPLATE_NAME=your_dlt_template_name
+# Required: The sender address configured in your Brevo account
+SENDER_EMAIL=your_sender_email@example.com
 ```
 
-These variables can be defined in a `.env` file in the project root. In development, the application loads `.env` variables automatically during boot.
+These variables can be defined in a `.env` file in the project root. In development, the application loads `.env` variables automatically during boot. If `BREVO_API_KEY` is not set, the mailer defaults to the local sandbox mailbox at `/dev/mailbox` in development.
+
+### Mandatory CSV Email Validation
+During the CSV upload wizard in Step 4 (Data Upload), the `Email` address column is strictly **mandatory** for both **Inception Data** and **Endorsement Data** uploads. Uploads containing records with empty email values will raise a validation exception and be aborted automatically.
 
 ### Test User OTP Bypass
-Employees configured with `is_testuser = 1` in `trn_mapping_live_employees` will bypass 2Factor API calls and can authenticate using the default OTP `"123456"`. This value is shown on-screen/in the flash during local testing.
+Employees configured with `is_testuser = 1` in `trn_mapping_live_employees` bypass mailer sending and authenticate using the default test OTP `"123456"`. This value is shown on-screen in the flash during local testing.
 
 ### Running Tests
-To run the OTP client and authentication tests:
+To run the authentication and upload tests:
 ```bash
-mix test test/corporate_policy/two_factor_client_test.exs
 mix test test/corporate_policy_web/employee_session_controller_test.exs
+mix test test/corporate_policy/data_upload_service_test.exs
 ```

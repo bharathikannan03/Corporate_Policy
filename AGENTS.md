@@ -173,12 +173,13 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 
 ---
 
-## 11. Employee Portal OTP Authentication & Test Users
+## 11. Employee Portal OTP Authentication, Test Users & Upload Validation
 
 - **Test User Flag**: The `is_testuser` column (integer, `0` or `1`, defaulting to `0`) is supported on `trn_mapping_live_employees`, `master_inception_data_uploads`, and `master_endorsement_data_uploads`.
 - **Synchronization**: Syncing `is_testuser = 1` to the live employee table (`trn_mapping_live_employees`) happens automatically during the upload process (handled in `save_trn_mapping_live_employees`). The sync resolves the value from the master upload tables and preserves it for existing live records.
 - **Branching Login Flow**:
-  - **Test Users (`is_testuser == 1`)**: Bypasses the SMS API and uses the default OTP `"123456"`. The OTP is displayed on-screen/in the flash.
-  - **Production Employees (`is_testuser == 0`)**: Generates a secure random 6-digit OTP code and dispatches it via the 2Factor SMS API. The OTP is not exposed in the flash/UI.
-- **SMS API Integration**: Handled by `CorporatePolicy.TwoFactorClient` powered by the `Req` library. Requires `TWO_FACTOR_API_KEY` and optional `TWO_FACTOR_TEMPLATE_NAME` configured in the system environment.
+  - **Test Users (`is_testuser == 1`)**: Bypasses the mailer and uses the default OTP `"123456"`. The OTP is displayed on-screen/in the flash.
+  - **Production Employees (`is_testuser == 0`)**: Generates a secure random 6-digit OTP code and dispatches it via email to their registered email address using `CorporatePolicy.Mailer` (Brevo API). The OTP is not exposed in the flash/UI.
+- **Email Mailer Integration**: Powered by Swoosh. Requires `BREVO_API_KEY` and `SENDER_EMAIL` configured in the system environment variables. Falls back to a local mailbox in development (`/dev/mailbox`) if no API key is set.
+- **Mandatory CSV Email Validation**: In Step 4 Data Upload (for both Inception and Endorsement CSV uploads), the `Email` address field is strictly mandatory for all rows. A missing or blank email address will raise a runtime exception and abort/rollback the entire database transaction.
 

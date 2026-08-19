@@ -51,7 +51,8 @@ lib/
   corporate_policy/             # Shared Domain Contexts & APIs
     accounts/
       user.ex
-    two_factor_client.ex        # 2Factor SMS Client Integration
+    emails.ex                   # Email Construction (Welcome and OTP templates)
+    mailer.ex                   # Swoosh Mailer dispatch module
     employee_portal.ex          # Employee Auth & Portal Queries
 priv/
   repo/

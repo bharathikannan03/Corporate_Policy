@@ -102,6 +102,14 @@ defmodule CorporatePolicy.EmployeePortal do
     @default_otp
   end
 
+  def generate_secure_otp do
+    :crypto.strong_rand_bytes(3)
+    |> :binary.decode_unsigned()
+    |> rem(900_000)
+    |> Kernel.+(100_000)
+    |> to_string()
+  end
+
   def default_otp?, do: true
   def default_otp, do: @default_otp
 

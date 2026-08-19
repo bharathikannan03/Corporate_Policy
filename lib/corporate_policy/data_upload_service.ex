@@ -94,6 +94,12 @@ defmodule CorporatePolicy.DataUploadService do
       code = clean_string(emp_code)
 
       if code != "" do
+        email_val = clean_string(email)
+
+        if email_val == "" do
+          raise "Invalid data: Email Address is missing for record (Employee Code: #{code}). Upload aborted."
+        end
+
         Repo.insert!(%MasterInceptionDataUpload{
           ref_policy_id: policy_id,
           employee_code: code,
@@ -103,7 +109,7 @@ defmodule CorporatePolicy.DataUploadService do
           dob: clean_string(dob),
           age: parse_int(age),
           mobile_number: clean_string(mobile),
-          email: clean_string(email),
+          email: email_val,
           sum_insured: parse_float(sum_insured),
           doj: clean_string(Enum.at(rest, 0))
         })
@@ -136,6 +142,10 @@ defmodule CorporatePolicy.DataUploadService do
 
       if emp_code != "" do
         normalized_endorsement_type = normalize_endorsement_type!(end_type)
+
+        if email == "" do
+          raise "Invalid data: Email Address is missing for record (Employee Code: #{emp_code}). Upload aborted."
+        end
 
         Repo.insert!(%MasterEndorsementDataUpload{
           ref_policy_id: policy_id,
@@ -256,6 +266,50 @@ defmodule CorporatePolicy.DataUploadService do
           })
         else
           # Standard Addition / Upsert
+          import Ecto.Query, only: [from: 2]
+
+          is_testuser_inception =
+            Repo.one(
+              from m in MasterInceptionDataUpload,
+                where:
+                  m.ref_policy_id == ^policy_id and
+                    m.employee_code == ^emp_code and
+                    m.relationship == ^relationship_value,
+                select: m.is_testuser,
+                limit: 1
+            ) || 0
+
+          is_testuser_endorsement =
+            Repo.one(
+              from m in MasterEndorsementDataUpload,
+                where:
+                  m.ref_policy_id == ^policy_id and
+                    m.employee_code == ^emp_code and
+                    m.relationship == ^relationship_value and
+                    m.is_testuser == 1,
+                select: 1,
+                limit: 1
+            ) || 0
+
+          existing_live_is_testuser =
+            Repo.one(
+              from e in TrnMappingLiveEmployee,
+                where:
+                  e.ref_policy_id == ^policy_id and
+                    e.employee_code == ^emp_code and
+                    e.relationship == ^relationship_value,
+                select: e.is_testuser,
+                limit: 1
+            ) || 0
+
+          is_testuser_val =
+            cond do
+              existing_live_is_testuser == 1 -> 1
+              is_testuser_inception == 1 -> 1
+              is_testuser_endorsement == 1 -> 1
+              true -> 0
+            end
+
           attrs = %{
             ref_policy_id: policy_id,
             ref_corporate_id: corporate_id,
@@ -281,7 +335,8 @@ defmodule CorporatePolicy.DataUploadService do
             updated_by: effective_user,
             inserted_at: now_naive,
             updated_at: now_naive,
-            deleted_at: nil
+            deleted_at: nil,
+            is_testuser: is_testuser_val
           }
 
           Repo.insert!(

@@ -79,13 +79,6 @@ defmodule CorporatePolicyWeb.Employee.EmployeeSessionControllerTest do
         updated_by: user.id
       })
 
-    # Save original config
-    original_config = Application.get_env(:corporate_policy, :two_factor)
-
-    on_exit(fn ->
-      Application.put_env(:corporate_policy, :two_factor, original_config)
-    end)
-
     {:ok, policy: policy, corporate: corporate}
   end
 

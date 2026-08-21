@@ -79,6 +79,18 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure Oban background job processing
+config :corporate_policy, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [default: 10, uploads: 5],
+  repo: CorporatePolicy.Repo,
+  plugins: [
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 0 * * *", CorporatePolicy.Workers.PolicyExpiryWorker}
+     ]}
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

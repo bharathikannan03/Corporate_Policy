@@ -183,3 +183,29 @@ The project utilizes Tailwind CSS v4 alongside daisyUI plugins for system-wide v
 - **Email Mailer Integration**: Powered by Swoosh. Requires `BREVO_API_KEY` and `SENDER_EMAIL` configured in the system environment variables. Falls back to a local mailbox in development (`/dev/mailbox`) if no API key is set.
 - **Mandatory CSV Email Validation**: In Step 4 Data Upload (for both Inception and Endorsement CSV uploads), the `Email` address field is strictly mandatory for all rows. A missing or blank email address will raise a runtime exception and abort/rollback the entire database transaction.
 
+---
+
+## 12. Oban Background Job Processing, PubSub & Central Sample Documents
+
+### Oban Setup & Configuration
+- **PostgreSQL Adapter**: Oban is configured with PostgreSQL and migrations are verified up to version 14.
+- **Queues**:
+  - `default` (concurrency: 10): Default background processes.
+  - `uploads` (concurrency: 5): Processes heavy file and data parsing/validation.
+- **Scheduler**: The cron plugin executes `PolicyExpiryWorker` at `0 0 * * *` daily.
+
+### Background Job Workers
+- **Policy Expiry (`PolicyExpiryWorker`)**: Identifies expired active policies based on the current date, updating their status to `3` (Expired). Safe for idempotent repeats.
+- **CSV Data Imports (`CsvImportWorker`)**: Runs Step 4 imports (Inception/Endorsement data) within Ecto transactions. Gracefully handles errors, truncating descriptions to 99 chars before updating the upload remark.
+- **CD Statement Imports (`CdStatementImportWorker`)**: Runs CD Statement ledger imports, logging row-level validation errors into `master_cdstatement_upload_errors`.
+
+### PubSub Progress System
+- LiveViews subscribe to their respective portal channels:
+  - `"policy_uploads:#{policy_id}"` for Step 4 Wizard updates.
+  - `"cd_uploads:#{policy_id}"` for CD Statement ledger uploads.
+- The backend workers broadcast progress maps containing `upload_id`, `status` (Processing, Success, Failed), and `progress` (0-100%).
+
+### Central Sample Documents
+- Managed in `CorporatePolicy.Policies.SampleDocuments` mapping document types (e.g. GMC, GPA, CD Statement) to templates stored under `priv/static/uploads/samples/`.
+
+

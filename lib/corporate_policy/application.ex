@@ -16,6 +16,7 @@ defmodule CorporatePolicy.Application do
       # {CorporatePolicy.Worker, arg},
       CorporatePolicy.Emails.MailQueue,
       CorporatePolicy.RateLimiter,
+      {Oban, Application.fetch_env!(:corporate_policy, Oban)},
       # Start to serve requests, typically the last entry
       CorporatePolicyWeb.Endpoint
     ]

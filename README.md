@@ -154,8 +154,19 @@ During the CSV upload wizard in Step 4 (Data Upload), the `Email` address column
 Employees configured with `is_testuser = 1` in `trn_mapping_live_employees` bypass mailer sending and authenticate using the default test OTP `"123456"`. This value is shown on-screen in the flash during local testing.
 
 ### Running Tests
-To run the authentication and upload tests:
+To run the full test suite including the background processing and worker tests:
 ```bash
-mix test test/corporate_policy_web/employee_session_controller_test.exs
-mix test test/corporate_policy/data_upload_service_test.exs
+mix test
 ```
+
+## 15. Oban Background Processing & PubSub Progress System
+
+The application processes file uploads and expiration checks in the background using **Oban**:
+
+### Background Workers
+* `CorporatePolicy.Workers.PolicyExpiryWorker`: Scans active policies nightly and marks expired policies as status `3` (Expired). Configured via `Oban` cron scheduler in `config/config.exs`.
+* `CorporatePolicy.Workers.CsvImportWorker`: Imports Inception/Endorsement CSV data in the background, validating email requirements in transaction blocks and saving details to the database.
+* `CorporatePolicy.Workers.CdStatementImportWorker`: Imports CD statement ledgers in the background, tracking errors in the database errors table.
+
+### PubSub real-time progress
+LiveViews subscribe to channels (`"policy_uploads:#{policy_id}"` and `"cd_uploads:#{policy_id}"`) to render interactive progress bars using `{:upload_update, %{upload_id: id, status: status, progress: percent}}` PubSub messages.

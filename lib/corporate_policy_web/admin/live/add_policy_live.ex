@@ -44,8 +44,33 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
         :active_path,
         if(edit_mode, do: "/admin/policy-details", else: "/admin/policy-details/add")
       )
+      |> assign(:upload_progresses, %{})
+
+    if policy do
+      if connected?(socket) do
+        Phoenix.PubSub.subscribe(CorporatePolicy.PubSub, "policy_uploads:#{policy.id}")
+      end
+    end
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_info(
+        {:upload_update, %{upload_id: upload_id, status: status, progress: progress}},
+        socket
+      ) do
+    progresses = Map.put(socket.assigns.upload_progresses || %{}, upload_id, progress)
+
+    socket =
+      socket
+      |> assign(:upload_progresses, progresses)
+
+    if status in [2, 3] do
+      send_update(Step4DataUploadComponent, id: "step4", reload_uploads: true)
+    end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -183,6 +208,8 @@ defmodule CorporatePolicyWeb.Admin.AddPolicyLive do
                   id="step4"
                   policy={@policy}
                   edit_mode={@edit_mode}
+                  upload_progresses={@upload_progresses}
+                  current_user={@current_user}
                 />
               <% :step5 -> %>
                 <.live_component

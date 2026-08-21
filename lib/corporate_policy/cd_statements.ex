@@ -332,6 +332,45 @@ defmodule CorporatePolicy.CdStatements do
     end
   end
 
+  def create_policy_cd_statement_upload_background(policy, attrs, file_info, user_id) do
+    with {:ok, corporate_id} <- parse_int(attrs["corporate_id"], "Corporate is required"),
+         cd_number when cd_number != "" <- normalize_string(attrs["cd_number"]),
+         :ok <- validate_policy_belongs_to_corporate(policy, corporate_id),
+         %MasterCdAccount{} = cd_account <-
+           get_cd_account_by_corporate_and_number(corporate_id, cd_number) do
+      Repo.transaction(fn ->
+        upload =
+          %MasterPolicyCdStatement{}
+          |> MasterPolicyCdStatement.changeset(%{
+            corporate_name: policy.corporate_name,
+            corporate_id: corporate_id,
+            cd_number: cd_number,
+            cd_account_id: cd_account.id,
+            data_upload_file: file_info.public_path,
+            original_file_name: file_info.original_file_name,
+            policy_id: policy.id,
+            is_dataupload: true,
+            # Pending/Queued
+            status: 0,
+            created_by: user_id,
+            updated_by: user_id
+          })
+          |> Repo.insert!()
+
+        # Queue background Oban job
+        %{"upload_id" => upload.id, "user_id" => user_id}
+        |> CorporatePolicy.Workers.CdStatementImportWorker.new()
+        |> Oban.insert!()
+
+        upload
+      end)
+    else
+      "" -> {:error, "CD number is required"}
+      nil -> {:error, "No CD number exists for the selected corporate"}
+      {:error, _} = error -> error
+    end
+  end
+
   def create_cd_statement_upload(attrs, file_info, user_id) do
     with {:ok, corporate_id} <- parse_int(attrs["corporate_id"], "Corporate is required"),
          cd_number when cd_number != "" <- normalize_string(attrs["cd_number"]),
@@ -349,6 +388,130 @@ defmodule CorporatePolicy.CdStatements do
       "" -> {:error, "CD number is required"}
       nil -> {:error, "No CD number exists for the selected corporate"}
       {:error, _} = error -> error
+    end
+  end
+
+  def create_cd_statement_upload_background(attrs, file_info, user_id) do
+    with {:ok, corporate_id} <- parse_int(attrs["corporate_id"], "Corporate is required"),
+         cd_number when cd_number != "" <- normalize_string(attrs["cd_number"]),
+         %MasterCdAccount{} = cd_account <-
+           get_cd_account_by_corporate_and_number(corporate_id, cd_number),
+         {:ok, policy} <- get_cd_account_policy(cd_account),
+         :ok <- validate_policy_belongs_to_corporate(policy, corporate_id) do
+      create_policy_cd_statement_upload_background(
+        policy,
+        %{"corporate_id" => corporate_id, "cd_number" => cd_number},
+        file_info,
+        user_id
+      )
+    else
+      "" -> {:error, "CD number is required"}
+      nil -> {:error, "No CD number exists for the selected corporate"}
+      {:error, _} = error -> error
+    end
+  end
+
+  def process_cd_statement_upload_file(upload, absolute_path, user_id, progress_callback) do
+    policy = Policies.get_policy_with_wizard_preloads!(upload.policy_id)
+
+    Repo.transaction(fn ->
+      {valid_rows, errors} =
+        parse_and_validate_csv_with_progress(
+          absolute_path,
+          policy,
+          upload,
+          user_id,
+          progress_callback
+        )
+
+      Enum.each(valid_rows, fn row_attrs ->
+        %MasterCdStatementDataUpload{}
+        |> MasterCdStatementDataUpload.changeset(row_attrs)
+        |> Repo.insert!()
+      end)
+
+      Enum.each(errors, fn error_attrs ->
+        %MasterCdStatementUploadError{}
+        |> MasterCdStatementUploadError.changeset(error_attrs)
+        |> Repo.insert!()
+      end)
+
+      status = if errors == [], do: 1, else: 2
+
+      upload =
+        upload
+        |> Ecto.Changeset.change(status: status, updated_by: user_id)
+        |> Repo.update!()
+
+      mark_section_completion(policy.id, user_id, status == 1)
+
+      %{upload: upload, imported_rows: length(valid_rows), errors_count: length(errors)}
+    end)
+    |> case do
+      {:ok, result} -> result
+      {:error, reason} -> raise reason
+    end
+  end
+
+  defp parse_and_validate_csv_with_progress(file_path, policy, upload, user_id, progress_callback) do
+    lines =
+      file_path
+      |> File.stream!()
+      |> Enum.map(&String.trim_trailing(&1, "\n"))
+      |> Enum.reject(&(&1 == ""))
+
+    case lines do
+      [] ->
+        {[], [build_error(upload.id, 1, "file", "CSV file is empty")]}
+
+      [header_line | row_lines] ->
+        headers =
+          header_line
+          |> CSVParser.parse_line()
+          |> Enum.map(&normalize_header/1)
+
+        if headers != @required_headers do
+          {[],
+           [
+             build_error(
+               upload.id,
+               1,
+               "header",
+               "Invalid CSV headers. Download the sample template and try again."
+             )
+           ]}
+        else
+          total = length(row_lines)
+
+          row_lines
+          |> Enum.with_index()
+          |> Enum.reduce({[], []}, fn {line, idx}, {valid_rows, errors} ->
+            row_number = idx + 2
+
+            row =
+              line
+              |> CSVParser.parse_line()
+              |> Enum.zip(headers)
+              |> Enum.into(%{}, fn {value, key} -> {key, String.trim(value)} end)
+
+            result =
+              case validate_csv_row(row, row_number, policy, upload, user_id) do
+                {:ok, attrs} -> {[attrs | valid_rows], errors}
+                {:error, row_errors} -> {valid_rows, row_errors ++ errors}
+              end
+
+            if progress_callback do
+              percent = round((idx + 1) / total * 100)
+
+              if rem(idx, max(1, div(total, 10))) == 0 or percent == 100 do
+                progress_callback.(percent)
+              end
+            end
+
+            result
+          end)
+          |> then(fn {valid_rows, errors} -> {Enum.reverse(valid_rows), Enum.reverse(errors)} end)
+        end
     end
   end
 

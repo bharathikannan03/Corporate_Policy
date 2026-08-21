@@ -7,16 +7,25 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
   @impl true
   def update(assigns, socket) do
     uploads_list =
-      if assigns[:policy] do
-        Policies.list_data_uploads_for_policy(assigns.policy.id)
-      else
-        []
+      cond do
+        assigns[:reload_uploads] ->
+          Policies.list_data_uploads_for_policy(socket.assigns.policy.id)
+
+        assigns[:policy] ->
+          Policies.list_data_uploads_for_policy(assigns.policy.id)
+
+        true ->
+          socket.assigns[:uploads_list] || []
       end
 
     socket =
       socket
       |> assign(assigns)
       |> assign(:uploads_list, uploads_list)
+      |> assign(
+        :upload_progresses,
+        assigns[:upload_progresses] || socket.assigns[:upload_progresses] || %{}
+      )
       |> assign(:error_message, nil)
       |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
       |> allow_upload(:data_file, accept: ~w(.csv .pdf .zip), max_entries: 1)
@@ -52,17 +61,18 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
       case uploaded_files do
         [file_info] ->
           try do
-            CorporatePolicy.DataUploadService.process_upload(
+            CorporatePolicy.DataUploadService.process_upload_background(
               policy_id,
               data_type,
               remark,
               file_info.file_path,
-              file_info.original_file_name
+              file_info.original_file_name,
+              socket.assigns.current_user.id
             )
 
             uploads_list = Policies.list_data_uploads_for_policy(policy_id)
 
-            send(self(), {:put_flash, :info, "Data uploaded successfully."})
+            send(self(), {:put_flash, :info, "Data upload initiated in the background."})
 
             {:noreply,
              socket
@@ -70,7 +80,7 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
              |> assign_uploads_page(uploads_list)
              |> assign(:error_message, nil)
              |> assign(:form, to_form(%{"data_type" => "", "remark" => ""}))
-             |> put_flash(:info, "Data uploaded successfully.")}
+             |> put_flash(:info, "Data upload initiated in the background.")}
           rescue
             e ->
               require Logger
@@ -180,6 +190,24 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
                   <option value={type} selected={@form[:data_type].value == type}>{type}</option>
                 <% end %>
               </select>
+              
+              <%= if @form[:data_type].value != "" and not is_nil(@form[:data_type].value) do %>
+                <% type_key = @form[:data_type].value %>
+                <%= case CorporatePolicy.Policies.SampleDocuments.get_sample_document(type_key) do %>
+                  <% {:ok, doc} -> %>
+                    <div class="mt-2">
+                      <.link
+                        href={doc.path}
+                        download={doc.filename}
+                        class="link link-primary text-xs inline-flex items-center gap-1 font-semibold"
+                      >
+                        <.icon name="hero-arrow-down-tray" class="w-3.5 h-3.5" />
+                        Download Sample Document (CSV/Zip)
+                      </.link>
+                    </div>
+                  <% _ -> %>
+                <% end %>
+              <% end %>
               
               <p class="text-xs text-gray-400 mt-1">
                 Ecards allowed only for Health LOB (PDF/ZIP). Others must be CSV.
@@ -294,7 +322,32 @@ defmodule CorporatePolicyWeb.Admin.Step4DataUploadComponent do
                   <td>{upload.remark}</td>
                   
                   <td>
-                    <span class="badge badge-success badge-sm text-white border-none bg-green-500">Uploaded</span>
+                    <%= case Map.get(@upload_progresses, upload.id) do %>
+                      <% nil -> %>
+                        <%= case upload.status do %>
+                          <% 0 -> %>
+                            <span class="badge badge-ghost badge-sm border-none bg-gray-200">Queued</span>
+                          <% 1 -> %>
+                            <span class="badge badge-info badge-sm text-white border-none bg-blue-500">Processing</span>
+                          <% 2 -> %>
+                            <span class="badge badge-success badge-sm text-white border-none bg-green-500">Completed</span>
+                          <% 3 -> %>
+                            <span
+                              class="badge badge-error badge-sm text-white border-none bg-red-500"
+                              title={upload.remark}
+                            >Failed</span>
+                          <% _ -> %>
+                            <span class="badge badge-ghost badge-sm border-none bg-gray-200">Pending</span>
+                        <% end %>
+                      <% percent -> %>
+                        <div class="flex flex-col gap-1 w-24">
+                          <span class="badge badge-info badge-sm text-white border-none bg-blue-500">Processing ({percent}%)</span>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                            <div class="bg-blue-600 h-1.5 rounded-full" style={"width: #{percent}%"}>
+                            </div>
+                          </div>
+                        </div>
+                    <% end %>
                   </td>
                   
                   <td class="whitespace-nowrap">

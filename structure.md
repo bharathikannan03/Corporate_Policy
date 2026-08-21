@@ -54,9 +54,16 @@ lib/
     emails.ex                   # Email Construction (Welcome and OTP templates)
     mailer.ex                   # Swoosh Mailer dispatch module
     employee_portal.ex          # Employee Auth & Portal Queries
+    policies/
+      sample_documents.ex       # Central templates mapping module
+    workers/
+      policy_expiry_worker.ex   # Oban background worker for policy expiry
+      csv_import_worker.ex      # Oban background worker for CSV parsing
+      cd_statement_import_worker.ex # Oban background worker for CD ledger parsing
 priv/
   repo/
     migrations/
       20260709010101_create_users.exs
       20260819074720_add_is_testuser_to_trn_mapping_live_employees.exs
+      20260819131525_add_oban_jobs_table.exs
 ```

@@ -49,6 +49,7 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
       |> assign(:sort_dir, "desc")
       |> assign(:page, 1)
       |> assign(:selected_upload_errors, nil)
+      |> assign(:upload_progresses, %{})
       |> assign(
         :form,
         to_form(%{
@@ -58,6 +59,13 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
       )
       |> allow_upload(:cd_csv, accept: ~w(.csv), max_entries: 1, max_file_size: @max_csv_size)
       |> load_uploads()
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(
+        CorporatePolicy.PubSub,
+        "cd_uploads:#{(policy && policy.id) || "global"}"
+      )
+    end
 
     {:ok, socket}
   end
@@ -99,14 +107,14 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
         {:ok, socket, file_info} ->
           upload_result =
             if socket.assigns.policy do
-              CdStatements.create_policy_cd_statement_upload(
+              CdStatements.create_policy_cd_statement_upload_background(
                 socket.assigns.policy,
                 %{"corporate_id" => corporate_id, "cd_number" => cd_number},
                 file_info,
                 socket.assigns.current_user.id
               )
             else
-              CdStatements.create_cd_statement_upload(
+              CdStatements.create_cd_statement_upload_background(
                 %{"corporate_id" => corporate_id, "cd_number" => cd_number},
                 file_info,
                 socket.assigns.current_user.id
@@ -114,17 +122,10 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
             end
 
           case upload_result do
-            {:ok, %{errors_count: 0}} ->
+            {:ok, _upload} ->
               {:noreply,
                socket
-               |> put_flash(:info, "CD Statement uploaded successfully.")
-               |> assign(:page, 1)
-               |> load_uploads()}
-
-            {:ok, %{errors_count: count}} ->
-              {:noreply,
-               socket
-               |> put_flash(:error, "CD Statement uploaded with #{count} validation errors.")
+               |> put_flash(:info, "CD Statement upload initiated in the background.")
                |> assign(:page, 1)
                |> load_uploads()}
 
@@ -184,6 +185,27 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
   @impl true
   def handle_event("close_errors", _, socket) do
     {:noreply, assign(socket, :selected_upload_errors, nil)}
+  end
+
+  @impl true
+  def handle_info(
+        {:upload_update, %{upload_id: upload_id, status: status, progress: progress}},
+        socket
+      ) do
+    progresses = Map.put(socket.assigns.upload_progresses || %{}, upload_id, progress)
+
+    socket =
+      socket
+      |> assign(:upload_progresses, progresses)
+
+    socket =
+      if status in [1, 2] do
+        load_uploads(socket)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   defp load_uploads(socket) do
@@ -350,8 +372,9 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                   
                   <div class="w-full lg:max-w-3xl">
                     <div class="flex items-center justify-between mb-2">
-                      <label class="corp-label">CD Statement Data Upload</label>
-                      <.link href="/templates/cd_ledger.csv" download class="btn btn-sm btn-primary">
+                      <label class="corp-label">CD Statement Data Upload</label> <% {:ok, doc} =
+                        CorporatePolicy.Policies.SampleDocuments.get_sample_document("CD Statement") %>
+                      <.link href={doc.path} download={doc.filename} class="btn btn-sm btn-primary">
                         Download Sample CSV
                       </.link>
                     </div>
@@ -505,9 +528,23 @@ defmodule CorporatePolicyWeb.Admin.CdStatementUploadLive do
                             </td>
                             
                             <td class="corp-td">
-                              <span class={status_badge_class(upload.status)}>{status_label(
-                                upload.status
-                              )}</span>
+                              <%= case Map.get(@upload_progresses || %{}, upload.id) do %>
+                                <% nil -> %>
+                                  <span class={status_badge_class(upload.status)}>{status_label(
+                                    upload.status
+                                  )}</span>
+                                <% percent -> %>
+                                  <div class="flex flex-col gap-1 w-24">
+                                    <span class="badge badge-info badge-sm text-white border-none bg-blue-500">Processing ({percent}%)</span>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                                      <div
+                                        class="bg-blue-600 h-1.5 rounded-full"
+                                        style={"width: #{percent}%"}
+                                      >
+                                      </div>
+                                    </div>
+                                  </div>
+                              <% end %>
                             </td>
                             
                             <td class="corp-td whitespace-nowrap">

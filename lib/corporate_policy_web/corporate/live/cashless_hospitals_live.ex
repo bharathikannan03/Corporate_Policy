@@ -269,7 +269,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
         <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-gray-900">Cashless Hospitals</h2>
-            
+
             <p class="text-xs text-gray-500 mt-1">
               Showing cashless hospitals for TPA:
               <span class="font-semibold text-blue-600">{if @selected_policy &&
@@ -278,7 +278,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                                                             else: "N/A"}</span>
             </p>
           </div>
-          
+
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <form id="search-form" phx-change="search_table" class="relative max-w-xs w-full">
               <input
@@ -292,7 +292,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                 <.icon name="hero-magnifying-glass" class="w-4 h-4" />
               </div>
             </form>
-            
+
             <.link
               href={
                 ~p"/corporate/cashless-hospitals/export?tpa_id={@selected_policy && @selected_policy.ref_tpa_id}&search={@search}"
@@ -304,7 +304,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
             </.link>
           </div>
         </div>
-         <%!-- Table Display Card --%>
+        <%!-- Table Display Card --%>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div class="corp-table-card">
             <div class="overflow-x-auto">
@@ -312,25 +312,25 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                 <thead>
                   <tr>
                     <th class="corp-th">#</th>
-                    
+
                     <th class="corp-th">HOSPITAL NAME</th>
-                    
+
                     <th class="corp-th">TPA NAME</th>
-                    
+
                     <th class="corp-th">INSURER NAME</th>
-                    
+
                     <th class="corp-th">CITY</th>
-                    
+
                     <th class="corp-th">STATE</th>
-                    
+
                     <th class="corp-th">PINCODE</th>
-                    
+
                     <th class="corp-th">CONTACT DETAILS</th>
-                    
+
                     <th class="corp-th text-right">ADDRESS</th>
                   </tr>
                 </thead>
-                
+
                 <tbody id="cashless-hospitals-table-body">
                   <%= if Enum.empty?(@paginated_hospitals.entries) do %>
                     <tr class="corp-tr">
@@ -345,19 +345,19 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                     <%= for hospital <- @paginated_hospitals.entries do %>
                       <tr class="corp-tr border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td class="corp-td font-medium text-gray-700">{hospital.row_num}</td>
-                        
+
                         <td class="corp-td font-semibold text-gray-900">{hospital.hospital_name}</td>
-                        
+
                         <td class="corp-td text-gray-600">{hospital.tpa_name || "Internal TPA"}</td>
-                        
+
                         <td class="corp-td text-gray-600">{hospital.insurer_name}</td>
-                        
+
                         <td class="corp-td text-gray-700">{hospital.city || "-"}</td>
-                        
+
                         <td class="corp-td text-gray-700">{hospital.state || "-"}</td>
-                        
+
                         <td class="corp-td text-gray-500 font-mono">{hospital.pincode || "-"}</td>
-                        
+
                         <td class="corp-td">
                           <div class="flex flex-col text-xs space-y-1">
                             <%= if hospital.phone && hospital.phone != "" do %>
@@ -365,7 +365,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                                 <.icon name="hero-phone" class="w-3.5 h-3.5 text-gray-400 shrink-0" /> {hospital.phone}
                               </span>
                             <% end %>
-                            
+
                             <%= if hospital.email && hospital.email != "" do %>
                               <span
                                 class="flex items-center gap-1.5 text-gray-700 truncate max-w-[200px]"
@@ -377,13 +377,13 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                                 /> {hospital.email}
                               </span>
                             <% end %>
-                            
+
                             <%= if (is_nil(hospital.phone) || hospital.phone == "") && (is_nil(hospital.email) || hospital.email == "") do %>
                               <span class="text-gray-400">-</span>
                             <% end %>
                           </div>
                         </td>
-                        
+
                         <td
                           class="corp-td text-right text-gray-600 max-w-xs truncate"
                           title={hospital.hospital_address}
@@ -396,7 +396,7 @@ defmodule CorporatePolicyWeb.Corporate.CashlessHospitalsLive do
                 </tbody>
               </table>
             </div>
-             <%!-- Pagination --%>
+            <%!-- Pagination --%>
             <%= if @paginated_hospitals.total_pages > 1 do %>
               <.pagination
                 page={@paginated_hospitals.page}

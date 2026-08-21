@@ -232,15 +232,21 @@ defmodule CorporatePolicy.Repo.Migrations.AddMissingIndexesAndConstraints do
     # Custom short index names for mapping_policy_feature_templates_corporates_policies to prevent 63-char collisions
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:created_by], name: :mpftcp_created_by_idx)
+                           [:created_by],
+                           name: :mpftcp_created_by_idx
+                         )
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:updated_by], name: :mpftcp_updated_by_idx)
+                           [:updated_by],
+                           name: :mpftcp_updated_by_idx
+                         )
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:ref_coporate_id], name: :mpftcp_ref_coporate_id_idx)
+                           [:ref_coporate_id],
+                           name: :mpftcp_ref_coporate_id_idx
+                         )
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
@@ -256,15 +262,21 @@ defmodule CorporatePolicy.Repo.Migrations.AddMissingIndexesAndConstraints do
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:ref_policy_id], name: :mpftcp_ref_policy_id_idx)
+                           [:ref_policy_id],
+                           name: :mpftcp_ref_policy_id_idx
+                         )
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:ref_policyidentifier_id], name: :mpftcp_ref_policy_ident_idx)
+                           [:ref_policyidentifier_id],
+                           name: :mpftcp_ref_policy_ident_idx
+                         )
 
     create_if_not_exists index(
                            :mapping_policy_feature_templates_corporates_policies,
-                           [:ref_template_id], name: :mpftcp_ref_template_id_idx)
+                           [:ref_template_id],
+                           name: :mpftcp_ref_template_id_idx
+                         )
 
     create_if_not_exists index(:master_add_policies, [:created_by])
     create_if_not_exists index(:master_add_policies, [:updated_by])
@@ -463,11 +475,15 @@ defmodule CorporatePolicy.Repo.Migrations.AddMissingIndexesAndConstraints do
 
     drop_if_exists index(
                      :mapping_policy_feature_templates_corporates_policies,
-                     [:ref_coporate_id], name: :mpftcp_ref_coporate_id_idx)
+                     [:ref_coporate_id],
+                     name: :mpftcp_ref_coporate_id_idx
+                   )
 
     drop_if_exists index(
                      :mapping_policy_feature_templates_corporates_policies,
-                     [:ref_policy_feature_template_field_id], name: :mpftcp_ref_policy_field_idx)
+                     [:ref_policy_feature_template_field_id],
+                     name: :mpftcp_ref_policy_field_idx
+                   )
 
     drop_if_exists index(
                      :mapping_policy_feature_templates_corporates_policies,
@@ -481,11 +497,15 @@ defmodule CorporatePolicy.Repo.Migrations.AddMissingIndexesAndConstraints do
 
     drop_if_exists index(
                      :mapping_policy_feature_templates_corporates_policies,
-                     [:ref_policyidentifier_id], name: :mpftcp_ref_policy_ident_idx)
+                     [:ref_policyidentifier_id],
+                     name: :mpftcp_ref_policy_ident_idx
+                   )
 
     drop_if_exists index(
                      :mapping_policy_feature_templates_corporates_policies,
-                     [:ref_template_id], name: :mpftcp_ref_template_id_idx)
+                     [:ref_template_id],
+                     name: :mpftcp_ref_template_id_idx
+                   )
 
     drop_if_exists index(:mapping_policy_completions, [:completed_by])
 

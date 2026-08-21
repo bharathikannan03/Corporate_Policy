@@ -202,7 +202,9 @@ defmodule CorporatePolicy.DataCase do
 
     CorporatePolicy.Repo.insert_all(
       CorporatePolicy.Policies.MasterPolicyFeatureTemplate,
-      [template], on_conflict: :nothing)
+      [template],
+      on_conflict: :nothing
+    )
   end
 
   @doc """

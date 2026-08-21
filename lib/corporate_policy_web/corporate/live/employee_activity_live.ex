@@ -94,7 +94,7 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
         <div class="bg-white rounded-lg p-4 shadow-xs flex items-center justify-between border border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Employee Activity</h2>
         </div>
-         <%!-- Logs Display Card --%>
+        <%!-- Logs Display Card --%>
         <div class="bg-white rounded-xl shadow-xs border border-gray-200 p-6">
           <%!-- Centered Corporate Name & Export Button Bar --%>
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-100 mb-6 gap-4">
@@ -104,7 +104,7 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
                 <span class="text-slate-400 font-normal lowercase">(Financial Year: {@current_fy_name})</span>
               </h3>
             </div>
-            
+
             <div>
               <a
                 href={~p"/corporate/employee-activity/export"}
@@ -114,31 +114,31 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
               </a>
             </div>
           </div>
-          
+
           <div class="overflow-x-auto corp-table-card mb-4">
             <table class="corp-table">
               <thead>
                 <tr>
                   <th class="corp-th p-4 border-b text-left">SI NO</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">POLICY NUMBER</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">EMPLOYEE NAME</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">EMPLOYEE CODE</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">MOBILE NUMBER</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">EMAIL ID</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">ACTION</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">DEVICE TYPE</th>
-                  
+
                   <th class="corp-th p-4 border-b text-left">CREATED AT</th>
                 </tr>
               </thead>
-              
+
               <tbody>
                 <%= if Enum.empty?(@paginated_entries.entries) do %>
                   <tr>
@@ -152,37 +152,37 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
                       <td class="corp-td p-4 border-b font-medium text-slate-800">
                         {entry.si_no}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800 font-mono text-xs">
                         {entry.policy_number}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800 font-semibold">
                         {entry.employee_name}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.employee_code}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.mobile_number}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.email}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800">
                         <span class="px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-700">
                           {entry.action}
                         </span>
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800">
                         {entry.device_type}
                       </td>
-                      
+
                       <td class="corp-td p-4 border-b text-slate-800 text-xs">
                         {format_datetime(entry.created_at)}
                       </td>
@@ -192,7 +192,7 @@ defmodule CorporatePolicyWeb.Corporate.EmployeeActivityLive do
               </tbody>
             </table>
           </div>
-          
+
           <.pagination
             page={@paginated_entries.page}
             page_size={@paginated_entries.page_size}

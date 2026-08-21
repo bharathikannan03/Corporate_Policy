@@ -9,9 +9,9 @@ defmodule CorporatePolicy.Corporates.Corporate do
     field :corporate_name, :string
     field :coporate_contact_email, :string
     field :corporate_landline, :string
-    field :ref_master_pincode_pincode_id, :integer, default: 0
-    field :ref_master_city_city_id, :integer, default: 0
-    field :ref_master_state_state_id, :integer, default: 0
+    field :ref_master_pincode_pincode_id, :integer
+    field :ref_master_city_city_id, :integer
+    field :ref_master_state_state_id, :integer
     field :corporate_address, :string
     field :corporate_group_code, :string
     field :industry_type, :string
